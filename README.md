@@ -4,7 +4,7 @@ Lektüren lesen und verstehen, Textstellen untersuchen und Notizen sammeln. Für
 
 Der sichtbare Name ist seit Version 0.2.2 **Buchtutor**. Die bestehende Vercel-Adresse und lokale Speicherkennungen bleiben erhalten, damit vorhandene Lesedaten weiter verfügbar sind. Neue Sicherungen enden auf `.buchtutor`; auch bisherige `.leseraum`-Dateien lassen sich importieren. Das Binärformat bleibt unverändert.
 
-Die Vektormarke und Icons werden aus `lib/brand.ts` mit `npm run build:brand` erzeugt. Die gerasterten Icons sind eingecheckte statische Dateien; Sharp wird über Next.js bereitgestellt. Der Web-App-Name und das iPad-Startbildschirm-Icon sind vorbereitet. Das Manifest bietet keine Offline-Garantie.
+Die Vektormarke, Icons und die Social-Linkvorschau werden aus `lib/brand.ts` mit `npm run build:brand` erzeugt. Die gerasterten Bilder sind eingecheckte statische Dateien; Sharp wird über Next.js bereitgestellt. Der Web-App-Name und das iPad-Startbildschirm-Icon sind vorbereitet. Das Manifest bietet keine Offline-Garantie.
 
 ## Start und Prüfungen
 
@@ -33,14 +33,14 @@ Der optionale Cloud-Test benötigt die lokal geladenen Redis-Variablen. Er nutzt
 node --env-file=.env.local --import tsx tests/cloud.integration.ts
 ```
 
-Auswahl-Regressionen gegen einen laufenden Entwicklungsserver auf Port 3001:
+Auswahl-, Lesezeichen- und Teilen-Prüfungen gegen einen laufenden Server auf Port 3001:
 
 ```powershell
 npx playwright install chromium webkit
 npm run test:selection
 ```
 
-`PLAYWRIGHT_BASE_URL` kann eine andere Test-URL setzen. Die Browserprüfungen fangen Modellanfragen ab und verbrauchen kein KI-Guthaben. 37 Prüfungen decken Chromium am Desktop/Handy und WebKit in iPad-Hoch-/Querformat ab; drei ausschließlich für die Maus bestimmte Kombinationen werden auf Touch-Profilen übersprungen. Native OS-Auswahlgriffe benötigen zusätzlich einen echten Gerätetest.
+`PLAYWRIGHT_BASE_URL` kann eine andere Test-URL setzen. Die Browserprüfungen fangen Modellanfragen ab und verbrauchen kein KI-Guthaben. 61 Prüfungen decken Chromium am Desktop/Handy und WebKit in iPad-Hoch-/Querformat ab; drei ausschließlich für die Maus bestimmte Kombinationen werden auf Touch-Profilen übersprungen. Dazu gehören der verschlüsselte Gerätewechsel mit Lesezeichen, die automatische Leseposition, native Freigabe mit simulierter Browser-Schnittstelle, Linkvorschauen, 404 und Bedienflächen bei 320 px. Native OS-Auswahlgriffe benötigen zusätzlich einen echten Gerätetest.
 
 ## Implementiert
 
@@ -48,6 +48,10 @@ npm run test:selection
 - Fokusmodus; getrennt schließbares Inhaltsverzeichnis und Lesehilfe; anpassbare Schrift, Abstände, Hell/Warm/Nacht.
 - Native Textauswahl mit stabiler Übergabe an Notizen/Analysen; Markierstift für Anfang/Ende per Antippen, auch auf dem Handy. Kopieren enthält nur den kanonischen Lesetext. Mehrere Notizen/Analysen einer Stelle bleiben einzeln erreichbar.
 - Persönliche Notizen, Lesezeichen, Einstellungen, Lesestand und gespeicherte KI-Antworten in IndexedDB.
+- Lesezeichen lassen sich in der festen Leseleiste und für ausgewählte Passagen setzen und entfernen. Unter „Meine Notizen“ gibt es einen Lesezeichenfilter.
+- „Automatisches Lesezeichen“ in den Leseeinstellungen steuert das Merken und Wiederöffnen der letzten Lesestelle. Bei älteren Daten bleibt es standardmäßig eingeschaltet. Manuelle Lesezeichen und der Schalter werden mit der verschlüsselten Sicherung übertragen; das vorhandene Sicherungsformat bleibt kompatibel.
+- Eigenes Teilen-Menü mit Web Share, Kopierfunktion und direkten Links zu WhatsApp, Telegram, Facebook und E-Mail. Geteilt werden Werk-/Abschnitts-/Textanker-Links, keine persönlichen Einträge. Open Graph und Twitter Cards verwenden die Buchtutor-Grafik und den Werktitel.
+- Eigene 404-Seite für unbekannte Adressen und nicht vorhandene Werke/Abschnitte, mit Rückweg zur Bibliothek und zum Notizbuch.
 - Komprimierte AES-256-GCM-Sicherungsdateien mit Passwort, Importvorschau, Zusammenführen und Konfliktkopien. Das ist manuelle Übertragung, keine automatische Synchronisation.
 - Unverschlüsselter Markdown-Export als separate Funktion.
 - Zehn ImageGen-Cover und neun Figuren-Porträttafeln. Namen, Beziehungen, Quellen und Auswahl sind echte UI; keine eingebrannten Beschriftungen.

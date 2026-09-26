@@ -1,5 +1,7 @@
 export const brand={
   name:'Buchtutor',
+  url:'https://www.buchtutor.de',
+  shareImage:'/brand/buchtutor-share.png',
   description:'Lektüren lesen, Textstellen verstehen und eigene Notizen sammeln. Für Deutsch in der Oberstufe.',
   ink:'#263d37',
   accent:'#bb6948',

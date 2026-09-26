@@ -13,4 +13,18 @@ await writeFile('public/favicon.svg',favicon+'\n');
 await writeFile('public/brand/buchtutor-mark.svg',markSvg+'\n');
 await sharp(Buffer.from(appIcon)).resize(180,180).png().toFile('app/apple-icon.png');
 for(const size of [192,512])await sharp(Buffer.from(appIcon)).resize(size,size).png().toFile(`public/brand/buchtutor-${size}.png`);
-console.log('Buchtutor: SVG mark, favicon and 180/192/512 px app icons generated.');
+const shareCard=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="${brand.paper}"/>
+  <rect x="0" y="0" width="14" height="630" fill="${brand.accent}"/>
+  <g transform="translate(76 96) scale(1.3)">${mark(brand.ink,brand.accent)}</g>
+  <g font-family="Segoe UI,Arial,sans-serif" fill="${brand.ink}">
+    <text x="182" y="152" font-size="66" font-weight="600">Buchtutor</text>
+    <text x="76" y="330" font-size="45">Lesen. Lesehilfe. Notizen.</text>
+    <text x="76" y="391" font-size="28" fill="#596a64">Deutsch in der Oberstufe</text>
+    <text x="76" y="546" font-size="26">buchtutor.de</text>
+  </g>
+  <path d="M76 205h1048" stroke="#d8ded7" stroke-width="2"/>
+  <g transform="translate(886 306) scale(3.2)">${mark(brand.ink,brand.accent)}</g>
+</svg>`;
+await sharp(Buffer.from(shareCard)).png().toFile('public/brand/buchtutor-share.png');
+console.log('Buchtutor: brand icons and 1200 × 630 px share preview generated.');

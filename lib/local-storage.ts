@@ -2,7 +2,8 @@
 import {openDB, type DBSchema} from 'idb';
 import {EMPTY_SNAPSHOT, mergeSnapshots, snapshotSchema, type LocalSnapshot} from './local-model';
 import {preferencesSchema,type Prefs} from './preferences';
-import type {ReadingProgress,SavedNote} from './reader-model';
+import type {Anchor,ReadingProgress,SavedNote} from './reader-model';
+import {matchesBookmark} from './bookmarks';
 
 interface ReaderDB extends DBSchema {state:{key:string;value:LocalSnapshot}}
 let database:ReturnType<typeof openDB<ReaderDB>>|undefined;
@@ -60,7 +61,19 @@ export async function updateLocal(change:(data:LocalSnapshot)=>LocalSnapshot){
 }
 export function saveLocalNote(note:SavedNote){return updateLocal(data=>({...data,notes:[note,...data.notes.filter(n=>n.id!==note.id)]}));}
 export function deleteLocalNote(id:string){return updateLocal(data=>({...data,notes:data.notes.map(n=>n.id===id?{...n,deletedAt:new Date().toISOString(),updatedAt:new Date().toISOString()}:n)}));}
+export function setLocalBookmark(workId:string,editionId:string,anchor:Anchor,enabled:boolean){return updateLocal(data=>{
+  const matching=data.notes.filter(note=>matchesBookmark(note,workId,editionId,anchor));
+  const now=new Date(Math.max(Date.now(),...matching.map(note=>Date.parse(note.updatedAt)+1))).toISOString();
+  if(!enabled)return {...data,notes:data.notes.map(note=>matching.some(item=>item.id===note.id)&&!note.deletedAt?{...note,deletedAt:now,updatedAt:now}:note)};
+  if(matching.some(note=>!note.deletedAt))return data;
+  // Reuse a removed bookmark's identity so older backups cannot resurrect a duplicate.
+  const previous=matching.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))[0];
+  const note:SavedNote={id:previous?.id??crypto.randomUUID(),workId,editionId,anchor,kind:'bookmark',body:'',createdAt:previous?.createdAt??now,updatedAt:now};
+  return {...data,notes:[note,...data.notes.filter(item=>item.id!==note.id)]};
+});}
 export function saveLocalProgress(progress:ReadingProgress){return updateLocal(data=>{
+  // Check inside the transaction, including saves queued by another tab before the toggle.
+  if(data.preferences.value.autoBookmark===false)return data;
   const previous=data.progress.find(p=>p.workId===progress.workId&&p.editionId===progress.editionId);
   return previous&&previous.updatedAt>progress.updatedAt?data:{...data,progress:[progress,...data.progress.filter(p=>p.workId!==progress.workId||p.editionId!==progress.editionId)]};
 });}

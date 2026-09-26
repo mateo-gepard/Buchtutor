@@ -28,6 +28,21 @@ test('encrypted transfer round trips data and strips nonportable metadata',async
  assert.deepEqual(await decryptSnapshot(encrypted,password),snapshotSchema.parse(snapshot));
  assert.ok(encrypted.length<2000);
 });
+test('device transfer preserves bookmarks, automatic position and the disabled automatic-bookmark setting',async()=>{
+ const value={...snapshot,
+  preferences:{value:{...snapshot.preferences.value,autoBookmark:false},updatedAt:note.updatedAt},
+  notes:[note,{...note,id:'bookmark-1',kind:'bookmark' as const,body:''}],
+  progress:[{workId:'test',editionId:'test-1',sectionId:'s1',blockId:'d',updatedAt:note.updatedAt}],
+ };
+ const decrypted=await decryptSnapshot(await encryptSnapshot(value,password),password);
+ const imported=mergeSnapshots(structuredClone(EMPTY_SNAPSHOT),decrypted).snapshot;
+ assert.deepEqual(imported,value);
+ assert.equal(imported.notes.find(item=>item.id==='bookmark-1')?.anchor.startId,'b');
+});
+test('old backups without the automatic-bookmark preference remain compatible',()=>{
+ const old=JSON.parse(JSON.stringify(snapshot));delete old.preferences.value.autoBookmark;
+ assert.equal(snapshotSchema.parse(old).preferences.value.autoBookmark,true);
+});
 test('fresh salt and IV produce different ciphertexts',async()=>{
  assert.notDeepEqual(await encryptSnapshot(snapshot,password),await encryptSnapshot(snapshot,password));
 });
@@ -114,4 +129,3 @@ test('request boundary checks origin, MIME, malformed JSON and bounded streaming
  await assert.rejects(body(req('not json'),schema),/ungültig/);
  await assert.rejects(body(req('x'.repeat(70001)),schema),/zu groß/);
 });
-

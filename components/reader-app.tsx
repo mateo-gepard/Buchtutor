@@ -1,6 +1,6 @@
 'use client';
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
-import {ArrowRight,Bookmark,Check,ChevronDown,ChevronLeft,ChevronRight,Copy,ExternalLink,Highlighter,Info,List,LoaderCircle,Maximize2,MessageSquare,Search,Settings2,Users,X,Lightbulb,Minimize2,MonitorSmartphone} from 'lucide-react';
+import {ArrowRight,Bookmark,Check,ChevronDown,ChevronLeft,ChevronRight,Copy,ExternalLink,Highlighter,Info,List,LoaderCircle,Maximize2,MessageSquare,Search,Settings2,Share2,Users,X,Lightbulb,Minimize2,MonitorSmartphone} from 'lucide-react';
 import {BrandMark} from './brand-mark';
 import {brand} from '@/lib/brand';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '@/components/ui/dialog';
@@ -11,9 +11,12 @@ import {ReaderLibrary} from './reader-library';
 import {ReaderAssistant,type AIStatus} from './reader-assistant';
 import {Notebook,NotesList} from './reader-notes';
 import {ReaderTransfer} from './reader-transfer';
+import {ReaderShare,type ShareTarget} from './reader-share';
 import {useLocalReader} from '@/hooks/use-local-reader';
 import {defaultPrefs,type Prefs} from '@/lib/preferences';
-import {deleteLocalNote,deviceId,saveLocalNote,saveLocalPreferences,saveLocalProgress} from '@/lib/local-storage';
+import {deleteLocalNote,deviceId,saveLocalNote,saveLocalPreferences,saveLocalProgress,setLocalBookmark} from '@/lib/local-storage';
+import {matchesBookmark} from '@/lib/bookmarks';
+import {readerShareUrl} from '@/lib/share-links';
 import {useReaderTools} from '@/hooks/use-reader-tools';
 import {useTextSelection} from '@/hooks/use-text-selection';
 import {sameAnchor} from '@/lib/dom-selection';
@@ -41,7 +44,8 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const [analysisBusy,setAnalysisBusy]=useState(false),[analysisError,setAnalysisError]=useState(''),[remaining,setRemaining]=useState<number>(),[normalized,setNormalized]=useState(false);
   const [saving,setSaving]=useState(false),[editNote,setEditNote]=useState<SavedNote|null>(null),[drafts,setDrafts]=useState<Record<string,string>>({});
   const [panel,setPanel]=useState('help'),[panelOpen,setPanelOpen]=useState(false),[panelExpanded,setPanelExpanded]=useState(false),[contentsOpen,setContentsOpen]=useState(false),[focus,setFocus]=useState(false);
-  const [dialog,setDialog]=useState<'search'|'settings'|'source'|null>(null),[settingsTab,setSettingsTab]=useState('reading');
+  const [dialog,setDialog]=useState<'search'|'settings'|'source'|'share'|null>(null),[settingsTab,setSettingsTab]=useState('reading');
+  const [shareTarget,setShareTarget]=useState<ShareTarget|null>(null),[bookmarkBusy,setBookmarkBusy]=useState(false);
   const [query,setQuery]=useState(''),[jump,setJump]=useState(''),[jumpError,setJumpError]=useState('');
   const [selectedCharacters,setSelectedCharacters]=useState<string[]>([]),[selectMode,setSelectMode]=useState(false),[bookBusy,setBookBusy]=useState(false),[notice,setNotice]=useState(''),[deleted,setDeleted]=useState<SavedNote|null>(null);
   const [currentBlock,setCurrentBlock]=useState(''),[scrub,setScrub]=useState<number|null>(null);
@@ -49,6 +53,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const bookCache=useRef(new Map([[initialBook.id,initialBook]])),bookRequest=useRef(0),analysisRequest=useRef<AbortController|null>(null);
   const article=useRef<HTMLElement>(null),noticeTimer=useRef<ReturnType<typeof setTimeout>|null>(null),restored=useRef(false),position=useRef<Position|null>(null),resizePosition=useRef<Position|null>(null),panelTrigger=useRef<HTMLElement|null>(null),panelHeading=useRef<HTMLHeadingElement>(null);
   const contentsPosition=useRef<Position|null>(null),contentsTrigger=useRef<HTMLElement|null>(null);
+  const dialogTrigger=useRef<HTMLElement|null>(null);
   const activeSelection=useRef({bookId:book.id,anchor:selection});
   const linePivot=useRef<string|null>(null),rangeStart=useRef<string|null>(null);
   useEffect(()=>{activeSelection.current={bookId:book.id,anchor:selection};},[book.id,selection]);
@@ -58,6 +63,9 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const locations=useMemo(()=>book.sections.flatMap(s=>s.blocks.filter(isText).map(b=>({section:s,block:b}))),[book]);
   const progressIndex=Math.max(0,locations.findIndex(item=>item.block.id===currentBlock));
   const displayedLocation=locations[scrub??progressIndex];
+  const bookmarkRow=section.blocks.find(b=>b.id===currentBlock&&isText(b))??section.blocks.find(isText);
+  const bookmarkAnchor=selection??(bookmarkRow?makeAnchor(section,bookmarkRow.id):null);
+  const bookmarked=!!bookmarkAnchor&&notes.some(note=>matchesBookmark(note,book.id,book.editionId,bookmarkAnchor));
   const announce=useCallback((message:string)=>{setNotice(message);if(noticeTimer.current)clearTimeout(noticeTimer.current);noticeTimer.current=setTimeout(()=>setNotice(''),7000);},[]);
   const nativeSelection=useTextSelection({root:article,section,enabled:view==='reader'&&!dialog&&!contentsOpen,onSelect:anchor=>{
     if(sameAnchor(activeSelection.current.anchor,anchor))return;
@@ -101,7 +109,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
       const next=bookCache.current.get(id)??(await request<{book:Book}>('/api/books/'+encodeURIComponent(id))).book;
       if(!next)throw new Error('Das Werk ist nicht verfügbar.');if(seq!==bookRequest.current)return;
       bookCache.current.set(id,next);
-      const remembered=local.data.progress.find(p=>p.workId===id&&p.editionId===next.editionId);
+      const remembered=prefs.autoBookmark?local.data.progress.find(p=>p.workId===id&&p.editionId===next.editionId):undefined;
       const nextSection=next.sections.find(s=>s.id===(target?.sectionId??remembered?.sectionId))??firstReadable(next);
       const blockId=target?.blockId??(target?.sectionId?undefined:remembered?.blockId);
       setBook(next);setSectionId(nextSection.id);setView(destination);setSelectedCharacters([]);setPanelOpen(false);setContentsOpen(false);setFocus(false);setScrub(null);setCurrentBlock(blockId??nextSection.blocks.find(isText)?.id??'');
@@ -120,7 +128,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     if(!local.ready||restored.current)return;
     const frame=requestAnimationFrame(()=>{
       restored.current=true;
-      const saved=local.data.progress.find(p=>p.workId===initialBook.id&&p.editionId===initialBook.editionId);
+      const saved=prefs.autoBookmark?local.data.progress.find(p=>p.workId===initialBook.id&&p.editionId===initialBook.editionId):undefined;
       const hash=decodeURIComponent(window.location.hash.slice(1));
       if(initialView==='reader'&&!hash&&saved&&(!explicitSection||saved.sectionId===initialSection)){
         const remembered=initialBook.sections.find(s=>s.id===saved.sectionId);
@@ -128,7 +136,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
       }
       if(hash)scrollToBlock(hash);
     });return()=>cancelAnimationFrame(frame);
-  },[local.ready,local.data.progress,initialBook,initialSection,initialView,explicitSection]);
+  },[local.ready,local.data.progress,prefs.autoBookmark,initialBook,initialSection,initialView,explicitSection]);
   useEffect(()=>{
     function pop(){
       const params=new URLSearchParams(window.location.search);
@@ -154,7 +162,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     if(view!=='reader'||!local.ready)return;
     let timer:ReturnType<typeof setTimeout>,frame=0,last='';
     let latest:ReadingProgress|undefined;
-    function persist(){if(latest)void saveLocalProgress(latest).catch(e=>announce(e.message));}
+    function persist(){if(prefs.autoBookmark&&latest)void saveLocalProgress(latest).catch(e=>announce(e.message));}
     function capture(){
       const rows=[...(article.current?.querySelectorAll<HTMLElement>('[data-block]')??[])];
       const row=rows.find(el=>el.getBoundingClientRect().bottom>(focus?24:95))??rows.at(-1);
@@ -168,7 +176,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     const initial=setTimeout(schedule,250);
     window.addEventListener('scroll',schedule,{passive:true});document.addEventListener('visibilitychange',hidden);
     return()=>{clearTimeout(initial);clearTimeout(timer);cancelAnimationFrame(frame);persist();window.removeEventListener('scroll',schedule);document.removeEventListener('visibilitychange',hidden);};
-  },[book.id,book.editionId,section.id,view,local.ready,focus,announce]);
+  },[book.id,book.editionId,section.id,view,local.ready,prefs.autoBookmark,focus,announce]);
   useEffect(()=>{
     let width=window.innerWidth,timer:ReturnType<typeof setTimeout>;
     function resized(){
@@ -232,9 +240,18 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     changeSelection(items[0].anchor);openPanel('notes');
   }
   async function bookmark(){
+    if(bookmarkBusy)return;
     const row=section.blocks.find(b=>b.id===currentBlock&&isText(b))??section.blocks.find(isText);if(!row)return;
-    const anchor=nativeSelection.freeze()??activeSelection.current.anchor??makeAnchor(section,row.id),now=new Date().toISOString();
-    try{await saveLocalNote({id:crypto.randomUUID(),workId:book.id,editionId:book.editionId,anchor,kind:'bookmark',body:'',createdAt:now,updatedAt:now});announce('Lesezeichen gespeichert.');}catch(e){announce((e as Error).message);}
+    const anchor=nativeSelection.freeze()??activeSelection.current.anchor??makeAnchor(section,row.id);
+    const enabled=!notes.some(note=>matchesBookmark(note,book.id,book.editionId,anchor));
+    setBookmarkBusy(true);
+    try{await setLocalBookmark(book.id,book.editionId,anchor,enabled);announce(enabled?'Lesezeichen gespeichert. Du findest es unter „Meine Notizen“.':'Lesezeichen entfernt.');}
+    catch(e){announce((e as Error).message);}finally{setBookmarkBusy(false);}
+  }
+  function openShare(){
+    const anchor=nativeSelection.freeze()??activeSelection.current.anchor??(bookmarkRow?makeAnchor(section,bookmarkRow.id):null);
+    setShareTarget({url:readerShareUrl(window.location.origin,book.id,section.id,anchor?.startId),title:book.title,reference:[...section.path,section.title,referenceLabel(section,anchor??undefined)].join(' · ')});
+    setDialog('share');
   }
   function jumpToReference(){
     const number=Number(jump),target=locations.find(({block})=>block.unit===book.referenceMode&&block.number!==undefined&&block.number<=number&&(block.numberEnd??block.number)>=number);
@@ -272,10 +289,10 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     </header>:<header className="library-header"><button className="wordmark" aria-label="Buchtutor · Bibliothek" onClick={()=>showView('library')}><BrandMark/><span>{brand.name}</span></button><nav aria-label="Hauptnavigation"><button aria-current={view==='library'?'page':undefined} onClick={()=>showView('library')}>Bibliothek</button><button aria-current={view==='notes'?'page':undefined} onClick={()=>showView('notes')}>Meine Notizen</button></nav><button className="icon-button" aria-label="Einstellungen und Geräteübertragung" onClick={()=>openSettings()}><Settings2 size={20}/></button></header>}
     {focus&&<button className="focus-exit" onClick={toggleFocus}><Minimize2 size={17}/>Fokus beenden</button>}
     {local.error&&<div className="storage-error" role="alert">{local.error}</div>}
-    {view==='library'?<ReaderLibrary catalog={catalog} progress={local.data.progress} onOpen={id=>void openBook(id)}/>:view==='notes'?<Notebook notes={notes} catalog={catalog} onOpen={openNote} onDelete={removeNote} onTransfer={()=>openSettings('transfer')}/>:<>
+    {view==='library'?<ReaderLibrary catalog={catalog} progress={prefs.autoBookmark?local.data.progress:[]} onOpen={id=>void openBook(id)}/>:view==='notes'?<Notebook notes={notes} catalog={catalog} onOpen={openNote} onDelete={removeNote} onTransfer={()=>openSettings('transfer')}/>:<>
       <main className="reading-main" id="main-content">
         <article ref={article} className="reading-page">
-          <div className="section-heading"><p>{[...section.path,section.title].join(' · ')}</p><div><button className="icon-button" aria-label="Text durchsuchen oder zu einem Vers springen" onClick={()=>setDialog('search')}><Search size={17}/></button><button className="icon-button" aria-label="Lesezeichen setzen" onClick={()=>void bookmark()}><Bookmark size={17}/></button><button className={'icon-button '+(selectMode?'pressed':'')} aria-label="Bereich durch Antippen auswählen" aria-pressed={selectMode} onClick={()=>{const next=!selectMode;resetSelection();setSelectMode(next);}}><Highlighter size={17}/></button></div></div>
+          <div className="section-heading"><p>{[...section.path,section.title].join(' · ')}</p><div><button className="icon-button" aria-label="Text durchsuchen oder zu einem Vers springen" onClick={()=>setDialog('search')}><Search size={17}/></button><button className="icon-button" aria-label="Stelle teilen" onClick={openShare}><Share2 size={17}/></button><button className={'icon-button '+(selectMode?'pressed':'')} aria-label="Bereich durch Antippen auswählen" aria-pressed={selectMode} onClick={()=>{const next=!selectMode;resetSelection();setSelectMode(next);}}><Highlighter size={17}/></button></div></div>
           <h1 className="sr-only">{book.title} · {section.title}</h1>
           <ReaderText book={book} section={section} selection={selection} notes={notes} showNumbers={prefs.numbers} showCharacters={prefs.characters} selectMode={selectMode} canActivate={nativeSelection.canActivate} onSelect={selectLine} onCharacter={selectCharacter} onNote={openNote} onNotes={openAttached}/>
           <nav className="section-pagination" aria-label="Weiterlesen"><button disabled={sectionIndex===0} onClick={()=>goToSection(book.sections[sectionIndex-1].id)}><ChevronLeft size={18}/>Voriger Abschnitt</button><button disabled={sectionIndex===book.sections.length-1} onClick={()=>goToSection(book.sections[sectionIndex+1].id)}>Nächster Abschnitt<ChevronRight size={18}/></button></nav>
@@ -287,10 +304,11 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
         <button className="footer-section" onClick={openContents}><List size={17}/><span>{section.path.at(-1)??section.title}</span></button>
         <div className="reading-progress"><button className="icon-button" aria-label="Voriger Abschnitt" disabled={sectionIndex===0} onClick={()=>goToSection(book.sections[sectionIndex-1].id)}><ChevronLeft size={17}/></button><input type="range" min="0" max={Math.max(0,locations.length-1)} value={scrub??progressIndex} aria-label="Leseposition im Werk" aria-valuetext={displayedLocation?unitLabel(displayedLocation.block.unit)+' '+displayedLocation.block.number:''} onChange={e=>setScrub(Number(e.target.value))} onPointerUp={e=>commitScrub(Number(e.currentTarget.value))} onKeyUp={e=>{if(['ArrowLeft','ArrowRight','Home','End','PageUp','PageDown'].includes(e.key))commitScrub(Number(e.currentTarget.value));}}/><button className="icon-button" aria-label="Nächster Abschnitt" disabled={sectionIndex===book.sections.length-1} onClick={()=>goToSection(book.sections[sectionIndex+1].id)}><ChevronRight size={17}/></button></div>
         <button className="footer-reference" onClick={()=>setDialog('search')}>{displayedLocation?unitLabel(displayedLocation.block.unit,true)+' '+(displayedLocation.block.number??''):section.title}</button>
+        <button className={'icon-button reader-bookmark '+(bookmarked?'is-bookmarked':'')} aria-label={bookmarked?'Lesezeichen entfernen':'Lesezeichen setzen'} aria-pressed={bookmarked} disabled={bookmarkBusy||!local.ready} onClick={()=>void bookmark()} title={bookmarked?'Lesezeichen entfernen':'Lesezeichen setzen'}><Bookmark size={18} fill={bookmarked?'currentColor':'none'}/></button>
         <button className="mobile-type" onClick={()=>openSettings()} aria-label="Leseeinstellungen">Aa</button><button className="mobile-help" onClick={()=>panelOpen?closePanel():openPanel()} aria-expanded={panelOpen}><Lightbulb size={18}/>Hilfe</button>
       </footer>}
       {(selection||selectMode)&&!panelOpen&&<div className={'selection-dock '+(selectMode?'range-selection-dock':'')} role="group" aria-label="Aktionen zur Textauswahl">
-        {selectMode?<><span role="status">{selection?'Tippe auf das Ende der Passage.':'Tippe auf den Anfang der Passage.'}</span><button onClick={resetSelection}>Abbrechen</button></>:selection&&<><span>{referenceLabel(section,selection)}</span><button onClick={()=>void analyze('summary')}><Lightbulb size={17}/>Verstehen</button><button onClick={()=>openPanel('notes')}><MessageSquare size={17}/>Notiz</button><button className="icon-button" aria-label="Weitere Analysearten" onClick={()=>openPanel('help')}><ChevronDown size={18}/></button><button className="icon-button" aria-label="Auswahl aufheben" onClick={resetSelection}><X size={18}/></button></>}
+        {selectMode?<><span role="status">{selection?'Tippe auf das Ende der Passage.':'Tippe auf den Anfang der Passage.'}</span><button onClick={resetSelection}>Abbrechen</button></>:selection&&<><span>{referenceLabel(section,selection)}</span><button onClick={()=>void analyze('summary')}><Lightbulb size={17}/>Verstehen</button><button onClick={()=>openPanel('notes')}><MessageSquare size={17}/>Notiz</button><button className={'icon-button '+(bookmarked?'is-bookmarked':'')} aria-label={bookmarked?'Lesezeichen der Auswahl entfernen':'Auswahl als Lesezeichen speichern'} aria-pressed={bookmarked} disabled={bookmarkBusy||!local.ready} onClick={()=>void bookmark()}><Bookmark size={17} fill={bookmarked?'currentColor':'none'}/></button><button className="icon-button" aria-label="Weitere Analysearten" onClick={()=>openPanel('help')}><ChevronDown size={18}/></button><button className="icon-button" aria-label="Auswahl aufheben" onClick={resetSelection}><X size={18}/></button></>}
       </div>}
     </>}
 
@@ -308,13 +326,13 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     <Dialog open={contentsOpen} onOpenChange={setContentsOpen}><DialogContent className="contents-dialog" onOpenAutoFocus={event=>event.preventDefault()} onCloseAutoFocus={event=>{event.preventDefault();contentsTrigger.current?.focus({preventScroll:true});restorePosition(contentsPosition.current);contentsPosition.current=null;}}><DialogHeader><DialogTitle>Inhaltsverzeichnis</DialogTitle><DialogDescription>{book.title}</DialogDescription></DialogHeader>
       <div className="contents-scroll"><button className="contents-search" onClick={()=>{setContentsOpen(false);setDialog('search');}}><Search size={18}/>Suchen oder zu {unitLabel(book.referenceMode)} springen</button>
         <nav aria-label="Abschnitte des Werkes">{groups.map((group,i)=><details key={book.id+'-'+i+'-'+section.path.join()} className="contents-group" open={group.sections.some(s=>s.id===section.id)||groups.length===1}><summary>{group.label}<ChevronDown size={16}/></summary>{group.sections.map(s=><button key={s.id} className="scene-nav" aria-current={section.id===s.id?'location':undefined} onClick={()=>goToSection(s.id)}><span>{s.title}</span>{s.firstRef&&<small>{unitLabel(s.unit,true)} {s.firstRef}</small>}</button>)}</details>)}</nav>
-        <button className="source-mini" onClick={()=>{setContentsOpen(false);setDialog('source');}}><Info size={17}/>Quelle und Zitierweise</button><button className="source-mini" onClick={()=>{setContentsOpen(false);showView('notes');}}><MessageSquare size={17}/>Meine Notizen</button>
+        <button className="source-mini" onClick={()=>{setContentsOpen(false);openShare();}}><Share2 size={17}/>Stelle teilen</button><button className="source-mini" onClick={()=>{setContentsOpen(false);setDialog('source');}}><Info size={17}/>Quelle und Zitierweise</button><button className="source-mini" onClick={()=>{setContentsOpen(false);showView('notes');}}><MessageSquare size={17}/>Meine Notizen</button>
       </div>
     </DialogContent></Dialog>
 
     <Dialog open={!!dialog} onOpenChange={open=>{if(!open){setDialog(null);if(dialog==='settings'){restorePosition(position.current);position.current=null;}}}}>
-      <DialogContent className={'reader-dialog '+(dialog==='source'?'source-dialog':'')} onOpenAutoFocus={event=>event.preventDefault()} onCloseAutoFocus={event=>event.preventDefault()}>
-        <DialogHeader><DialogTitle>{dialog==='search'?'Stelle finden':dialog==='settings'?'Einstellungen':'Quelle und Zitierweise'}</DialogTitle><DialogDescription>{dialog==='settings'?'Lesen und Daten auf diesem Gerät':book.title+' · '+book.author}</DialogDescription></DialogHeader>
+      <DialogContent className={'reader-dialog '+(dialog==='source'?'source-dialog':'')} onOpenAutoFocus={event=>{dialogTrigger.current=document.activeElement instanceof HTMLElement?document.activeElement:null;if(dialog!=='share')event.preventDefault();}} onCloseAutoFocus={event=>{event.preventDefault();if(dialogTrigger.current?.isConnected)dialogTrigger.current.focus({preventScroll:true});}}>
+        <DialogHeader><DialogTitle>{dialog==='search'?'Stelle finden':dialog==='settings'?'Einstellungen':dialog==='share'?'Stelle teilen':'Quelle und Zitierweise'}</DialogTitle><DialogDescription>{dialog==='settings'?'Lesen und Daten auf diesem Gerät':book.title+' · '+book.author}</DialogDescription></DialogHeader>
         {dialog==='settings'&&<><div className="settings-tabs" role="group" aria-label="Einstellungsbereich"><button aria-pressed={settingsTab==='reading'} onClick={()=>setSettingsTab('reading')}>Lesen</button><button aria-pressed={settingsTab==='transfer'} onClick={()=>setSettingsTab('transfer')}><MonitorSmartphone size={17}/>Geräteübertragung</button></div>{settingsTab==='transfer'?<ReaderTransfer data={local.data} onDone={announce}/>:<div className="reading-settings">
           <label className="setting-row">Schriftgröße <output>{prefs.fontSize} px</output><input type="range" aria-label="Schriftgröße" min="16" max="30" step="1" value={prefs.fontSize} onChange={e=>setPrefs({...prefs,fontSize:Number(e.target.value)})}/></label>
           <label className="setting-row">Zeilenabstand <output>{prefs.lineHeight.toFixed(2)}</output><input type="range" aria-label="Zeilenabstand" min="1.5" max="2.4" step="0.05" value={prefs.lineHeight} onChange={e=>setPrefs({...prefs,lineHeight:Number(e.target.value)})}/></label>
@@ -322,9 +340,12 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
           <div className="theme-options">{[['paper','Hell'],['sepia','Warm'],['night','Nacht']].map(([value,label])=><button key={value} className={'theme-'+value} aria-pressed={prefs.theme===value} onClick={()=>setPrefs({...prefs,theme:value as Prefs['theme']})}><span>Aa</span>{label}</button>)}</div>
           <div className="setting-inline"><label htmlFor="setting-numbers">Vers- und Absatznummern</label><Switch id="setting-numbers" checked={prefs.numbers} onCheckedChange={value=>setPrefs({...prefs,numbers:value})}/></div>
           <div className="setting-inline"><label htmlFor="setting-characters">Figuren im Text markieren</label><Switch id="setting-characters" checked={prefs.characters} onCheckedChange={value=>setPrefs({...prefs,characters:value})}/></div>
+          <div className="setting-inline"><label htmlFor="setting-auto-bookmark">Automatisches Lesezeichen</label><Switch id="setting-auto-bookmark" checked={prefs.autoBookmark} onCheckedChange={value=>setPrefs({...prefs,autoBookmark:value})}/></div>
+          <p className="small-note">Merkt deine letzte Lesestelle und öffnet das Buch dort wieder. Manuell gesetzte Lesezeichen bleiben auch bei ausgeschalteter Automatik erhalten.</p>
           <p className="settings-preview" style={{fontSize:prefs.fontSize,lineHeight:prefs.lineHeight,fontFamily:prefs.font==='sans'?'inherit':"Charter,'Sitka Text',Cambria,serif"}}>Das Land der Griechen mit der Seele suchend.</p><button className="text-button" onClick={()=>setPrefs(defaultPrefs)}>Leseeinstellungen zurücksetzen</button>
           <div className="settings-links"><a href="/datenschutz">Datenschutz</a><a href="/impressum">Impressum</a></div>
         </div>}</>}
+        {dialog==='share'&&shareTarget&&<ReaderShare key={shareTarget.url} target={shareTarget}/>}
         {dialog==='search'&&<><form className="jump-form" onSubmit={e=>{e.preventDefault();jumpToReference();}}><label htmlFor="jump-number">Zu {unitLabel(book.referenceMode)} springen</label><div><input id="jump-number" className="text-input" type="number" inputMode="numeric" min="1" step="1" value={jump} onChange={e=>{setJump(e.target.value);setJumpError('');}} placeholder="z. B. 322"/><button className="primary-button" type="submit">Öffnen<ArrowRight size={16}/></button></div>{jumpError&&<p className="inline-error" role="alert">{jumpError}</p>}{book.referenceMode!=='verse'&&<p className="small-note">Nummern gelten für diese Digitalausgabe.</p>}</form><label className="search-field"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Wort oder Textstelle" aria-label="Im gesamten Werk suchen"/></label><div className="search-results">{searchResults.map(({section:s,block:b})=><button key={b.id} onClick={()=>{setDialog(null);goToSection(s.id,b.id);changeSelection(makeAnchor(s,b.id));}}><span>{s.path.join(' · ')} {s.title} · {unitLabel(b.unit,true)} {b.number}</span><p>{b.text.slice(Math.max(0,b.text.toLocaleLowerCase('de').indexOf(query.toLocaleLowerCase('de'))-50),Math.max(0,b.text.toLocaleLowerCase('de').indexOf(query.toLocaleLowerCase('de'))-50)+230)}</p></button>)}{query.length>=2&&!searchResults.length&&<p>Keine Stelle gefunden.</p>}{searchResults.length===50&&<p className="small-note">Die ersten 50 Treffer. Grenze die Suche weiter ein.</p>}</div></>}
         {dialog==='source'&&<div className="source-details"><h3>Nummern dieser Ausgabe</h3><p>{book.note}</p>{!!book.validation.missingReferences?.length&&<p>Die Vorlage lässt die Nummern {book.validation.missingReferences[0]}–{book.validation.missingReferences.at(-1)} im Lesetext aus. Diese Lücke bleibt erhalten.</p>}<p>Ein Abgleich mit einer bestimmten Reclam-ISBN und die vollständige fachliche Durchsicht stehen noch aus.</p><h3>Textgrundlage</h3><p>{book.sourceEdition}</p><a href={book.sourceUrl} target="_blank" rel="noreferrer">{book.sourceLabel}<ExternalLink size={14}/></a><h3>Nutzung</h3>{book.licenses.map(license=><p key={license.name}><a href={license.url} target="_blank" rel="noreferrer">{license.name}<ExternalLink size={13}/></a></p>)}{book.id==='faust'&&<p>Diese Faust-Textgrundlage darf nur nichtkommerziell weiterverwendet werden.</p>}<details><summary>Ausgabe identifizieren</summary><code>{book.editionId}</code><p className="small-note">SHA-256: {book.revision}</p></details><button className="secondary-button" onClick={async()=>{try{await navigator.clipboard.writeText(book.author+': '+book.title+'. '+section.path.join(', ')+' '+section.title+', '+referenceLabel(section,selection??undefined)+'. '+book.sourceEdition+'. '+book.sourceUrl);announce('Quellenangabe kopiert.');}catch{announce('Kopieren wurde vom Browser nicht erlaubt.');}}}><Copy size={16}/>Quellenangabe kopieren</button></div>}
       </DialogContent>

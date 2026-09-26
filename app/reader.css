@@ -172,3 +172,24 @@
  .constellation-large .character-portrait{width:56px;height:56px}.constellation-large .constellation-node{transform:translate(-50%,-28px)}.constellation-large .constellation-name{font-size:11px}.toast{font-size:12px;padding:9px 12px;gap:8px}
 }
 @media(max-height:550px) and (max-width:999px){.assistant-panel,.assistant-panel.expanded{height:90dvh;min-height:0}.panel-handle{display:none}}
+
+.icon-button.is-bookmarked{color:var(--primary);background:var(--secondary)}
+.reader-bookmark{flex-shrink:0}
+.notebook-filter{width:fit-content;max-width:100%;margin:0 0 24px;flex-wrap:wrap}
+.share-reference{color:var(--muted-foreground);font-size:13px;line-height:1.7;margin:0 0 20px}
+.share-primary-actions{display:flex;flex-wrap:wrap;gap:10px}
+.share-primary-actions>button{flex:1;white-space:nowrap;justify-content:center}
+.share-social-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:22px 0}
+.share-social-links a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:11px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px}
+.share-social-links a:hover{background:var(--secondary)}
+.share-panel .text-input{font-size:13px}.share-panel>.small-note{margin-top:16px}
+.not-found-page{max-width:1100px;min-height:100dvh;margin:auto;padding:40px max(28px,env(safe-area-inset-left)) 70px}
+.not-found-page>.wordmark{display:inline-flex}
+.not-found-content{max-width:590px;margin:clamp(60px,12vh,150px) auto 0}
+.not-found-symbol{display:flex;align-items:center;gap:24px;color:var(--primary);margin-bottom:38px}.not-found-symbol>span{font-size:38px;font-weight:550;letter-spacing:.03em;color:var(--muted-foreground)}
+.not-found-label{font-size:13px;color:var(--muted-foreground);margin-bottom:12px}
+.not-found-content h1{font-size:clamp(28px,4vw,40px);line-height:1.2;font-weight:650;letter-spacing:-.025em;margin-bottom:20px}
+.not-found-content>p:not(.not-found-label){font-size:16px;line-height:1.8;color:var(--muted-foreground)}
+.not-found-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+@media(max-width:649px){.reading-footer{gap:5px}.footer-section{min-width:0;max-width:90px}.reader-bookmark{width:44px;min-width:44px}.notebook-filter>button{font-size:12px;padding-inline:10px}.not-found-page{padding-top:25px}.not-found-actions>a{width:100%;justify-content:center}.share-primary-actions{flex-direction:column}}
+@media(max-width:359px){.selection-dock>button:not(.icon-button)>svg{display:none}.selection-dock>button:not(.icon-button){gap:0}}

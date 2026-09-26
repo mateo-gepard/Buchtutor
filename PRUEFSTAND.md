@@ -1,6 +1,16 @@
 # Buchtutor Fokus – Prüfstand
 
-Stand: 25. September 2026. Version 0.2.3.
+Stand: 26. September 2026. Version 0.2.4.
+
+## Lesezeichen, Teilen und 404, Version 0.2.4
+
+- 27 Funktionstests bestanden. Neue Prüfungen decken idempotentes Setzen eines Lesezeichens, Entfernen mit übertragbarer Löschmarkierung, blockierte automatische Schreibvorgänge bei ausgeschaltetem Schalter, Übernahme älterer Sicherungen und verschlüsselte Übertragung von Lesezeichen, Lesestand und Automatik-Einstellung ab.
+- 61 Browserprüfungen bestanden in Desktop-/Handy-Chromium und WebKit für iPad-Hoch-/Querformat; drei reine Mausprüfungen sind auf Touch-Profilen absichtlich übersprungen. Alle bisherigen Auswahlprüfungen bleiben erfolgreich.
+- In jedem der vier Profile wurde ein manuelles Lesezeichen gesetzt, entfernt und erneut gesetzt, eine verschlüsselte Sicherung heruntergeladen und in einen unabhängigen Browser-Kontext importiert. Lesezeichenfilter, Rücksprung zur Originalstelle und ausgeschaltete Automatik bleiben nach der Übertragung erhalten.
+- Automatisches Speichern, Ausschalten ohne weitere Fortschrittsschreibvorgänge, persistierte Einstellung, erneutes Einschalten und Wiederaufnahme nach Neuladen geprüft. Die erweiterte Auswahlleiste wurde zusätzlich bei 320 px geprüft: keine überstehenden Knöpfe, mindestens 44 px große Bedienflächen.
+- Geteilte Links enthalten nur kanonische Navigationsdaten und öffnen den richtigen Vers. Kopieren und native Freigabe wurden mit simulierten Browser-Schnittstellen geprüft, ohne Nachrichten zu versenden. Social-Links sind direkte Links ohne Drittanbieter-Skripte. Werktitel und Buchtutor-Grafik erscheinen in den Open-Graph-Metadaten.
+- Unbekannte Pfade liefern HTTP 404 und die neue Ansicht. Auch fehlende Werke zeigen die neue Ansicht; Bibliotheks- und Notizbuchlinks funktionieren. Linkvorschau, Handy-Teilen-Menü und iPad-404 visuell geprüft.
+- ESLint und TypeScript im Produktionsbuild erfolgreich. Der bekannte CSS-Parserhinweis zum Custom-Highlight-Pseudoelement bleibt unverändert. Keine echten Modellgenerierungen in diesen Prüfungen. WebKit unter Windows ersetzt keinen echten iPad-Hardwaretest.
 
 ## Besucherstatistik und KI-Verbrauch, Version 0.2.3
 
