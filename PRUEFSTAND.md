@@ -2,6 +2,13 @@
 
 Stand: 26. September 2026. Version 0.2.4.
 
+## Inhaltsverzeichnis: Positionierung im Produktionsbuild
+
+- Die Seitenleiste verwendet eine eigene linke Positionierung ohne die Zentrierungs- und Versatzklassen normaler Dialogfenster. Der CSS-Optimierer entfernte zuvor die Gegenregel `translate:none`, wodurch das Inhaltsverzeichnis oben und links aus dem Bildschirm ragte.
+- Beim Schließen wird der tatsächlich betätigte Knopf fokussiert. Das funktioniert auch in WebKit, wo ein Klick den aktiven Tastaturfokus nicht automatisch auf diesen Knopf setzt.
+- 32 Browserprüfungen gegen `next build` und `next start` bestanden: Desktop-/Handy-Chromium sowie WebKit im iPad-Hoch-/Querformat. Geprüft sind vollständige Menüposition, Erreichbarkeit des letzten Kapitels, Kapitelwechsel, Erhalt der Lesestelle, Fokusrückgabe und weiterhin zentrierte Einstellungsdialoge. Bestehende Lesezeichen-, Übertragungs-, Teilen- und 404-Prüfungen bleiben erfolgreich.
+- Desktop- und iPad-Ansicht visuell geprüft; ESLint, TypeScript und Produktionsbuild erfolgreich. Modellanfragen werden in diesen Tests abgefangen. Kein iPad-Hardwaretest.
+
 ## Lesezeichen, Teilen und 404, Version 0.2.4
 
 - 27 Funktionstests bestanden. Neue Prüfungen decken idempotentes Setzen eines Lesezeichens, Entfernen mit übertragbarer Löschmarkierung, blockierte automatische Schreibvorgänge bei ausgeschaltetem Schalter, Übernahme älterer Sicherungen und verschlüsselte Übertragung von Lesezeichen, Lesestand und Automatik-Einstellung ab.

@@ -1,5 +1,5 @@
 'use client';
-import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
+import {useCallback,useEffect,useMemo,useRef,useState,type MouseEvent} from 'react';
 import {ArrowRight,Bookmark,Check,ChevronDown,ChevronLeft,ChevronRight,Copy,ExternalLink,Highlighter,Info,List,LoaderCircle,Maximize2,MessageSquare,Search,Settings2,Share2,Users,X,Lightbulb,Minimize2,MonitorSmartphone} from 'lucide-react';
 import {BrandMark} from './brand-mark';
 import {brand} from '@/lib/brand';
@@ -118,7 +118,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
       if(target?.anchor){setSelection(target.anchor);setEditNote(target.note??null);setResult(target.note?.analysis??null);setPanel(target.note?.analysis?'help':'notes');if(target.note)setPanelOpen(true);}
     }catch(e){announce((e as Error).message);}finally{if(seq===bookRequest.current)setBookBusy(false);}
   }
-  function openContents(){contentsPosition.current=capturePosition();contentsTrigger.current=document.activeElement instanceof HTMLElement?document.activeElement:null;setContentsOpen(true);setPanelOpen(false);restorePosition(contentsPosition.current);}
+  function openContents(event:MouseEvent<HTMLButtonElement>){contentsPosition.current=capturePosition();contentsTrigger.current=event.currentTarget;setContentsOpen(true);setPanelOpen(false);restorePosition(contentsPosition.current);}
   function openSettings(tab='reading'){position.current=capturePosition();setSettingsTab(tab);setDialog('settings');}
   function setPrefs(next:Prefs){void saveLocalPreferences(next).catch(e=>announce(e.message));}
   function toggleFocus(){const saved=capturePosition();setFocus(!focus);setPanelOpen(false);setContentsOpen(false);restorePosition(saved);}
@@ -323,7 +323,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
       </div>
     </aside>}
 
-    <Dialog open={contentsOpen} onOpenChange={setContentsOpen}><DialogContent className="contents-dialog" onOpenAutoFocus={event=>event.preventDefault()} onCloseAutoFocus={event=>{event.preventDefault();contentsTrigger.current?.focus({preventScroll:true});restorePosition(contentsPosition.current);contentsPosition.current=null;}}><DialogHeader><DialogTitle>Inhaltsverzeichnis</DialogTitle><DialogDescription>{book.title}</DialogDescription></DialogHeader>
+    <Dialog open={contentsOpen} onOpenChange={setContentsOpen}><DialogContent placement="left" className="contents-dialog" onOpenAutoFocus={event=>event.preventDefault()} onCloseAutoFocus={event=>{event.preventDefault();contentsTrigger.current?.focus({preventScroll:true});restorePosition(contentsPosition.current);contentsPosition.current=null;}}><DialogHeader><DialogTitle>Inhaltsverzeichnis</DialogTitle><DialogDescription>{book.title}</DialogDescription></DialogHeader>
       <div className="contents-scroll"><button className="contents-search" onClick={()=>{setContentsOpen(false);setDialog('search');}}><Search size={18}/>Suchen oder zu {unitLabel(book.referenceMode)} springen</button>
         <nav aria-label="Abschnitte des Werkes">{groups.map((group,i)=><details key={book.id+'-'+i+'-'+section.path.join()} className="contents-group" open={group.sections.some(s=>s.id===section.id)||groups.length===1}><summary>{group.label}<ChevronDown size={16}/></summary>{group.sections.map(s=><button key={s.id} className="scene-nav" aria-current={section.id===s.id?'location':undefined} onClick={()=>goToSection(s.id)}><span>{s.title}</span>{s.firstRef&&<small>{unitLabel(s.unit,true)} {s.firstRef}</small>}</button>)}</details>)}</nav>
         <button className="source-mini" onClick={()=>{setContentsOpen(false);openShare();}}><Share2 size={17}/>Stelle teilen</button><button className="source-mini" onClick={()=>{setContentsOpen(false);setDialog('source');}}><Info size={17}/>Quelle und Zitierweise</button><button className="source-mini" onClick={()=>{setContentsOpen(false);showView('notes');}}><MessageSquare size={17}/>Meine Notizen</button>
