@@ -1,0 +1,97 @@
+{
+  "iphigenie": {
+    "textBlocks": 2203,
+    "verseElements": 2203,
+    "verseCount": 2174,
+    "paragraphCount": 0,
+    "textExact": true,
+    "splitVersesChecked": true,
+    "manualReview": false,
+    "missingReferences": []
+  },
+  "krug": {
+    "textBlocks": 2395,
+    "verseElements": 2395,
+    "verseCount": 2395,
+    "paragraphCount": 0,
+    "textExact": true,
+    "splitVersesChecked": false,
+    "manualReview": false,
+    "missingReferences": []
+  },
+  "faust": {
+    "textBlocks": 4724,
+    "verseElements": 4710,
+    "verseCount": 4612,
+    "paragraphCount": 14,
+    "textExact": true,
+    "splitVersesChecked": true,
+    "manualReview": false,
+    "missingReferences": [
+      4335,
+      4336,
+      4337,
+      4338,
+      4339,
+      4340,
+      4341,
+      4342
+    ]
+  },
+  "woyzeck": {
+    "textBlocks": 520,
+    "verseElements": 101,
+    "verseCount": 101,
+    "paragraphCount": 419,
+    "textExact": true,
+    "splitVersesChecked": false,
+    "manualReview": false,
+    "missingReferences": []
+  },
+  "nathan": {
+    "textBlocks": 4741,
+    "verseElements": 4741,
+    "verseCount": 4741,
+    "paragraphCount": 0,
+    "textExact": true,
+    "splitVersesChecked": false,
+    "manualReview": false,
+    "missingReferences": []
+  },
+  "emilia": {
+    "textBlocks": 835,
+    "verseElements": 0,
+    "verseCount": 0,
+    "paragraphCount": 835,
+    "textExact": true,
+    "splitVersesChecked": false,
+    "manualReview": false,
+    "missingReferences": []
+  },
+  "kabale": {
+    "textBlocks": 934,
+    "verseElements": 0,
+    "verseCount": 0,
+    "paragraphCount": 934,
+    "textExact": true,
+    "splitVersesChecked": false,
+    "manualReview": false,
+    "missingReferences": []
+  },
+  "maria": {
+    "textBlocks": 4326,
+    "verseElements": 4326,
+    "verseCount": 4326,
+    "paragraphCount": 0,
+    "textExact": true,
+    "splitVersesChecked": false,
+    "manualReview": false,
+    "missingReferences": []
+  },
+  "verwandlung": {
+    "textBlocks": 97,
+    "paragraphCount": 97,
+    "textExact": true,
+    "manualReview": false
+  }
+}

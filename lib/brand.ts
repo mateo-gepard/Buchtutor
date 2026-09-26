@@ -1,0 +1,11 @@
+export const brand={
+  name:'Buchtutor',
+  description:'Lektüren lesen, Textstellen verstehen und eigene Notizen sammeln. Für Deutsch in der Oberstufe.',
+  ink:'#263d37',
+  accent:'#bb6948',
+  paper:'#fafaf7',
+} as const;
+
+// One outline for the header, favicon and home-screen icons.
+export const bookPagesPath='M3 1C14 1 24 4.5 28 11c.7 1.2 1 2.4 1 3.8v31.3c0 .9-.7 1.3-1.4.8C20.5 41.8 12 40.5 3 40.5a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2Zm52 0C44 1 36 4.5 32 11c-.7 1.2-1 2.4-1 3.8v31.3c0 .9.7 1.3 1.4.8C39.5 41.8 46 40.5 55 40.5a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2Z';
+export const bookTabPath='M57 8h4a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-4Z';

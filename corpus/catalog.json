@@ -1,0 +1,349 @@
+[
+  {
+    "id": "iphigenie",
+    "title": "Iphigenie auf Tauris",
+    "author": "Johann Wolfgang von Goethe",
+    "year": 1787,
+    "epoch": "Weimarer Klassik",
+    "genre": "Versdrama",
+    "color": "#305361",
+    "editionId": "iphigenie-v1-8d157fb7f0a3",
+    "revision": "8d157fb7f0a3e38cef795034258650876c596f2e766b022ef5b0ac2ed2084d98",
+    "sourceUrl": "https://raw.githubusercontent.com/dracor-org/gerdracor/5d9e0731345fa669e4b897fee9c97bc59a8e86d0/tei/goethe-iphigenie-auf-tauris.xml",
+    "sourceLabel": "DraCor / TextGrid",
+    "sourceEdition": "Johann Wolfgang Goethe: Iphigenie auf Tauris. Ein Schauspiel. In: Goethes Werke. Hamburger Ausgabe in 14 Bänden. Band V: Dramatische Dichtungen. Dritter Band. Textkritisch durchgesehen und mit Anmerkungen versehen von Josef Kunz. Vierte Auflage. Hamburg: Wegner 1960, S. 7–67.",
+    "licenses": [
+      {
+        "name": "CC0 1.0",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      {
+        "name": "CC-BY-3.0",
+        "url": "http://creativecommons.org/licenses/by/3.0/de/legalcode"
+      }
+    ],
+    "sourceCommit": "5d9e0731345fa669e4b897fee9c97bc59a8e86d0",
+    "referenceMode": "verse",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 2203,
+      "verseElements": 2203,
+      "verseCount": 2174,
+      "paragraphCount": 0,
+      "textExact": true,
+      "splitVersesChecked": true,
+      "manualReview": false,
+      "missingReferences": []
+    },
+    "note": "Geteilte Verse zusammengeführt; Zählung endet bei 2174. Noch kein Abgleich mit einer konkreten Schulausgabe.",
+    "curriculum": "Ergänzende Oberstufenlektüre"
+  },
+  {
+    "id": "krug",
+    "title": "Der zerbrochne Krug",
+    "author": "Heinrich von Kleist",
+    "year": 1811,
+    "epoch": "Um 1800",
+    "genre": "Lustspiel",
+    "color": "#a16043",
+    "editionId": "krug-v1-4a90b9aef41c",
+    "revision": "4a90b9aef41c934fc48a2b85b78e27d7182c2fb0a811a6ebb2493a1eecf8e87d",
+    "sourceUrl": "https://raw.githubusercontent.com/dracor-org/gerdracor/5d9e0731345fa669e4b897fee9c97bc59a8e86d0/tei/kleist-der-zerbrochene-krug.xml",
+    "sourceLabel": "DraCor / TextGrid",
+    "sourceEdition": "Heinrich von Kleist: Der zerbrochne Krug. Ein Lustspiel. In: Werke und Briefe in vier Bänden. Herausgegeben von Siegfried Streller in Zusammenarbeit mit Peter Goldammer und Wolfgang Barthel, Anita Golz, Rudolf Loch. Band 1. Berlin und Weimar: Aufbau-Verlag 1978, S. 233–307.",
+    "licenses": [
+      {
+        "name": "CC0 1.0",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      {
+        "name": "CC-BY-3.0",
+        "url": "http://creativecommons.org/licenses/by/3.0/de/legalcode"
+      }
+    ],
+    "sourceCommit": "5d9e0731345fa669e4b897fee9c97bc59a8e86d0",
+    "referenceMode": "textline",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 2395,
+      "verseElements": 2395,
+      "verseCount": 2395,
+      "paragraphCount": 0,
+      "textExact": true,
+      "splitVersesChecked": false,
+      "manualReview": false,
+      "missingReferences": []
+    },
+    "note": "Die Textstruktur ist mit der Quelle abgeglichen. Schulversnummern und Seiten anderer Ausgaben sind noch nicht zugeordnet.",
+    "curriculum": "Pflichtlektüre Bayern 2026–2028"
+  },
+  {
+    "id": "faust",
+    "title": "Faust I",
+    "author": "Johann Wolfgang von Goethe",
+    "year": 1808,
+    "epoch": "Um 1800",
+    "genre": "Tragödie",
+    "color": "#555075",
+    "editionId": "faust-v1-ddad9d5cdd4a",
+    "revision": "ddad9d5cdd4a7b2dfa2f39098121f3d366d850f101b1c83fd037c321a3b5c077",
+    "sourceUrl": "https://www.faustedition.net/downloads/faust.xml",
+    "sourceLabel": "Faustedition",
+    "sourceEdition": "Goethe: Faust. Historisch-kritische Faustedition, konstituierter Text, Version 1.3 RC (12.09.2023). Gerrit Brüning, Dietmar Pravida und Thorsten Vitt. Hier nur der erste Teil mit Zueignung und Vorspielen; textkritische Anmerkungen sind ausgeblendet.",
+    "licenses": [
+      {
+        "name": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
+        "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+      }
+    ],
+    "sourceCommit": null,
+    "referenceMode": "verse",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 4724,
+      "verseElements": 4710,
+      "verseCount": 4612,
+      "paragraphCount": 14,
+      "textExact": true,
+      "splitVersesChecked": true,
+      "manualReview": false,
+      "missingReferences": [
+        4335,
+        4336,
+        4337,
+        4338,
+        4339,
+        4340,
+        4341,
+        4342
+      ]
+    },
+    "note": "Versnummern aus der Faustedition. Die Nummern 4335–4342 sind im Lesetext dieser Quelle ausgespart und werden nicht ergänzt. CC BY-NC-SA 4.0: nur nichtkommerzielle Nutzung. Kein ISBN-Abgleich.",
+    "curriculum": "Ergänzende Oberstufenlektüre"
+  },
+  {
+    "id": "woyzeck",
+    "title": "Woyzeck",
+    "author": "Georg Büchner",
+    "year": 1879,
+    "epoch": "Vormärz",
+    "genre": "Dramenfragment",
+    "color": "#687e62",
+    "editionId": "woyzeck-v1-4b5ad114ace0",
+    "revision": "4b5ad114ace0c871dd8992a2645a0ff50a8c004249dc0b70be962ba75dffa5e0",
+    "sourceUrl": "https://raw.githubusercontent.com/dracor-org/gerdracor/5d9e0731345fa669e4b897fee9c97bc59a8e86d0/tei/buechner-woyzeck.xml",
+    "sourceLabel": "DraCor / TextGrid",
+    "sourceEdition": "Georg Büchner: Sämtliche Werke und Briefe. Historisch-kritische Ausgabe mit Kommentar (Hamburger Ausgabe). Herausgegeben von Werner R. Lehmann, Band 1–2, Reinbek: Christian Wegner, 1967–1971, bzw. [2. Aufl.] München: Hanser, 1974.",
+    "licenses": [
+      {
+        "name": "CC0 1.0",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      {
+        "name": "CC-BY-3.0",
+        "url": "http://creativecommons.org/licenses/by/3.0/de/legalcode"
+      }
+    ],
+    "sourceCommit": "5d9e0731345fa669e4b897fee9c97bc59a8e86d0",
+    "referenceMode": "paragraph",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 520,
+      "verseElements": 101,
+      "verseCount": 101,
+      "paragraphCount": 419,
+      "textExact": true,
+      "splitVersesChecked": false,
+      "manualReview": false,
+      "missingReferences": []
+    },
+    "note": "Die vier Handschriftengruppen H1–H4 sind getrennt enthalten. Keine rekonstruierte Schulfassung.",
+    "curriculum": "Ergänzende Oberstufenlektüre"
+  },
+  {
+    "id": "nathan",
+    "title": "Nathan der Weise",
+    "author": "Gotthold Ephraim Lessing",
+    "year": 1779,
+    "epoch": "Aufklärung",
+    "genre": "Dramatisches Gedicht",
+    "color": "#8b7143",
+    "editionId": "nathan-v1-589407953df5",
+    "revision": "589407953df501b1eae89594356d1ce5f35f3985bb6b13133574bfd2fb270c50",
+    "sourceUrl": "https://raw.githubusercontent.com/dracor-org/gerdracor/5d9e0731345fa669e4b897fee9c97bc59a8e86d0/tei/lessing-nathan-der-weise.xml",
+    "sourceLabel": "DraCor / TextGrid",
+    "sourceEdition": "Gotthold Ephraim Lessing: Nathan der Weise. Ein dramatisches Gedicht in fünf Aufzügen. In: Werke. Zweiter Band. Herausgegeben von Herbert G. Göpfert. München: Hanser 1971, S. 205–347.",
+    "licenses": [
+      {
+        "name": "CC0 1.0",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      {
+        "name": "CC-BY-3.0",
+        "url": "http://creativecommons.org/licenses/by/3.0/de/legalcode"
+      }
+    ],
+    "sourceCommit": "5d9e0731345fa669e4b897fee9c97bc59a8e86d0",
+    "referenceMode": "textline",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 4741,
+      "verseElements": 4741,
+      "verseCount": 4741,
+      "paragraphCount": 0,
+      "textExact": true,
+      "splitVersesChecked": false,
+      "manualReview": false,
+      "missingReferences": []
+    },
+    "note": "Die Textstruktur ist mit der Quelle abgeglichen. Schulversnummern und Seiten anderer Ausgaben sind noch nicht zugeordnet.",
+    "curriculum": "Ergänzende Oberstufenlektüre"
+  },
+  {
+    "id": "emilia",
+    "title": "Emilia Galotti",
+    "author": "Gotthold Ephraim Lessing",
+    "year": 1772,
+    "epoch": "Aufklärung",
+    "genre": "Trauerspiel",
+    "color": "#79616d",
+    "editionId": "emilia-v1-65021f1ab582",
+    "revision": "65021f1ab582707caf3c98bd14dd1e9bb8c03df9ba33f7a0571f431ea44eaeea",
+    "sourceUrl": "https://raw.githubusercontent.com/dracor-org/gerdracor/5d9e0731345fa669e4b897fee9c97bc59a8e86d0/tei/lessing-emilia-galotti.xml",
+    "sourceLabel": "DraCor / TextGrid",
+    "sourceEdition": "Gotthold Ephraim Lessing: Emilia Galotti. Ein Trauerspiel in fünf Aufzügen. In: Werke. Zweiter Band. Herausgegeben von Herbert G. Göpfert. München: Hanser 1971, S. 127–204.",
+    "licenses": [
+      {
+        "name": "CC0 1.0",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      {
+        "name": "CC-BY-3.0",
+        "url": "http://creativecommons.org/licenses/by/3.0/de/legalcode"
+      }
+    ],
+    "sourceCommit": "5d9e0731345fa669e4b897fee9c97bc59a8e86d0",
+    "referenceMode": "paragraph",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 835,
+      "verseElements": 0,
+      "verseCount": 0,
+      "paragraphCount": 835,
+      "textExact": true,
+      "splitVersesChecked": false,
+      "manualReview": false,
+      "missingReferences": []
+    },
+    "note": "Die Textstruktur ist mit der Quelle abgeglichen. Schulversnummern und Seiten anderer Ausgaben sind noch nicht zugeordnet.",
+    "curriculum": "Ergänzende Oberstufenlektüre"
+  },
+  {
+    "id": "kabale",
+    "title": "Kabale und Liebe",
+    "author": "Friedrich Schiller",
+    "year": 1784,
+    "epoch": "Sturm und Drang",
+    "genre": "Trauerspiel",
+    "color": "#486c6e",
+    "editionId": "kabale-v1-17841859ae29",
+    "revision": "17841859ae294a7d6659723015969e2f3edca64bba5d375fbdd111b6d0620294",
+    "sourceUrl": "https://raw.githubusercontent.com/dracor-org/gerdracor/5d9e0731345fa669e4b897fee9c97bc59a8e86d0/tei/schiller-kabale-und-liebe.xml",
+    "sourceLabel": "DraCor / TextGrid",
+    "sourceEdition": "Friedrich Schiller: Kabale und Liebe. Ein bürgerliches Trauerspiel in fünf Aufzügen. In: ders.: Sämtliche Werke. Auf Grund der Originaldrucke herausgegeben von Gerhard Fricke und Herbert G. Göpfert in Verbindung mit Herbert Stubenrauch. Erster Band: Gedichte. Dramen I. 3. Auflage. München: Hanser 1962, S. 755–858.",
+    "licenses": [
+      {
+        "name": "CC0 1.0",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      {
+        "name": "CC-BY-3.0",
+        "url": "http://creativecommons.org/licenses/by/3.0/de/legalcode"
+      }
+    ],
+    "sourceCommit": "5d9e0731345fa669e4b897fee9c97bc59a8e86d0",
+    "referenceMode": "paragraph",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 934,
+      "verseElements": 0,
+      "verseCount": 0,
+      "paragraphCount": 934,
+      "textExact": true,
+      "splitVersesChecked": false,
+      "manualReview": false,
+      "missingReferences": []
+    },
+    "note": "Die Textstruktur ist mit der Quelle abgeglichen. Schulversnummern und Seiten anderer Ausgaben sind noch nicht zugeordnet.",
+    "curriculum": "Ergänzende Oberstufenlektüre"
+  },
+  {
+    "id": "maria",
+    "title": "Maria Stuart",
+    "author": "Friedrich Schiller",
+    "year": 1800,
+    "epoch": "Weimarer Klassik",
+    "genre": "Tragödie",
+    "color": "#6c5771",
+    "editionId": "maria-v1-d1dcf6f3dfd1",
+    "revision": "d1dcf6f3dfd1dd61dd7eb3d9faa934e004654e305117682b00c0ac99d70f2c23",
+    "sourceUrl": "https://raw.githubusercontent.com/dracor-org/gerdracor/5d9e0731345fa669e4b897fee9c97bc59a8e86d0/tei/schiller-maria-stuart.xml",
+    "sourceLabel": "DraCor / TextGrid",
+    "sourceEdition": "Friedrich Schiller: Maria Stuart. Ein Trauerspiel. In: ders.: Sämtliche Werke. Auf Grund der Originaldrucke herausgegeben von Gerhard Fricke und Herbert G. Göpfert in Verbindung mit Herbert Stubenrauch. Zweiter Band: Dramen II. 3. Auflage. München: Hanser 1962, S. 549–686.",
+    "licenses": [
+      {
+        "name": "CC0 1.0",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      {
+        "name": "CC-BY-3.0",
+        "url": "http://creativecommons.org/licenses/by/3.0/de/legalcode"
+      }
+    ],
+    "sourceCommit": "5d9e0731345fa669e4b897fee9c97bc59a8e86d0",
+    "referenceMode": "textline",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 4326,
+      "verseElements": 4326,
+      "verseCount": 4326,
+      "paragraphCount": 0,
+      "textExact": true,
+      "splitVersesChecked": false,
+      "manualReview": false,
+      "missingReferences": []
+    },
+    "note": "Die Textstruktur ist mit der Quelle abgeglichen. Schulversnummern und Seiten anderer Ausgaben sind noch nicht zugeordnet.",
+    "curriculum": "Ergänzende Oberstufenlektüre"
+  },
+  {
+    "id": "verwandlung",
+    "title": "Die Verwandlung",
+    "author": "Franz Kafka",
+    "year": 1915,
+    "epoch": "Literarische Moderne",
+    "genre": "Erzählung",
+    "color": "#495c74",
+    "editionId": "verwandlung-pg-359d3f5983c8",
+    "revision": "359d3f5983c812393f4bd7ee49a350ffffc7d476015e58d6b84b6c848dd2b0e9",
+    "sourceUrl": "https://www.gutenberg.org/ebooks/22367",
+    "sourceLabel": "Project Gutenberg",
+    "sourceEdition": "Franz Kafka: Die Verwandlung. Kurt Wolff Verlag, Leipzig, Druck 1917. Transkription: Jana Srna, Alexander Bauer und Distributed Proofreading.",
+    "licenses": [
+      {
+        "name": "Gemeinfreier Originaltext; Transkriptionsquelle mit Gutenberg-Lizenz",
+        "url": "https://www.gutenberg.org/policy/license.html"
+      }
+    ],
+    "referenceMode": "paragraph",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 97,
+      "paragraphCount": 97,
+      "textExact": true,
+      "manualReview": false
+    },
+    "note": "Absätze sind innerhalb dieser digitalen Ausgabe nummeriert. Sie entsprechen keinen Zeilen- oder Seitenzahlen eines Schulhefts.",
+    "curriculum": "Ergänzende Oberstufenlektüre"
+  }
+]

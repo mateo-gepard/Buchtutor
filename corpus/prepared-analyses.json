@@ -1,0 +1,1680 @@
+[
+  {
+    "mode": "summary",
+    "title": "Fürstlicher Arbeitsbeginn",
+    "summary": "Der Prinz eröffnet mit Klagen über Bittschriften und Neid auf seine Rolle. Beim Durchsehen stutzt er beim Namen Emilia, unterscheidet Bruneschi von Galotti, bewilligt dennoch allein wegen des Namens und lässt nach den Räten fragen.",
+    "observations": [
+      {
+        "label": "Namensreiz",
+        "text": "Die Wiederholung des Namens zeigt Fixierung: Der Prinz prüft erst Identität, entscheidet dann affektiv. Das deutet auf Willkür statt sachlicher Prüfung.",
+        "quotes": [
+          {
+            "blockId": "b00004",
+            "quote": "Nicht Emilia Galotti!"
+          }
+        ]
+      },
+      {
+        "label": "Klage-Einstieg",
+        "text": "Der parallele Auftakt steigert Überdruss am Regieren. Die Übertreibung wirkt klagend und selbstmitleidig, zugleich exponiert sie Machtmüdigkeit zu Beginn.",
+        "quotes": [
+          {
+            "blockId": "b00004",
+            "quote": "Klagen, nichts als Klagen!"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Offen bleibt, ob Namensreaktion Schwärmerei oder Herrscherwillkür zeigt; Auszug begründet keine Figurenbiografie.",
+    "id": "prepared-emilia-summary-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00006",
+      "startOffset": 0,
+      "endOffset": 5,
+      "quote": "Klagen, nichts als Klagen! Bittschriften, nichts als Bittschriften! – Die traurigen Geschäfte; und man beneidet uns noch! – Das glaub' ich; wenn wir allen helfen könnten: dann wären wir zu beneiden. – Emilia? Indem er noch eine von den Bittschriften aufschlägt, und nach dem unterschriebnen Namen sieht. Eine Emilia? – Aber eine Emilia Bruneschi – nicht Galotti. Nicht Emilia Galotti! – Was will sie, diese Emilia Bruneschi? Er lieset. Viel gefodert; sehr viel. – Doch sie heißt Emilia. Gewährt! Er unterschreibt und klingelt; worauf ein Kammerdiener hereintritt. Es ist wohl noch keiner von den Räten in dem Vorzimmer?\nNein."
+    },
+    "workId": "emilia",
+    "editionId": "emilia-v1-65021f1ab582"
+  },
+  {
+    "mode": "style",
+    "title": "Wiederholung und Affekt",
+    "summary": "Der Stil nutzt parallele Klagen, Ausrufe und Namenswiederholung; bürokratische Kürze mischt sich mit affektivem Herrscherkommentar.",
+    "observations": [
+      {
+        "label": "Wiederholung",
+        "text": "Die Doppelformel hämmert Überdruss ein und macht Herrschen als Last hörbar, noch bevor eine Handlung einsetzt.",
+        "quotes": [
+          {
+            "blockId": "b00004",
+            "quote": "Klagen, nichts als Klagen!"
+          }
+        ]
+      },
+      {
+        "label": "Ausruf",
+        "text": "Der knappe Entscheidungsausruf zeigt Machtspruch ohne Begründung; Wirkung ist Überraschung durch Willkür im Amtsgeschäft.",
+        "quotes": [
+          {
+            "blockId": "b00004",
+            "quote": "Gewährt!"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Die Deutung bezieht sich auf den Beginn des Dialogs. Ob sich die beobachtete Willkür durch die weitere Handlung bestätigt, muss separat am Text gezeigt werden.",
+    "id": "prepared-emilia-style-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00006",
+      "startOffset": 0,
+      "endOffset": 5,
+      "quote": "Klagen, nichts als Klagen! Bittschriften, nichts als Bittschriften! – Die traurigen Geschäfte; und man beneidet uns noch! – Das glaub' ich; wenn wir allen helfen könnten: dann wären wir zu beneiden. – Emilia? Indem er noch eine von den Bittschriften aufschlägt, und nach dem unterschriebnen Namen sieht. Eine Emilia? – Aber eine Emilia Bruneschi – nicht Galotti. Nicht Emilia Galotti! – Was will sie, diese Emilia Bruneschi? Er lieset. Viel gefodert; sehr viel. – Doch sie heißt Emilia. Gewährt! Er unterschreibt und klingelt; worauf ein Kammerdiener hereintritt. Es ist wohl noch keiner von den Räten in dem Vorzimmer?\nNein."
+    },
+    "workId": "emilia",
+    "editionId": "emilia-v1-65021f1ab582"
+  },
+  {
+    "mode": "meter",
+    "title": "Prosa-Rhythmus",
+    "summary": "Prosa ohne Versmaß; Rhythmus entsteht als mögliche Lesart aus kurzen Sätzen, Wiederholung und abruptem Wechsel zu Frage und Befehl.",
+    "observations": [
+      {
+        "label": "Stakkato",
+        "text": "Kurze Hauptsätze und Ausrufe erzeugen stockenden Atem; das wirkt gehetzt und ungeduldig, nicht metrisch gebunden.",
+        "quotes": [
+          {
+            "blockId": "b00004",
+            "quote": "Klagen, nichts als Klagen!"
+          }
+        ]
+      },
+      {
+        "label": "Dialogknappheit",
+        "text": "Die einsilbige Antwort bremst den Schwall; der Kontrast wirkt wie Pause, belegt aber kein Versmaß.",
+        "quotes": [
+          {
+            "blockId": "b00006",
+            "quote": "Nein."
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Prosa erlaubt nur rhythmische Beschreibung; jede metrische Deutung wäre unangemessen.",
+    "id": "prepared-emilia-meter-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00006",
+      "startOffset": 0,
+      "endOffset": 5,
+      "quote": "Klagen, nichts als Klagen! Bittschriften, nichts als Bittschriften! – Die traurigen Geschäfte; und man beneidet uns noch! – Das glaub' ich; wenn wir allen helfen könnten: dann wären wir zu beneiden. – Emilia? Indem er noch eine von den Bittschriften aufschlägt, und nach dem unterschriebnen Namen sieht. Eine Emilia? – Aber eine Emilia Bruneschi – nicht Galotti. Nicht Emilia Galotti! – Was will sie, diese Emilia Bruneschi? Er lieset. Viel gefodert; sehr viel. – Doch sie heißt Emilia. Gewährt! Er unterschreibt und klingelt; worauf ein Kammerdiener hereintritt. Es ist wohl noch keiner von den Räten in dem Vorzimmer?\nNein."
+    },
+    "workId": "emilia",
+    "editionId": "emilia-v1-65021f1ab582"
+  },
+  {
+    "mode": "context",
+    "title": "Aufklärungsherrschaft",
+    "summary": "Lessing steht für Aufklärung und bürgerliches Trauerspiel (Grundwissen); Auszug zeigt Fürstenalltag, beweist aber keine Historie oder Werkthese.",
+    "observations": [
+      {
+        "label": "Amtssprache",
+        "text": "Wörter aus Kanzlei deuten auf Fürstenherrschaft; sie belegen keine reale Verwaltung, nur dargestellte Rolle.",
+        "quotes": [
+          {
+            "blockId": "b00004",
+            "quote": "Bittschriften, nichts als Bittschriften!"
+          }
+        ]
+      },
+      {
+        "label": "Namensstand",
+        "text": "Die Unterscheidung zweier Emilias deutet Standesdenken an; als Epochenbeleg taugt das Zitat allein nicht.",
+        "quotes": [
+          {
+            "blockId": "b00004",
+            "quote": "Aber eine Emilia Bruneschi – nicht Galotti."
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Autor- und Epochenwissen stammt aus Grundwissen; Auszug allein sichert weder Datierung noch Absicht.",
+    "id": "prepared-emilia-context-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00006",
+      "startOffset": 0,
+      "endOffset": 5,
+      "quote": "Klagen, nichts als Klagen! Bittschriften, nichts als Bittschriften! – Die traurigen Geschäfte; und man beneidet uns noch! – Das glaub' ich; wenn wir allen helfen könnten: dann wären wir zu beneiden. – Emilia? Indem er noch eine von den Bittschriften aufschlägt, und nach dem unterschriebnen Namen sieht. Eine Emilia? – Aber eine Emilia Bruneschi – nicht Galotti. Nicht Emilia Galotti! – Was will sie, diese Emilia Bruneschi? Er lieset. Viel gefodert; sehr viel. – Doch sie heißt Emilia. Gewährt! Er unterschreibt und klingelt; worauf ein Kammerdiener hereintritt. Es ist wohl noch keiner von den Räten in dem Vorzimmer?\nNein."
+    },
+    "workId": "emilia",
+    "editionId": "emilia-v1-65021f1ab582"
+  },
+  {
+    "mode": "conflict",
+    "title": "Pflicht gegen Neigung",
+    "summary": "Bis hier kollidieren Amtsmüdigkeit und private Namensfixierung; sachliche Prüfung weicht affektiver Begünstigung, Ausgang offen.",
+    "observations": [
+      {
+        "label": "Willkür",
+        "text": "Trotz hoher Forderung entscheidet allein der Name; das zeigt Bevorzugung und mögliche Ungerechtigkeit im Amt.",
+        "quotes": [
+          {
+            "blockId": "b00004",
+            "quote": "Doch sie heißt Emilia. Gewährt!"
+          }
+        ]
+      },
+      {
+        "label": "Rollenspannung",
+        "text": "Klage über Geschäfte kontrastiert müheloser Unterschrift; Pflicht und Lust stehen unentschieden nebeneinander.",
+        "quotes": [
+          {
+            "blockId": "b00004",
+            "quote": "Die traurigen Geschäfte; und man beneidet uns noch!"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob daraus Liebe, Obsession oder Kritik folgt, sagt Ausschnitt nicht; keine spätere Wendung einbeziehen.",
+    "id": "prepared-emilia-conflict-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00006",
+      "startOffset": 0,
+      "endOffset": 5,
+      "quote": "Klagen, nichts als Klagen! Bittschriften, nichts als Bittschriften! – Die traurigen Geschäfte; und man beneidet uns noch! – Das glaub' ich; wenn wir allen helfen könnten: dann wären wir zu beneiden. – Emilia? Indem er noch eine von den Bittschriften aufschlägt, und nach dem unterschriebnen Namen sieht. Eine Emilia? – Aber eine Emilia Bruneschi – nicht Galotti. Nicht Emilia Galotti! – Was will sie, diese Emilia Bruneschi? Er lieset. Viel gefodert; sehr viel. – Doch sie heißt Emilia. Gewährt! Er unterschreibt und klingelt; worauf ein Kammerdiener hereintritt. Es ist wohl noch keiner von den Räten in dem Vorzimmer?\nNein."
+    },
+    "workId": "emilia",
+    "editionId": "emilia-v1-65021f1ab582"
+  },
+  {
+    "mode": "summary",
+    "title": "Rückkehr der Erinnerungsbilder",
+    "summary": "Ein Ich begrüßt wiederkehrende schwankende Gestalten aus früher Zeit, fragt nach Festhalten und Hingabe, fühlt jugendliche Erschütterung und erinnert frohe Tage, Schatten, Liebe, Freundschaft, Schmerz und Klage.",
+    "observations": [
+      {
+        "label": "Anrede",
+        "text": "Die direkte Anrede belebt Erinnerungen als Gegenüber; das schafft Nähe und feierlichen Auftakt zur Selbstbefragung.",
+        "quotes": [
+          {
+            "blockId": "b00001",
+            "quote": "Ihr naht euch wieder, schwankende Gestalten!"
+          }
+        ]
+      },
+      {
+        "label": "Jugendgefühl",
+        "text": "Körpermetapher zeigt Ergriffenheit trotz Unsicherheit; Vergangenheit wirkt verjüngend und beunruhigend zugleich.",
+        "quotes": [
+          {
+            "blockId": "b00007",
+            "quote": "Mein Busen fühlt sich jugendlich erschüttert"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Wer spricht und zu wem, klärt Ausschnitt nicht; kein Schluss auf Fausthandlung erlaubt.",
+    "id": "prepared-faust-summary-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00001",
+      "endId": "b00014",
+      "startOffset": 0,
+      "endOffset": 36,
+      "quote": "Ihr naht euch wieder, schwankende Gestalten!\nDie früh sich einst dem trüben Blick gezeigt.\nVersuch’ ich wohl euch diesmal fest zu halten?\nFühl’ ich mein Herz noch jenem Wahn geneigt?\nIhr drängt euch zu! nun gut, so mögt ihr walten,\nWie ihr aus Dunst und Nebel um mich steigt;\nMein Busen fühlt sich jugendlich erschüttert\nVom Zauberhauch der euren Zug umwittert.\nIhr bringt mit euch die Bilder froher Tage,\nUnd manche liebe Schatten steigen auf;\nGleich einer alten, halbverklungnen Sage,\nKommt erste Lieb’ und Freundschaft mit herauf;\nDer Schmerz wird neu, es wiederholt die Klage\nDes Lebens labyrinthisch irren Lauf,"
+    },
+    "workId": "faust",
+    "editionId": "faust-v1-ddad9d5cdd4a"
+  },
+  {
+    "mode": "style",
+    "title": "Anrufung und Zauberbilder",
+    "summary": "Stilmittel sind Apostrophe, Fragen, Dunst- und Zauberbilder sowie Vergleiche; sie verbinden Unsicherheit mit feierlicher Beschwörung.",
+    "observations": [
+      {
+        "label": "Nebelbild",
+        "text": "Dunst und Nebel machen Erinnerung unscharf und magisch; das Bild erklärt Schwanken und schützt vor Festlegung.",
+        "quotes": [
+          {
+            "blockId": "b00006",
+            "quote": "Wie ihr aus Dunst und Nebel um mich steigt;"
+          }
+        ]
+      },
+      {
+        "label": "Vergleich",
+        "text": "Der Sagenvergleich rückt Liebe und Freundschaft in Ferne; Wirkung ist Wehmut und entrückte Schönheit.",
+        "quotes": [
+          {
+            "blockId": "b00011",
+            "quote": "Gleich einer alten, halbverklungnen Sage,"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob Zauber wörtlich oder seelisch gemeint ist, bleibt offen; Stilwirkung ist Lesart.",
+    "id": "prepared-faust-style-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00001",
+      "endId": "b00014",
+      "startOffset": 0,
+      "endOffset": 36,
+      "quote": "Ihr naht euch wieder, schwankende Gestalten!\nDie früh sich einst dem trüben Blick gezeigt.\nVersuch’ ich wohl euch diesmal fest zu halten?\nFühl’ ich mein Herz noch jenem Wahn geneigt?\nIhr drängt euch zu! nun gut, so mögt ihr walten,\nWie ihr aus Dunst und Nebel um mich steigt;\nMein Busen fühlt sich jugendlich erschüttert\nVom Zauberhauch der euren Zug umwittert.\nIhr bringt mit euch die Bilder froher Tage,\nUnd manche liebe Schatten steigen auf;\nGleich einer alten, halbverklungnen Sage,\nKommt erste Lieb’ und Freundschaft mit herauf;\nDer Schmerz wird neu, es wiederholt die Klage\nDes Lebens labyrinthisch irren Lauf,"
+    },
+    "workId": "faust",
+    "editionId": "faust-v1-ddad9d5cdd4a"
+  },
+  {
+    "mode": "meter",
+    "title": "Stanze: fünf Hebungen, acht Verse",
+    "summary": "Die „Zueignung“ verwendet Stanzen: achtzeilige Strophen aus fünfhebigen Jamben mit dem Reimschema abababcc. Die erste Strophe ist in dieser Auswahl vollständig; von der zweiten sind nur sechs Verse enthalten.",
+    "observations": [
+      {
+        "label": "Reimgruppe",
+        "text": "Die Endwörter der ersten acht Verse sind: „Gestalten“, „gezeigt“, „halten“, „geneigt“, „walten“, „steigt“, „erschüttert“, „umwittert“. Die Verse 1/3/5, 2/4/6 und 7/8 bilden die drei Reimgruppen.",
+        "quotes": [
+          {
+            "blockId": "b00001",
+            "quote": "Ihr naht euch wieder, schwankende Gestalten!"
+          },
+          {
+            "blockId": "b00005",
+            "quote": "Ihr drängt euch zu! nun gut, so mögt ihr walten,"
+          }
+        ]
+      },
+      {
+        "label": "Jambischer Grundrhythmus",
+        "text": "Im Jambus folgt auf eine unbetonte eine betonte Silbe. Die fragende Satzmelodie kann dieses Grundmuster durch zusätzliche Akzente überlagern.",
+        "quotes": [
+          {
+            "blockId": "b00003",
+            "quote": "Versuch’ ich wohl euch diesmal fest zu halten?"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Das Strophenschema lässt sich am vollständigen Achtzeiler prüfen. Die Betonung einzelner Silben bleibt beim Vortrag beweglich.",
+    "id": "prepared-faust-meter-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00001",
+      "endId": "b00014",
+      "startOffset": 0,
+      "endOffset": 36,
+      "quote": "Ihr naht euch wieder, schwankende Gestalten!\nDie früh sich einst dem trüben Blick gezeigt.\nVersuch’ ich wohl euch diesmal fest zu halten?\nFühl’ ich mein Herz noch jenem Wahn geneigt?\nIhr drängt euch zu! nun gut, so mögt ihr walten,\nWie ihr aus Dunst und Nebel um mich steigt;\nMein Busen fühlt sich jugendlich erschüttert\nVom Zauberhauch der euren Zug umwittert.\nIhr bringt mit euch die Bilder froher Tage,\nUnd manche liebe Schatten steigen auf;\nGleich einer alten, halbverklungnen Sage,\nKommt erste Lieb’ und Freundschaft mit herauf;\nDer Schmerz wird neu, es wiederholt die Klage\nDes Lebens labyrinthisch irren Lauf,"
+    },
+    "workId": "faust",
+    "editionId": "faust-v1-ddad9d5cdd4a"
+  },
+  {
+    "mode": "context",
+    "title": "Dichtungseröffnung",
+    "summary": "Goethe und Faust I als Werkrahmen sind Grundwissen; Zueignung als Paratext deutet Rückblick an, beweist aber keine Biografie.",
+    "observations": [
+      {
+        "label": "Bildertage",
+        "text": "Frohe Tage und Schatten klingen nach Lebensrückblick; als historische Tatsache belegen sie nichts.",
+        "quotes": [
+          {
+            "blockId": "b00009",
+            "quote": "Ihr bringt mit euch die Bilder froher Tage,"
+          }
+        ]
+      },
+      {
+        "label": "Klageformel",
+        "text": "Klage und Irrlauf deuten Daseinsreflexion an; epochale Zuordnung braucht Zusatzwissen, nicht nur Zitat.",
+        "quotes": [
+          {
+            "blockId": "b00013",
+            "quote": "Der Schmerz wird neu, es wiederholt die Klage"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Kontext aus Grundwissen getrennt halten; Zitate zeigen Ton, keine Entstehungsgeschichte.",
+    "id": "prepared-faust-context-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00001",
+      "endId": "b00014",
+      "startOffset": 0,
+      "endOffset": 36,
+      "quote": "Ihr naht euch wieder, schwankende Gestalten!\nDie früh sich einst dem trüben Blick gezeigt.\nVersuch’ ich wohl euch diesmal fest zu halten?\nFühl’ ich mein Herz noch jenem Wahn geneigt?\nIhr drängt euch zu! nun gut, so mögt ihr walten,\nWie ihr aus Dunst und Nebel um mich steigt;\nMein Busen fühlt sich jugendlich erschüttert\nVom Zauberhauch der euren Zug umwittert.\nIhr bringt mit euch die Bilder froher Tage,\nUnd manche liebe Schatten steigen auf;\nGleich einer alten, halbverklungnen Sage,\nKommt erste Lieb’ und Freundschaft mit herauf;\nDer Schmerz wird neu, es wiederholt die Klage\nDes Lebens labyrinthisch irren Lauf,"
+    },
+    "workId": "faust",
+    "editionId": "faust-v1-ddad9d5cdd4a"
+  },
+  {
+    "mode": "conflict",
+    "title": "Halten gegen Entgleiten",
+    "summary": "Bis hier ringt das Ich zwischen Festhaltenwollen und Hingabe ans Drängen; Wahn und Herz, Jugend und Schmerz bleiben unentschieden.",
+    "observations": [
+      {
+        "label": "Festhaltefrage",
+        "text": "Der Wunsch zu halten trifft schwankende Figuren; das zeigt Steuerungsverlust bei gleichzeitigem Bindungsbedürfnis.",
+        "quotes": [
+          {
+            "blockId": "b00003",
+            "quote": "Versuch’ ich wohl euch diesmal fest zu halten?"
+          }
+        ]
+      },
+      {
+        "label": "Lust-Leid",
+        "text": "Frohe Bilder kehren mit Schmerz zurück; Erinnerung tröstet und verletzt, Entscheidung fehlt im Ausschnitt.",
+        "quotes": [
+          {
+            "blockId": "b00009",
+            "quote": "Ihr bringt mit euch die Bilder froher Tage,"
+          },
+          {
+            "blockId": "b00013",
+            "quote": "Der Schmerz wird neu, es wiederholt die Klage"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob Flucht oder Bejahung folgt, ist hier offen; keine spätere Faustwendung vorwegnehmen.",
+    "id": "prepared-faust-conflict-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00001",
+      "endId": "b00014",
+      "startOffset": 0,
+      "endOffset": 36,
+      "quote": "Ihr naht euch wieder, schwankende Gestalten!\nDie früh sich einst dem trüben Blick gezeigt.\nVersuch’ ich wohl euch diesmal fest zu halten?\nFühl’ ich mein Herz noch jenem Wahn geneigt?\nIhr drängt euch zu! nun gut, so mögt ihr walten,\nWie ihr aus Dunst und Nebel um mich steigt;\nMein Busen fühlt sich jugendlich erschüttert\nVom Zauberhauch der euren Zug umwittert.\nIhr bringt mit euch die Bilder froher Tage,\nUnd manche liebe Schatten steigen auf;\nGleich einer alten, halbverklungnen Sage,\nKommt erste Lieb’ und Freundschaft mit herauf;\nDer Schmerz wird neu, es wiederholt die Klage\nDes Lebens labyrinthisch irren Lauf,"
+    },
+    "workId": "faust",
+    "editionId": "faust-v1-ddad9d5cdd4a"
+  },
+  {
+    "mode": "summary",
+    "title": "Fremdheit im heiligen Hain",
+    "summary": "Iphigenie betritt den heiligen Hain. Obwohl sie seit Jahren dort lebt, fühlt sie sich noch immer fremd. Sie gehorcht einem höheren Willen, sehnt sich aber nach den Menschen in ihrer griechischen Heimat. Das Meer trennt sie von ihnen.",
+    "observations": [
+      {
+        "label": "Fremdheit",
+        "text": "Trotz langer Zeit bleibt Gewöhnung aus; die Wiederholung des Fremdseins betont innere Distanz zum Ort.",
+        "quotes": [
+          {
+            "blockId": "b00010",
+            "quote": "Doch immer bin ich, wie im ersten, fremd."
+          }
+        ]
+      },
+      {
+        "label": "Meertrennung",
+        "text": "Das Meer markiert unüberwindbare Ferne; Uferstehen und Suchen zeigen dauerhafte Sehnsucht ohne Ankunft.",
+        "quotes": [
+          {
+            "blockId": "b00011",
+            "quote": "Denn ach! mich trennt das Meer von den Geliebten,"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Die ersten 14 Verse zeigen vor allem Iphigenies gegenwärtiges Empfinden. Einzelheiten ihrer Vorgeschichte werden hier noch nicht erklärt.",
+    "id": "prepared-iphigenie-summary-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00002",
+      "endId": "b00015",
+      "startOffset": 0,
+      "endOffset": 37,
+      "quote": "Heraus in eure Schatten, rege Wipfel\nDes alten, heil'gen, dichtbelaubten Haines,\nWie in der Göttin stilles Heiligtum\nTret' ich noch jetzt mit schauderndem Gefühl,\nAls wenn ich sie zum erstenmal beträte,\nUnd es gewöhnt sich nicht mein Geist hierher.\nSo manches Jahr bewahrt mich hier verborgen\nEin hoher Wille, dem ich mich ergebe;\nDoch immer bin ich, wie im ersten, fremd.\nDenn ach! mich trennt das Meer von den Geliebten,\nUnd an dem Ufer steh' ich lange Tage,\nDas Land der Griechen mit der Seele suchend;\nUnd gegen meine Seufzer bringt die Welle\nNur dumpfe Töne brausend mir herüber."
+    },
+    "workId": "iphigenie",
+    "editionId": "iphigenie-v1-8d157fb7f0a3"
+  },
+  {
+    "mode": "style",
+    "title": "Anrede und Klang der Ferne",
+    "summary": "Iphigenie spricht die Natur unmittelbar an. Die feierliche Sprache des Heiligtums steht neben den Worten ihrer Sehnsucht. So wird der Hain zugleich als heiliger Ort und als Ort ihrer Einsamkeit erfahrbar.",
+    "observations": [
+      {
+        "label": "Apostrophe",
+        "text": "Eine Apostrophe ist die direkte Anrede an etwas Abwesendes oder Nichtmenschliches. Mit „eure“ wendet sich Iphigenie an die Wipfel, als könnten diese ihr zuhören.",
+        "quotes": [
+          {
+            "blockId": "b00002",
+            "quote": "Heraus in eure Schatten, rege Wipfel"
+          }
+        ]
+      },
+      {
+        "label": "Klangbild",
+        "text": "Dumpfe Töne gegen Seufzer stellen antwortlose Natur dar; Wirkung ist Einsamkeit trotz Ansprache.",
+        "quotes": [
+          {
+            "blockId": "b00014",
+            "quote": "Und gegen meine Seufzer bringt die Welle"
+          },
+          {
+            "blockId": "b00015",
+            "quote": "Nur dumpfe Töne brausend mir herüber."
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Die Wirkung eines Stilmittels ist eine begründbare Deutung. Hier lässt sich die Einsamkeit besonders am Gegensatz zwischen ihren Seufzern und den dumpfen Tönen der Welle festmachen.",
+    "id": "prepared-iphigenie-style-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00002",
+      "endId": "b00015",
+      "startOffset": 0,
+      "endOffset": 37,
+      "quote": "Heraus in eure Schatten, rege Wipfel\nDes alten, heil'gen, dichtbelaubten Haines,\nWie in der Göttin stilles Heiligtum\nTret' ich noch jetzt mit schauderndem Gefühl,\nAls wenn ich sie zum erstenmal beträte,\nUnd es gewöhnt sich nicht mein Geist hierher.\nSo manches Jahr bewahrt mich hier verborgen\nEin hoher Wille, dem ich mich ergebe;\nDoch immer bin ich, wie im ersten, fremd.\nDenn ach! mich trennt das Meer von den Geliebten,\nUnd an dem Ufer steh' ich lange Tage,\nDas Land der Griechen mit der Seele suchend;\nUnd gegen meine Seufzer bringt die Welle\nNur dumpfe Töne brausend mir herüber."
+    },
+    "workId": "iphigenie",
+    "editionId": "iphigenie-v1-8d157fb7f0a3"
+  },
+  {
+    "mode": "meter",
+    "title": "Fünfhebiger Jambus ohne Endreim",
+    "summary": "Die Passage ist in Blankversen gestaltet: fünfhebigen, ungereimten Jamben. Im Grundmuster folgt auf eine unbetonte eine betonte Silbe (x /). Die Satzgrenzen fallen nicht immer mit den Versgrenzen zusammen; dadurch bleibt die Rede beweglich.",
+    "observations": [
+      {
+        "label": "Ein Vers zum Mitsprechen",
+        "text": "Vers 1 lässt sich lesen: heRAUS | in EU | re SCHAT | ten RE | ge WIP(fel). Fünf Hebungen, danach eine zusätzliche unbetonte Silbe: eine weibliche Kadenz. Großbuchstaben markieren hier die metrischen Hebungen.",
+        "quotes": [
+          {
+            "blockId": "b00002",
+            "quote": "Heraus in eure Schatten, rege Wipfel"
+          }
+        ]
+      },
+      {
+        "label": "Satz und Vers sind verschieden",
+        "text": "Der Anfangssatz reicht über mehrere Verse. „Wipfel / Des alten … Haines“ verbindet zwei Verse grammatisch miteinander. Ein solcher Zeilensprung heißt Enjambement.",
+        "quotes": [
+          {
+            "blockId": "b00002",
+            "quote": "Heraus in eure Schatten, rege Wipfel"
+          },
+          {
+            "blockId": "b00003",
+            "quote": "Des alten, heil'gen, dichtbelaubten Haines,"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Das Schema beschreibt die metrische Grundordnung. Beim Sprechen können einzelne Wörter zusätzliche Akzente erhalten. Diese Beispielanalyse ist keine automatische Skansion aller Verse.",
+    "id": "prepared-iphigenie-meter-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00002",
+      "endId": "b00015",
+      "startOffset": 0,
+      "endOffset": 37,
+      "quote": "Heraus in eure Schatten, rege Wipfel\nDes alten, heil'gen, dichtbelaubten Haines,\nWie in der Göttin stilles Heiligtum\nTret' ich noch jetzt mit schauderndem Gefühl,\nAls wenn ich sie zum erstenmal beträte,\nUnd es gewöhnt sich nicht mein Geist hierher.\nSo manches Jahr bewahrt mich hier verborgen\nEin hoher Wille, dem ich mich ergebe;\nDoch immer bin ich, wie im ersten, fremd.\nDenn ach! mich trennt das Meer von den Geliebten,\nUnd an dem Ufer steh' ich lange Tage,\nDas Land der Griechen mit der Seele suchend;\nUnd gegen meine Seufzer bringt die Welle\nNur dumpfe Töne brausend mir herüber."
+    },
+    "workId": "iphigenie",
+    "editionId": "iphigenie-v1-8d157fb7f0a3"
+  },
+  {
+    "mode": "context",
+    "title": "Heiliger Hain und griechische Heimat",
+    "summary": "Ein Hain ist eine kleine Baumgruppe oder ein Waldstück; als heiliger Hain gehört er zum Bereich einer Gottheit. Iphigenie erlebt diesen Ort mit Ehrfurcht. Griechenland bezeichnet in ihrer Rede zugleich eine räumlich entfernte Heimat und einen inneren Sehnsuchtsort.",
+    "observations": [
+      {
+        "label": "Heiligtum",
+        "text": "Das Heiligtum ist ein der Göttin geweihter Bereich. Der Vergleich macht verständlich, weshalb Iphigenie den Hain mit besonderer Scheu betritt.",
+        "quotes": [
+          {
+            "blockId": "b00004",
+            "quote": "Wie in der Göttin stilles Heiligtum"
+          }
+        ]
+      },
+      {
+        "label": "Griechenland",
+        "text": "Iphigenie kann ihre Heimat nicht sehen oder erreichen. Sie sucht sie „mit der Seele“: Die Suche ist innerlich, von Erinnerung und Sehnsucht geprägt.",
+        "quotes": [
+          {
+            "blockId": "b00013",
+            "quote": "Das Land der Griechen mit der Seele suchend;"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Der Stoff stammt aus der griechischen Mythologie. Die Sprache der Figur ist aber Teil eines Dramas, kein unmittelbarer Bericht über historische Kultpraxis.",
+    "id": "prepared-iphigenie-context-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00002",
+      "endId": "b00015",
+      "startOffset": 0,
+      "endOffset": 37,
+      "quote": "Heraus in eure Schatten, rege Wipfel\nDes alten, heil'gen, dichtbelaubten Haines,\nWie in der Göttin stilles Heiligtum\nTret' ich noch jetzt mit schauderndem Gefühl,\nAls wenn ich sie zum erstenmal beträte,\nUnd es gewöhnt sich nicht mein Geist hierher.\nSo manches Jahr bewahrt mich hier verborgen\nEin hoher Wille, dem ich mich ergebe;\nDoch immer bin ich, wie im ersten, fremd.\nDenn ach! mich trennt das Meer von den Geliebten,\nUnd an dem Ufer steh' ich lange Tage,\nDas Land der Griechen mit der Seele suchend;\nUnd gegen meine Seufzer bringt die Welle\nNur dumpfe Töne brausend mir herüber."
+    },
+    "workId": "iphigenie",
+    "editionId": "iphigenie-v1-8d157fb7f0a3"
+  },
+  {
+    "mode": "conflict",
+    "title": "Bleiben gegen Zugehören",
+    "summary": "Iphigenie nimmt den höheren Willen äußerlich an, fühlt sich innerlich aber nicht zugehörig. Aus diesem Gegensatz zwischen Gehorsam und Heimweh entsteht die Spannung der Passage.",
+    "observations": [
+      {
+        "label": "Ergebenheit",
+        "text": "Annahme hohen Willens bei bleibender Fremdheit zeigt Gehorsam ohne Heimat; Spannung bleibt unaufgelöst.",
+        "quotes": [
+          {
+            "blockId": "b00009",
+            "quote": "Ein hoher Wille, dem ich mich ergebe;"
+          },
+          {
+            "blockId": "b00010",
+            "quote": "Doch immer bin ich, wie im ersten, fremd."
+          }
+        ]
+      },
+      {
+        "label": "Sehnsucht",
+        "text": "Seufzer verhallen ohne Antwort der Welle; Bedürfnis nach Geliebten trifft auf stumme Natur.",
+        "quotes": [
+          {
+            "blockId": "b00014",
+            "quote": "Und gegen meine Seufzer bringt die Welle"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Wie Iphigenie später mit diesem Konflikt umgeht, lässt sich aus dieser Passage allein noch nicht bestimmen.",
+    "id": "prepared-iphigenie-conflict-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00002",
+      "endId": "b00015",
+      "startOffset": 0,
+      "endOffset": 37,
+      "quote": "Heraus in eure Schatten, rege Wipfel\nDes alten, heil'gen, dichtbelaubten Haines,\nWie in der Göttin stilles Heiligtum\nTret' ich noch jetzt mit schauderndem Gefühl,\nAls wenn ich sie zum erstenmal beträte,\nUnd es gewöhnt sich nicht mein Geist hierher.\nSo manches Jahr bewahrt mich hier verborgen\nEin hoher Wille, dem ich mich ergebe;\nDoch immer bin ich, wie im ersten, fremd.\nDenn ach! mich trennt das Meer von den Geliebten,\nUnd an dem Ufer steh' ich lange Tage,\nDas Land der Griechen mit der Seele suchend;\nUnd gegen meine Seufzer bringt die Welle\nNur dumpfe Töne brausend mir herüber."
+    },
+    "workId": "iphigenie",
+    "editionId": "iphigenie-v1-8d157fb7f0a3"
+  },
+  {
+    "mode": "summary",
+    "title": "Vater kündigt Bewerber ab",
+    "summary": "Miller erklärt Liebschaft seiner Tochter mit Baron für ernst und rufschädigend, fürchtet Präsidenten und bietet Junker aus; Millerin widerspricht mit Vorwurf eigener Kuppelei.",
+    "observations": [
+      {
+        "label": "Ernstlage",
+        "text": "Kurze Feststellung ohne Umschweife markiert Eskalation; Rufverlust und Obrigkeit erhöhen Druck auf Familie.",
+        "quotes": [
+          {
+            "blockId": "b00006",
+            "quote": "Der Handel wird ernsthaft."
+          }
+        ]
+      },
+      {
+        "label": "Widerspruch",
+        "text": "Der Einwand kehrt Schuld um und zeigt Ehekonflikt; Eröffnung stellt zwei Sichtweisen sofort gegenüber.",
+        "quotes": [
+          {
+            "blockId": "b00008",
+            "quote": "Du hast ihn nicht in dein Haus geschwatzt"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Wer Baron, Junker und Präsident sind, klärt Ausschnitt nicht; keine Figurenbiografie ergänzen.",
+    "id": "prepared-kabale-summary-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00006",
+      "endId": "b00008",
+      "startOffset": 0,
+      "endOffset": 86,
+      "quote": "Einmal für allemal. Der Handel wird ernsthaft. Meine Tochter kommt mit dem Baron ins Geschrei. Mein Haus wird verrufen. Der Präsident bekommt Wind, und – kurz und gut, ich biete dem Junker aus.\nDu hast ihn nicht in dein Haus geschwatzt – hast ihm deine Tochter nicht nachgeworfen."
+    },
+    "workId": "kabale",
+    "editionId": "kabale-v1-17841859ae29"
+  },
+  {
+    "mode": "style",
+    "title": "Knappheit und Vorwurf",
+    "summary": "Stil ist prosaisch, parataktisch, sprichwörtlich zugespitzt; kurze Sätze und Wiederanklage erzeugen Streittempo.",
+    "observations": [
+      {
+        "label": "Reihung",
+        "text": "Aneinanderstoßende Hauptsätze häufen Rufschaden; das wirkt atemlos und entscheidungsreif.",
+        "quotes": [
+          {
+            "blockId": "b00006",
+            "quote": "Meine Tochter kommt mit dem Baron ins Geschrei."
+          }
+        ]
+      },
+      {
+        "label": "Anklage",
+        "text": "Verneinte Vorwürfe treffen als ironische Frage; Wirkung ist Verteidigung durch Gegenangriff.",
+        "quotes": [
+          {
+            "blockId": "b00008",
+            "quote": "hast ihm deine Tochter nicht nachgeworfen."
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob Umgangssprache Stand markiert oder Charakter zeigt, bleibt Lesart.",
+    "id": "prepared-kabale-style-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00006",
+      "endId": "b00008",
+      "startOffset": 0,
+      "endOffset": 86,
+      "quote": "Einmal für allemal. Der Handel wird ernsthaft. Meine Tochter kommt mit dem Baron ins Geschrei. Mein Haus wird verrufen. Der Präsident bekommt Wind, und – kurz und gut, ich biete dem Junker aus.\nDu hast ihn nicht in dein Haus geschwatzt – hast ihm deine Tochter nicht nachgeworfen."
+    },
+    "workId": "kabale",
+    "editionId": "kabale-v1-17841859ae29"
+  },
+  {
+    "mode": "meter",
+    "title": "Prosadialog",
+    "summary": "Prosadialog ohne Versmaß; Rhythmus als mögliche Lesart aus Schlagabtausch, Ellipsen und Gedankenstrichpausen.",
+    "observations": [
+      {
+        "label": "Schlagfertigkeit",
+        "text": "Abgehackte Sätze erzeugen Streitstakkato; Tempo wirkt mündlich, nicht metrisch gebunden.",
+        "quotes": [
+          {
+            "blockId": "b00006",
+            "quote": "Einmal für allemal."
+          }
+        ]
+      },
+      {
+        "label": "Pause",
+        "text": "Gedankenstriche und Abbruch deuten Stocken an; Pausen ersetzen Versbindung durch Atem.",
+        "quotes": [
+          {
+            "blockId": "b00006",
+            "quote": "kurz und gut, ich biete dem Junker aus."
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Keine metrische Analyse; nur sprechrhythmische Beschreibung als Angebot.",
+    "id": "prepared-kabale-meter-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00006",
+      "endId": "b00008",
+      "startOffset": 0,
+      "endOffset": 86,
+      "quote": "Einmal für allemal. Der Handel wird ernsthaft. Meine Tochter kommt mit dem Baron ins Geschrei. Mein Haus wird verrufen. Der Präsident bekommt Wind, und – kurz und gut, ich biete dem Junker aus.\nDu hast ihn nicht in dein Haus geschwatzt – hast ihm deine Tochter nicht nachgeworfen."
+    },
+    "workId": "kabale",
+    "editionId": "kabale-v1-17841859ae29"
+  },
+  {
+    "mode": "context",
+    "title": "Ständeordnung",
+    "summary": "Schiller und Sturm und Drang mit Ständekritik sind Grundwissen; Baron, Präsident und Ruf deuten Hierarchie an, beweisen keine Epoche.",
+    "observations": [
+      {
+        "label": "Rufangst",
+        "text": "Verruf des Hauses zeigt Ehrdenken; als historischen Beleg für Stände darf Zitat nicht dienen.",
+        "quotes": [
+          {
+            "blockId": "b00006",
+            "quote": "Mein Haus wird verrufen."
+          }
+        ]
+      },
+      {
+        "label": "Obrigkeit",
+        "text": "Präsident als Drohkulisse deutet Machtgefälle an; wer er ist, bleibt aus Ausschnitt unsicher.",
+        "quotes": [
+          {
+            "blockId": "b00006",
+            "quote": "Der Präsident bekommt Wind,"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Epochenwissen aus Grundwissen; Zitate beweisen keine Sozialgeschichte.",
+    "id": "prepared-kabale-context-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00006",
+      "endId": "b00008",
+      "startOffset": 0,
+      "endOffset": 86,
+      "quote": "Einmal für allemal. Der Handel wird ernsthaft. Meine Tochter kommt mit dem Baron ins Geschrei. Mein Haus wird verrufen. Der Präsident bekommt Wind, und – kurz und gut, ich biete dem Junker aus.\nDu hast ihn nicht in dein Haus geschwatzt – hast ihm deine Tochter nicht nachgeworfen."
+    },
+    "workId": "kabale",
+    "editionId": "kabale-v1-17841859ae29"
+  },
+  {
+    "mode": "conflict",
+    "title": "Ruf gegen Neigung",
+    "summary": "Bis hier kollidieren väterlicher Ruferhalt und Liebesbindung der Tochter sowie Elternstreit über Verantwortung; Entscheidung steht aus.",
+    "observations": [
+      {
+        "label": "Ausbieten",
+        "text": "Vater will Verbindung lösen und Distanz schaffen; das zeigt Schutzabsicht mit möglicher Härte.",
+        "quotes": [
+          {
+            "blockId": "b00006",
+            "quote": "kurz und gut, ich biete dem Junker aus."
+          }
+        ]
+      },
+      {
+        "label": "Schuldumkehr",
+        "text": "Mutter sieht Vater als Miturheber; dadurch wird Privatkonflikt zugleich moralischer Verantwortungskonflikt.",
+        "quotes": [
+          {
+            "blockId": "b00008",
+            "quote": "Du hast ihn nicht in dein Haus geschwatzt"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob Trennung gelingt oder Liebe behauptet wird, sagt Ausschnitt nicht.",
+    "id": "prepared-kabale-conflict-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00006",
+      "endId": "b00008",
+      "startOffset": 0,
+      "endOffset": 86,
+      "quote": "Einmal für allemal. Der Handel wird ernsthaft. Meine Tochter kommt mit dem Baron ins Geschrei. Mein Haus wird verrufen. Der Präsident bekommt Wind, und – kurz und gut, ich biete dem Junker aus.\nDu hast ihn nicht in dein Haus geschwatzt – hast ihm deine Tochter nicht nachgeworfen."
+    },
+    "workId": "kabale",
+    "editionId": "kabale-v1-17841859ae29"
+  },
+  {
+    "mode": "summary",
+    "title": "Verletzter Richter weicht aus",
+    "summary": "Licht fragt nach Adams üblem Aussehen; Adam schiebt es auf Straucheln und allgemeine Fehlbarkeit; Licht spottet mit Sündenfallanspielung und bricht fragend ab.",
+    "observations": [
+      {
+        "label": "Ausrede",
+        "text": "Straucheln als Erklärung wirkt ausweichend; allgemeine Sentenz soll peinliche Nachfrage ins Philosophische wenden.",
+        "quotes": [
+          {
+            "blockId": "b00007",
+            "quote": "Ja, seht. Zum Straucheln braucht's doch nichts, als Füße."
+          }
+        ]
+      },
+      {
+        "label": "Spott",
+        "text": "Anspielung auf ersten Fall kehrt Ausrede gegen Adam; Ton mischt Neugier, Zweifel und anzüglichen Humor.",
+        "quotes": [
+          {
+            "blockId": "b00020",
+            "quote": "Ihr stammt von einem lockern Ältervater,"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Was wirklich geschah, klärt Ausschnitt nicht; Adams Verletzung bleibt ungedeutet.",
+    "id": "prepared-krug-summary-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00023",
+      "startOffset": 0,
+      "endOffset": 22,
+      "quote": "Ei, was zum Henker, sagt, Gevatter Adam!\nWas ist mit Euch geschehn? Wie seht Ihr aus?\nJa, seht. Zum Straucheln braucht's doch nichts, als Füße.\nAuf diesem glatten Boden, ist ein Strauch hier?\nGestrauchelt bin ich hier; denn jeder trägt\nDen leid'gen Stein zum Anstoß in sich selbst.\nNein, sagt mir, Freund! Den Stein trüg jeglicher –?\nJa, in sich selbst!\nVerflucht das!\nWas beliebt?\nIhr stammt von einem lockern Ältervater,\nDer so beim Anbeginn der Dinge fiel,\nUnd wegen seines Falls berühmt geworden;\nIhr seid doch nicht –?"
+    },
+    "workId": "krug",
+    "editionId": "krug-v1-4a90b9aef41c"
+  },
+  {
+    "mode": "style",
+    "title": "Wortwitz und Doppeldeutigkeit",
+    "summary": "„Straucheln“ meint zunächst einen körperlichen Fehltritt und lässt zugleich an moralisches Fehlverhalten denken. Wortspiel und sprichwortartige Sätze machen das Gespräch komisch, während Adams Erklärung fragwürdig bleibt.",
+    "observations": [
+      {
+        "label": "Wortspiel",
+        "text": "Gleichklang nutzt Stolpern wörtlich und moralisch; das Lachen entlarvt Ausrede und erzeugt Überlegenheit Lichts.",
+        "quotes": [
+          {
+            "blockId": "b00007",
+            "quote": "Ja, seht. Zum Straucheln braucht's doch nichts, als Füße."
+          },
+          {
+            "blockId": "b00008",
+            "quote": "Auf diesem glatten Boden, ist ein Strauch hier?"
+          }
+        ]
+      },
+      {
+        "label": "Sentenz",
+        "text": "Eine Sentenz ist ein knapp formulierter allgemeiner Gedanke. Adam wechselt von seinem konkreten Sturz zu menschlicher Fehlbarkeit. Das kann als Versuch wirken, der persönlichen Nachfrage auszuweichen.",
+        "quotes": [
+          {
+            "blockId": "b00010",
+            "quote": "Den leid'gen Stein zum Anstoß in sich selbst."
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob komisch oder entlarvend überwiegt, entscheidet Aufführung; Text sichert Ton nicht allein.",
+    "id": "prepared-krug-style-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00023",
+      "startOffset": 0,
+      "endOffset": 22,
+      "quote": "Ei, was zum Henker, sagt, Gevatter Adam!\nWas ist mit Euch geschehn? Wie seht Ihr aus?\nJa, seht. Zum Straucheln braucht's doch nichts, als Füße.\nAuf diesem glatten Boden, ist ein Strauch hier?\nGestrauchelt bin ich hier; denn jeder trägt\nDen leid'gen Stein zum Anstoß in sich selbst.\nNein, sagt mir, Freund! Den Stein trüg jeglicher –?\nJa, in sich selbst!\nVerflucht das!\nWas beliebt?\nIhr stammt von einem lockern Ältervater,\nDer so beim Anbeginn der Dinge fiel,\nUnd wegen seines Falls berühmt geworden;\nIhr seid doch nicht –?"
+    },
+    "workId": "krug",
+    "editionId": "krug-v1-4a90b9aef41c"
+  },
+  {
+    "mode": "meter",
+    "title": "Blankvers im lebhaften Gespräch",
+    "summary": "Der Dialog verwendet überwiegend den fünfhebigen, ungereimten Jambus. Sprecherwechsel und kurze Einwürfe machen dieses Grundmuster weniger auffällig. Ein kurzer Druckabschnitt ist dabei nicht automatisch ein eigener vollständiger Vers.",
+    "observations": [
+      {
+        "label": "Verteilte Rede",
+        "text": "Die kurzen Einwürfe wirken wie Unterbrechungen. Für eine vollständige Skansion müssten die Redeanteile und Versgrenzen anhand einer entsprechend ausgezeichneten Ausgabe zusammengesetzt werden.",
+        "quotes": [
+          {
+            "blockId": "b00014",
+            "quote": "Ja, in sich selbst!"
+          },
+          {
+            "blockId": "b00016",
+            "quote": "Verflucht das!"
+          }
+        ]
+      },
+      {
+        "label": "Enjambement",
+        "text": "Satz läuft über Zeilengrenze weiter und bindet Sentenz; das glättet Rhythmus trotz Holperinhalts.",
+        "quotes": [
+          {
+            "blockId": "b00009",
+            "quote": "Gestrauchelt bin ich hier; denn jeder trägt"
+          },
+          {
+            "blockId": "b00010",
+            "quote": "Den leid'gen Stein zum Anstoß in sich selbst."
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Diese Digitalquelle weist einzelne Redezeilen aus, aber keine geprüften, zusammengehörigen Vershälften. Deshalb zeigt der Reader Textzeilen an. Eine genaue Verszählung wird hier nicht behauptet.",
+    "id": "prepared-krug-meter-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00023",
+      "startOffset": 0,
+      "endOffset": 22,
+      "quote": "Ei, was zum Henker, sagt, Gevatter Adam!\nWas ist mit Euch geschehn? Wie seht Ihr aus?\nJa, seht. Zum Straucheln braucht's doch nichts, als Füße.\nAuf diesem glatten Boden, ist ein Strauch hier?\nGestrauchelt bin ich hier; denn jeder trägt\nDen leid'gen Stein zum Anstoß in sich selbst.\nNein, sagt mir, Freund! Den Stein trüg jeglicher –?\nJa, in sich selbst!\nVerflucht das!\nWas beliebt?\nIhr stammt von einem lockern Ältervater,\nDer so beim Anbeginn der Dinge fiel,\nUnd wegen seines Falls berühmt geworden;\nIhr seid doch nicht –?"
+    },
+    "workId": "krug",
+    "editionId": "krug-v1-4a90b9aef41c"
+  },
+  {
+    "mode": "context",
+    "title": "Adam und der erste Sündenfall",
+    "summary": "Lichts Bemerkung spielt auf den biblischen Adam an. Der körperliche Sturz des Richters wird dadurch mit dem Sündenfall in Verbindung gebracht. Der Name Adam ermöglicht das Wortspiel zwischen einer Alltagssituation und einer bekannten religiösen Erzählung.",
+    "observations": [
+      {
+        "label": "Doppeldeutiger Name",
+        "text": "Licht nennt den Richter „Adam“. Zusammen mit der folgenden Anspielung bekommt der Name eine zweite Bedeutung.",
+        "quotes": [
+          {
+            "blockId": "b00004",
+            "quote": "Ei, was zum Henker, sagt, Gevatter Adam!"
+          }
+        ]
+      },
+      {
+        "label": "Wörtlicher und übertragener Fall",
+        "text": "Der „Anbeginn der Dinge“ verweist auf die Ursprungserzählung. „Fiel“ kann einen körperlichen Sturz und moralisches Versagen bezeichnen.",
+        "quotes": [
+          {
+            "blockId": "b00021",
+            "quote": "Der so beim Anbeginn der Dinge fiel,"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Eine Anspielung ist kein Beweis für Adams tatsächliches Verhalten. Die Hintergründe seiner Verletzungen werden in diesem Ausschnitt noch nicht geklärt.",
+    "id": "prepared-krug-context-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00023",
+      "startOffset": 0,
+      "endOffset": 22,
+      "quote": "Ei, was zum Henker, sagt, Gevatter Adam!\nWas ist mit Euch geschehn? Wie seht Ihr aus?\nJa, seht. Zum Straucheln braucht's doch nichts, als Füße.\nAuf diesem glatten Boden, ist ein Strauch hier?\nGestrauchelt bin ich hier; denn jeder trägt\nDen leid'gen Stein zum Anstoß in sich selbst.\nNein, sagt mir, Freund! Den Stein trüg jeglicher –?\nJa, in sich selbst!\nVerflucht das!\nWas beliebt?\nIhr stammt von einem lockern Ältervater,\nDer so beim Anbeginn der Dinge fiel,\nUnd wegen seines Falls berühmt geworden;\nIhr seid doch nicht –?"
+    },
+    "workId": "krug",
+    "editionId": "krug-v1-4a90b9aef41c"
+  },
+  {
+    "mode": "conflict",
+    "title": "Fragen gegen Vertuschen",
+    "summary": "Bis hier will Licht Aufklärung, Adam Tarnung durch Allgemeinplätze; Wahrheitsanspruch gegen Selbstschutz bleibt unentschieden.",
+    "observations": [
+      {
+        "label": "Nachfrage",
+        "text": "Wiederholtes Fragen lässt Ausrede nicht gelten; Hartnäckigkeit erhöht Druck auf Angesehenen.",
+        "quotes": [
+          {
+            "blockId": "b00012",
+            "quote": "Nein, sagt mir, Freund! Den Stein trüg jeglicher –?"
+          }
+        ]
+      },
+      {
+        "label": "Anspielung",
+        "text": "Sündenfallspott droht mit Entlarvung, bricht aber ab; Spannung lebt aus angedeutetem Wissen.",
+        "quotes": [
+          {
+            "blockId": "b00023",
+            "quote": "Ihr seid doch nicht –?"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob Licht weiß oder nur stichelt, sagt Ausschnitt nicht; keine spätere Enthüllung nutzen.",
+    "id": "prepared-krug-conflict-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00023",
+      "startOffset": 0,
+      "endOffset": 22,
+      "quote": "Ei, was zum Henker, sagt, Gevatter Adam!\nWas ist mit Euch geschehn? Wie seht Ihr aus?\nJa, seht. Zum Straucheln braucht's doch nichts, als Füße.\nAuf diesem glatten Boden, ist ein Strauch hier?\nGestrauchelt bin ich hier; denn jeder trägt\nDen leid'gen Stein zum Anstoß in sich selbst.\nNein, sagt mir, Freund! Den Stein trüg jeglicher –?\nJa, in sich selbst!\nVerflucht das!\nWas beliebt?\nIhr stammt von einem lockern Ältervater,\nDer so beim Anbeginn der Dinge fiel,\nUnd wegen seines Falls berühmt geworden;\nIhr seid doch nicht –?"
+    },
+    "workId": "krug",
+    "editionId": "krug-v1-4a90b9aef41c"
+  },
+  {
+    "mode": "summary",
+    "title": "Durchsuchung und Geheimnisstreit",
+    "summary": "Kennedy wehrt Paulets Griff zum Schrank ab; Paulet rechtfertigt Suche mit gefundenem Schmuck und Bestechungsverdacht; Kennedy verharmlost Papiere als Federübungen.",
+    "observations": [
+      {
+        "label": "Abwehr",
+        "text": "Imperative markieren Grenzverteidigung für Lady; Ton ist empört und schutzbehauptend.",
+        "quotes": [
+          {
+            "blockId": "b00005",
+            "quote": "Zurück von diesem Schrank!"
+          }
+        ]
+      },
+      {
+        "label": "Verdacht",
+        "text": "Herabgeworfener Schmuck begründet Misstrauen; Fund wird zum Anlass weiterer Suche.",
+        "quotes": [
+          {
+            "blockId": "b00008",
+            "quote": "Vom obern Stock ward er herabgeworfen,"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Wem Schmuck und Papiere gehören und was sie bedeuten, klärt Ausschnitt nicht.",
+    "id": "prepared-maria-summary-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00023",
+      "startOffset": 0,
+      "endOffset": 33,
+      "quote": "Was macht Ihr, Sir? Welch neue Dreistigkeit!\nZurück von diesem Schrank!\nWo kam der Schmuck her?\nVom obern Stock ward er herabgeworfen,\nDer Gärtner hat bestochen werden sollen\nMit diesem Schmuck – Fluch über Weiberlist!\nTrotz meiner Aufsicht, meinem scharfen Suchen,\nNoch Kostbarkeiten, noch geheime Schätze!\nWo das gesteckt hat, liegt noch mehr!\nZurück, Verwegner!\nHier liegen die Geheimnisse der Lady.\nDie eben such ich.\nUnbedeutende\nPapiere, bloße Übungen der Feder,"
+    },
+    "workId": "maria",
+    "editionId": "maria-v1-d1dcf6f3dfd1"
+  },
+  {
+    "mode": "style",
+    "title": "Befehl und Verallgemeinerung",
+    "summary": "Stil setzt kurze Befehle, Ausrufe, Antithesen von Aufsicht und Fund sowie euphemistische Verkleinerung ein.",
+    "observations": [
+      {
+        "label": "Fluch",
+        "text": "Pauschalurteil über List steigert Empörung; Wirkung ist misogyner Affekt statt Sachargument.",
+        "quotes": [
+          {
+            "blockId": "b00010",
+            "quote": "Mit diesem Schmuck – Fluch über Weiberlist!"
+          }
+        ]
+      },
+      {
+        "label": "Verkleinerung",
+        "text": "Harmloswörter sollen Suche stoppen; Understatement wirkt beschwichtigend und verdächtig zugleich.",
+        "quotes": [
+          {
+            "blockId": "b00023",
+            "quote": "Papiere, bloße Übungen der Feder,"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob Fluch Figur oder Norm spiegelt, bleibt Lesart; Stil allein beweist Gesinnung nicht.",
+    "id": "prepared-maria-style-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00023",
+      "startOffset": 0,
+      "endOffset": 33,
+      "quote": "Was macht Ihr, Sir? Welch neue Dreistigkeit!\nZurück von diesem Schrank!\nWo kam der Schmuck her?\nVom obern Stock ward er herabgeworfen,\nDer Gärtner hat bestochen werden sollen\nMit diesem Schmuck – Fluch über Weiberlist!\nTrotz meiner Aufsicht, meinem scharfen Suchen,\nNoch Kostbarkeiten, noch geheime Schätze!\nWo das gesteckt hat, liegt noch mehr!\nZurück, Verwegner!\nHier liegen die Geheimnisse der Lady.\nDie eben such ich.\nUnbedeutende\nPapiere, bloße Übungen der Feder,"
+    },
+    "workId": "maria",
+    "editionId": "maria-v1-d1dcf6f3dfd1"
+  },
+  {
+    "mode": "meter",
+    "title": "Blankvers",
+    "summary": "Als mögliche Lesart jambisch anmutende, reimlose Zeilen mit Wechsel aus Kurzbefehl und Bericht; Ton bleibt drängend.",
+    "observations": [
+      {
+        "label": "Kurzvers",
+        "text": "Der knappe Befehl unterbricht den Redeablauf und passt zu Kennedys Eingreifen. Die Druckzeile allein belegt noch keinen vollständigen kurzen Vers.",
+        "quotes": [
+          {
+            "blockId": "b00005",
+            "quote": "Zurück von diesem Schrank!"
+          }
+        ]
+      },
+      {
+        "label": "Berichtfluss",
+        "text": "Aussagesätze laufen ruhiger und begründen Verdacht; gleichmäßiger Fluss stützt behördliche Behauptung.",
+        "quotes": [
+          {
+            "blockId": "b00009",
+            "quote": "Der Gärtner hat bestochen werden sollen"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Die Quelle weist Redezeilen aus. Eine genaue Zählung über Sprecherwechsel hinweg braucht einen zusätzlichen Abgleich der Versgrenzen.",
+    "id": "prepared-maria-meter-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00023",
+      "startOffset": 0,
+      "endOffset": 33,
+      "quote": "Was macht Ihr, Sir? Welch neue Dreistigkeit!\nZurück von diesem Schrank!\nWo kam der Schmuck her?\nVom obern Stock ward er herabgeworfen,\nDer Gärtner hat bestochen werden sollen\nMit diesem Schmuck – Fluch über Weiberlist!\nTrotz meiner Aufsicht, meinem scharfen Suchen,\nNoch Kostbarkeiten, noch geheime Schätze!\nWo das gesteckt hat, liegt noch mehr!\nZurück, Verwegner!\nHier liegen die Geheimnisse der Lady.\nDie eben such ich.\nUnbedeutende\nPapiere, bloße Übungen der Feder,"
+    },
+    "workId": "maria",
+    "editionId": "maria-v1-d1dcf6f3dfd1"
+  },
+  {
+    "mode": "context",
+    "title": "Gefangenschaftsdrama",
+    "summary": "Schiller und Maria Stuart als historischer Stoff sind Grundwissen; Schrank, Schmuck und Aufsicht deuten Haft an, beweisen keine Geschichte.",
+    "observations": [
+      {
+        "label": "Aufsicht",
+        "text": "Betonung scharfen Suchens zeigt Kontrollregime; historische Haft belegt das Wort allein nicht.",
+        "quotes": [
+          {
+            "blockId": "b00011",
+            "quote": "Trotz meiner Aufsicht, meinem scharfen Suchen,"
+          }
+        ]
+      },
+      {
+        "label": "Geheimnis",
+        "text": "Geheimnisse der Lady klingen nach Politik; ob Briefe oder Privates, bleibt unentschieden.",
+        "quotes": [
+          {
+            "blockId": "b00017",
+            "quote": "Hier liegen die Geheimnisse der Lady."
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Historisches Wissen getrennt halten; Zitate zeigen Figurenrede, keine Fakten.",
+    "id": "prepared-maria-context-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00023",
+      "startOffset": 0,
+      "endOffset": 33,
+      "quote": "Was macht Ihr, Sir? Welch neue Dreistigkeit!\nZurück von diesem Schrank!\nWo kam der Schmuck her?\nVom obern Stock ward er herabgeworfen,\nDer Gärtner hat bestochen werden sollen\nMit diesem Schmuck – Fluch über Weiberlist!\nTrotz meiner Aufsicht, meinem scharfen Suchen,\nNoch Kostbarkeiten, noch geheime Schätze!\nWo das gesteckt hat, liegt noch mehr!\nZurück, Verwegner!\nHier liegen die Geheimnisse der Lady.\nDie eben such ich.\nUnbedeutende\nPapiere, bloße Übungen der Feder,"
+    },
+    "workId": "maria",
+    "editionId": "maria-v1-d1dcf6f3dfd1"
+  },
+  {
+    "mode": "conflict",
+    "title": "Zugriff gegen Schutz",
+    "summary": "Bis hier prallen Suchanspruch Paulets und Schutzanspruch Kennedys aufeinander; jede Seite deutet Fund gegensätzlich.",
+    "observations": [
+      {
+        "label": "Besitzstreit",
+        "text": "Beide beanspruchen Deutungshoheit über Schrank; Imperative gegen Suchformel erzeugen Machtprobe.",
+        "quotes": [
+          {
+            "blockId": "b00016",
+            "quote": "Zurück, Verwegner!"
+          },
+          {
+            "blockId": "b00019",
+            "quote": "Die eben such ich."
+          }
+        ]
+      },
+      {
+        "label": "Mehrverdacht",
+        "text": "Vermutung weiteren Verstecks steigert Druck; Verteidigung antwortet mit Bagatellisierung.",
+        "quotes": [
+          {
+            "blockId": "b00014",
+            "quote": "Wo das gesteckt hat, liegt noch mehr!"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob Gefahr real oder behauptet ist, sagt Ausschnitt nicht; keine spätere Schuld vorwegnehmen.",
+    "id": "prepared-maria-conflict-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s002",
+      "startId": "b00004",
+      "endId": "b00023",
+      "startOffset": 0,
+      "endOffset": 33,
+      "quote": "Was macht Ihr, Sir? Welch neue Dreistigkeit!\nZurück von diesem Schrank!\nWo kam der Schmuck her?\nVom obern Stock ward er herabgeworfen,\nDer Gärtner hat bestochen werden sollen\nMit diesem Schmuck – Fluch über Weiberlist!\nTrotz meiner Aufsicht, meinem scharfen Suchen,\nNoch Kostbarkeiten, noch geheime Schätze!\nWo das gesteckt hat, liegt noch mehr!\nZurück, Verwegner!\nHier liegen die Geheimnisse der Lady.\nDie eben such ich.\nUnbedeutende\nPapiere, bloße Übungen der Feder,"
+    },
+    "workId": "maria",
+    "editionId": "maria-v1-d1dcf6f3dfd1"
+  },
+  {
+    "mode": "summary",
+    "title": "Heimkehr und bange Andeutung",
+    "summary": "Daja begrüßt Nathan erleichtert; Nathan hinterfragt Eile und erklärt Verspätung mit Umwegen und Schuldengeschäften; Daja deutet häusliches Unglück nur an.",
+    "observations": [
+      {
+        "label": "Dankfreude",
+        "text": "Ausruf und Wiederholung zeigen Erleichterung; Heimkehr wirkt als ersehnte Rettung.",
+        "quotes": [
+          {
+            "blockId": "b00005",
+            "quote": "Er ist es! Nathan! – Gott sei ewig Dank,"
+          }
+        ]
+      },
+      {
+        "label": "Abbruch",
+        "text": "Abgebrochener Haussatz erzeugt Spannung; Ungesagtes wirkt bedrohlicher als Nachricht.",
+        "quotes": [
+          {
+            "blockId": "b00020",
+            "quote": "Hier werden können! Euer Haus ..."
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Was im Haus geschah, sagt Ausschnitt nicht; keine Brand- oder Rettungsgeschichte ergänzen.",
+    "id": "prepared-nathan-summary-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00005",
+      "endId": "b00020",
+      "startOffset": 0,
+      "endOffset": 33,
+      "quote": "Er ist es! Nathan! – Gott sei ewig Dank,\nDaß Ihr doch endlich einmal wiederkommt.\nJa, Daja; Gott sei Dank! Doch warum endlich?\nHab' ich denn eher wiederkommen wollen?\nUnd wiederkommen können? Babylon\nIst von Jerusalem, wie ich den Weg,\nSeit ab bald rechts, bald links, zu nehmen bin\nGenötigt worden, gut zwei hundert Meilen;\nUnd Schulden einkassieren, ist gewiß\nAuch kein Geschäft, das merklich födert, das\nSo von der Hand sich schlagen läßt.\nO Nathan,\nWie elend, elend hättet Ihr indes\nHier werden können! Euer Haus ..."
+    },
+    "workId": "nathan",
+    "editionId": "nathan-v1-589407953df5"
+  },
+  {
+    "mode": "style",
+    "title": "Fragekette und Doppelung",
+    "summary": "Stil nutzt Anrufung, Gegenfragen, Weg- und Geschäftserklärung sowie verdoppelte Elendsklage für besorgte Dringlichkeit.",
+    "observations": [
+      {
+        "label": "Rückfrage",
+        "text": "Doppelte Warum-Fragen weisen Drängen zurück; Wirkung ist ruhige, rationale Selbstverteidigung.",
+        "quotes": [
+          {
+            "blockId": "b00008",
+            "quote": "Ja, Daja; Gott sei Dank! Doch warum endlich?"
+          }
+        ]
+      },
+      {
+        "label": "Doppelung",
+        "text": "Wiederholtes Elend steigert Mitleidsdruck; pathetische Verstärkung soll Schuldgefühl wecken.",
+        "quotes": [
+          {
+            "blockId": "b00019",
+            "quote": "Wie elend, elend hättet Ihr indes"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob Sorge echt oder taktisch ist, bleibt Lesart; Ton sichert Absicht nicht.",
+    "id": "prepared-nathan-style-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00005",
+      "endId": "b00020",
+      "startOffset": 0,
+      "endOffset": 33,
+      "quote": "Er ist es! Nathan! – Gott sei ewig Dank,\nDaß Ihr doch endlich einmal wiederkommt.\nJa, Daja; Gott sei Dank! Doch warum endlich?\nHab' ich denn eher wiederkommen wollen?\nUnd wiederkommen können? Babylon\nIst von Jerusalem, wie ich den Weg,\nSeit ab bald rechts, bald links, zu nehmen bin\nGenötigt worden, gut zwei hundert Meilen;\nUnd Schulden einkassieren, ist gewiß\nAuch kein Geschäft, das merklich födert, das\nSo von der Hand sich schlagen läßt.\nO Nathan,\nWie elend, elend hättet Ihr indes\nHier werden können! Euer Haus ..."
+    },
+    "workId": "nathan",
+    "editionId": "nathan-v1-589407953df5"
+  },
+  {
+    "mode": "meter",
+    "title": "Blankvers",
+    "summary": "Als mögliche Lesart reimlose, jambisch fließende Zeilen mit Enjambement über Orts- und Geschäftserklärung; Ton bleibt gesprächig edel.",
+    "observations": [
+      {
+        "label": "Bogen",
+        "text": "Wegbeschreibung spannt Satz über mehrere Zeilen; Dehnung wirkt wie umständliche Reiseerzählung.",
+        "quotes": [
+          {
+            "blockId": "b00011",
+            "quote": "Ist von Jerusalem, wie ich den Weg,"
+          },
+          {
+            "blockId": "b00012",
+            "quote": "Seit ab bald rechts, bald links, zu nehmen bin"
+          }
+        ]
+      },
+      {
+        "label": "Alltagston",
+        "text": "Geschäftswörter senken Hochtönigkeit; Hebungen tragen dennoch ruhige Würde.",
+        "quotes": [
+          {
+            "blockId": "b00014",
+            "quote": "Und Schulden einkassieren, ist gewiß"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Metrische Glätte schwankt umgangssprachlich; Skansion bleibt Angebot.",
+    "id": "prepared-nathan-meter-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00005",
+      "endId": "b00020",
+      "startOffset": 0,
+      "endOffset": 33,
+      "quote": "Er ist es! Nathan! – Gott sei ewig Dank,\nDaß Ihr doch endlich einmal wiederkommt.\nJa, Daja; Gott sei Dank! Doch warum endlich?\nHab' ich denn eher wiederkommen wollen?\nUnd wiederkommen können? Babylon\nIst von Jerusalem, wie ich den Weg,\nSeit ab bald rechts, bald links, zu nehmen bin\nGenötigt worden, gut zwei hundert Meilen;\nUnd Schulden einkassieren, ist gewiß\nAuch kein Geschäft, das merklich födert, das\nSo von der Hand sich schlagen läßt.\nO Nathan,\nWie elend, elend hättet Ihr indes\nHier werden können! Euer Haus ..."
+    },
+    "workId": "nathan",
+    "editionId": "nathan-v1-589407953df5"
+  },
+  {
+    "mode": "context",
+    "title": "Aufklärungstoleranz",
+    "summary": "Lessing und Nathan als Toleranzdrama sind Grundwissen; Jerusalem, Babylon und Schulden deuten Fernhandel an, beweisen keine Epoche.",
+    "observations": [
+      {
+        "label": "Ortsferne",
+        "text": "Zweihundert Meilen klingen nach beschwerlicher Reise; als historische Distanz taugt Zahl allein nicht.",
+        "quotes": [
+          {
+            "blockId": "b00013",
+            "quote": "Genötigt worden, gut zwei hundert Meilen;"
+          }
+        ]
+      },
+      {
+        "label": "Geschäft",
+        "text": "Einkassieren deutet Kaufmannsrolle an; ständische Aussage beweist Zitat allein nicht.",
+        "quotes": [
+          {
+            "blockId": "b00014",
+            "quote": "Und Schulden einkassieren, ist gewiß"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Toleranz- und Epochenwissen aus Grundwissen; Ausschnitt zeigt nur Heimkehrton.",
+    "id": "prepared-nathan-context-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00005",
+      "endId": "b00020",
+      "startOffset": 0,
+      "endOffset": 33,
+      "quote": "Er ist es! Nathan! – Gott sei ewig Dank,\nDaß Ihr doch endlich einmal wiederkommt.\nJa, Daja; Gott sei Dank! Doch warum endlich?\nHab' ich denn eher wiederkommen wollen?\nUnd wiederkommen können? Babylon\nIst von Jerusalem, wie ich den Weg,\nSeit ab bald rechts, bald links, zu nehmen bin\nGenötigt worden, gut zwei hundert Meilen;\nUnd Schulden einkassieren, ist gewiß\nAuch kein Geschäft, das merklich födert, das\nSo von der Hand sich schlagen läßt.\nO Nathan,\nWie elend, elend hättet Ihr indes\nHier werden können! Euer Haus ..."
+    },
+    "workId": "nathan",
+    "editionId": "nathan-v1-589407953df5"
+  },
+  {
+    "mode": "conflict",
+    "title": "Rechtfertigung gegen Vorwurf",
+    "summary": "Bis hier stoßen Dajas Eilvorwurf und Nathans Sachbegründung aufeinander; Sorge gegen Gelassenheit bleibt unentschieden.",
+    "observations": [
+      {
+        "label": "Endlichstreit",
+        "text": "Endlich klingt vorwurfsvoll, Nathan fragt zurück; das zeigt unterschiedliche Dringlichkeitsmaßstäbe.",
+        "quotes": [
+          {
+            "blockId": "b00006",
+            "quote": "Daß Ihr doch endlich einmal wiederkommt."
+          },
+          {
+            "blockId": "b00008",
+            "quote": "Ja, Daja; Gott sei Dank! Doch warum endlich?"
+          }
+        ]
+      },
+      {
+        "label": "Unglücksandeutung",
+        "text": "Abgebrochene Warnung kippt Rechtfertigung in Schuldangst; neue Sorge überlagert Reisemüdigkeit.",
+        "quotes": [
+          {
+            "blockId": "b00019",
+            "quote": "Wie elend, elend hättet Ihr indes"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob Vorwurf berechtigt ist, klärt Ausschnitt nicht; keine spätere Katastrophe einbeziehen.",
+    "id": "prepared-nathan-conflict-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00005",
+      "endId": "b00020",
+      "startOffset": 0,
+      "endOffset": 33,
+      "quote": "Er ist es! Nathan! – Gott sei ewig Dank,\nDaß Ihr doch endlich einmal wiederkommt.\nJa, Daja; Gott sei Dank! Doch warum endlich?\nHab' ich denn eher wiederkommen wollen?\nUnd wiederkommen können? Babylon\nIst von Jerusalem, wie ich den Weg,\nSeit ab bald rechts, bald links, zu nehmen bin\nGenötigt worden, gut zwei hundert Meilen;\nUnd Schulden einkassieren, ist gewiß\nAuch kein Geschäft, das merklich födert, das\nSo von der Hand sich schlagen läßt.\nO Nathan,\nWie elend, elend hättet Ihr indes\nHier werden können! Euer Haus ..."
+    },
+    "workId": "nathan",
+    "editionId": "nathan-v1-589407953df5"
+  },
+  {
+    "mode": "summary",
+    "title": "Erwachen als Ungeziefer",
+    "summary": "Gregor Samsa erwacht aus unruhigen Träumen verwandelt, mustert Panzer, Bauch und Beine, fragt nach Geschehen, versichert Wachsein bei unverändertem Zimmer und Reisendenrequisiten.",
+    "observations": [
+      {
+        "label": "Verwandlungssatz",
+        "text": "Nüchterner Berichtston stellt Unmögliches als Tatsache hin; das erzeugt sachlichen Schrecken.",
+        "quotes": [
+          {
+            "blockId": "b00001",
+            "quote": "zu einem ungeheueren Ungeziefer verwandelt"
+          }
+        ]
+      },
+      {
+        "label": "Zimmerbeweis",
+        "text": "Bekannte Wände und Berufsdinge sollen Traum ausschließen; Normalität verstärkt Unbegreifliches.",
+        "quotes": [
+          {
+            "blockId": "b00002",
+            "quote": "Es war kein Traum."
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Der Erzähler verneint ausdrücklich einen Traum. Wie die Verwandlung zu deuten ist, bleibt dennoch offen; eine bestimmte Tierart wird hier nicht benannt.",
+    "id": "prepared-verwandlung-summary-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00001",
+      "endId": "b00002",
+      "startOffset": 0,
+      "endOffset": 637,
+      "quote": "Als Gregor Samsa eines Morgens aus unruhigen Träumen erwachte, fand er sich in seinem Bett zu einem ungeheueren Ungeziefer verwandelt. Er lag auf seinem panzerartig harten Rücken und sah, wenn er den Kopf ein wenig hob, seinen gewölbten, braunen, von bogenförmigen Versteifungen geteilten Bauch, auf dessen Höhe sich die Bettdecke, zum gänzlichen Niedergleiten bereit, kaum noch erhalten konnte. Seine vielen, im Vergleich zu seinem sonstigen Umfang kläglich dünnen Beine flimmerten ihm hilflos vor den Augen.\n»Was ist mit mir geschehen?« dachte er. Es war kein Traum. Sein Zimmer, ein richtiges, nur etwas zu kleines Menschenzimmer, lag ruhig zwischen den vier wohlbekannten Wänden. Über dem Tisch, auf dem eine auseinandergepackte Musterkollektion von Tuchwaren ausgebreitet war -- Samsa war Reisender --, hing das Bild, das er vor kurzem aus einer illustrierten Zeitschrift ausgeschnitten und in einem hübschen, vergoldeten Rahmen untergebracht hatte. Es stellte eine Dame dar, die, mit einem Pelzhut und einer Pelzboa versehen, aufrecht dasaß und einen schweren Pelzmuff, in dem ihr ganzer Unterarm verschwunden war, dem Beschauer entgegenhob."
+    },
+    "workId": "verwandlung",
+    "editionId": "verwandlung-pg-359d3f5983c8"
+  },
+  {
+    "mode": "style",
+    "title": "Sachlichkeit und Übergenauigkeit",
+    "summary": "Stil verbindet protokollarische Körperbeschreibung, innere Frage, Verneinung und Detailhäufung zu sachlicher Unheimlichkeit.",
+    "observations": [
+      {
+        "label": "Körperdetail",
+        "text": "Exakte Panzer- und Bauchschilderung macht Ekel anschaulich; Übergenauigkeit wirkt klinisch und hilflos.",
+        "quotes": [
+          {
+            "blockId": "b00001",
+            "quote": "panzerartig harten Rücken"
+          }
+        ]
+      },
+      {
+        "label": "Verkleinerung",
+        "text": "Jammernde Beinbeschreibung kehrt Größenverhältnis um; Mitleidston unterstreicht Kontrollverlust.",
+        "quotes": [
+          {
+            "blockId": "b00001",
+            "quote": "kläglich dünnen Beine"
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Ob Stil Empathie oder Distanz erzeugt, bleibt Lesart; Wirkung nicht als Absicht behaupten.",
+    "id": "prepared-verwandlung-style-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00001",
+      "endId": "b00002",
+      "startOffset": 0,
+      "endOffset": 637,
+      "quote": "Als Gregor Samsa eines Morgens aus unruhigen Träumen erwachte, fand er sich in seinem Bett zu einem ungeheueren Ungeziefer verwandelt. Er lag auf seinem panzerartig harten Rücken und sah, wenn er den Kopf ein wenig hob, seinen gewölbten, braunen, von bogenförmigen Versteifungen geteilten Bauch, auf dessen Höhe sich die Bettdecke, zum gänzlichen Niedergleiten bereit, kaum noch erhalten konnte. Seine vielen, im Vergleich zu seinem sonstigen Umfang kläglich dünnen Beine flimmerten ihm hilflos vor den Augen.\n»Was ist mit mir geschehen?« dachte er. Es war kein Traum. Sein Zimmer, ein richtiges, nur etwas zu kleines Menschenzimmer, lag ruhig zwischen den vier wohlbekannten Wänden. Über dem Tisch, auf dem eine auseinandergepackte Musterkollektion von Tuchwaren ausgebreitet war -- Samsa war Reisender --, hing das Bild, das er vor kurzem aus einer illustrierten Zeitschrift ausgeschnitten und in einem hübschen, vergoldeten Rahmen untergebracht hatte. Es stellte eine Dame dar, die, mit einem Pelzhut und einer Pelzboa versehen, aufrecht dasaß und einen schweren Pelzmuff, in dem ihr ganzer Unterarm verschwunden war, dem Beschauer entgegenhob."
+    },
+    "workId": "verwandlung",
+    "editionId": "verwandlung-pg-359d3f5983c8"
+  },
+  {
+    "mode": "meter",
+    "title": "Erzählprosa",
+    "summary": "Erzählprosa ohne Versmaß; Rhythmus als mögliche Lesart aus langen Schachtelsätzen, Aufzählung und kurzen Feststellungen.",
+    "observations": [
+      {
+        "label": "Schachtelsatz",
+        "text": "Verschachtelte Bauchbeschreibung staut Atem; Genauigkeit wirkt stockend und zwanghaft aufmerksam.",
+        "quotes": [
+          {
+            "blockId": "b00001",
+            "quote": "von bogenförmigen Versteifungen geteilten Bauch,"
+          }
+        ]
+      },
+      {
+        "label": "Schnitt",
+        "text": "Kurze Wachfeststellung zerschneidet Schilderung; Knappheit wirkt wie Anker gegen Traumverdacht.",
+        "quotes": [
+          {
+            "blockId": "b00002",
+            "quote": "Es war kein Traum."
+          }
+        ]
+      }
+    ],
+    "uncertainty": "Nur Erzählrhythmus beschreibbar; metrische Begriffe wären unangemessen.",
+    "id": "prepared-verwandlung-meter-v1",
+    "source": "prepared",
+    "model": "Muse Spark 1.3 (xhigh), sprachlich überarbeitet",
+    "generatedAt": "2026-09-25T12:58:47Z",
+    "promptVersion": "leseraum-1.0",
+    "anchor": {
+      "sectionId": "s001",
+      "startId": "b00001",
+      "endId": "b00002",
+      "startOffset": 0,
+      "endOffset": 637,
+      "quote": "Als Gregor Samsa eines Morgens aus unruhigen Träumen erwachte, fand er sich in seinem Bett zu einem ungeheueren Ungeziefer verwandelt. Er lag auf seinem panzerartig harten Rücken und sah, wenn er den Kopf ein wenig hob, seinen gewölbten, braunen, von bogenförmigen Versteifungen geteilten Bauch, auf dessen Höhe sich die Bettdecke, zum gänzlichen Niedergleiten bereit, kaum noch erhalten konnte. Seine vielen, im Vergleich zu seinem sonstigen Umfang kläglich dünnen Beine flimmerten ihm hilflos vor den Augen.\n»Was ist mit mir geschehen?« dachte er. Es war kein Traum. Sein Zimmer, ein richtiges, nur etwas zu kleines Menschenzimmer, lag ruhig zwischen den vier wohlbekannten Wänden. Über dem Tisch, auf dem eine auseinandergepackte Musterkollektion von Tuchwaren ausgebreitet war -- Samsa war Reisender --, hing das Bild, das er vor kurzem aus einer illustrierten Zeitschrift ausgeschnitten und in einem hübschen, vergoldeten Rahmen untergebracht hatte. Es stellte eine Dame dar, die, mit einem Pelzhut und einer Pelzboa versehen, aufrecht dasaß und einen schweren Pelzmuff, in dem ihr ganzer Unterarm verschwunden war, dem Beschauer entgegenhob."
+    },
+    "workId": "verwandlung",
+    "editionId": "verwandlung-pg-359d3f5983c8"
+  }
+]
