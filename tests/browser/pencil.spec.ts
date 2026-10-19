@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './reader-test';
 async function mark(page:Page,index=0,pointerType='pen'){
  await page.locator('[data-text]').nth(index).scrollIntoViewIfNeeded();
  await page.locator('[data-text]').nth(index).evaluate((el,pointerType)=>{

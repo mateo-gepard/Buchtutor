@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './reader-test';
 import type {LocalSnapshot} from '../../lib/local-model';
 
 async function stored(page:Page):Promise<LocalSnapshot>{

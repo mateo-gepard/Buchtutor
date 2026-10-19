@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './reader-test';
 const safari='Mozilla/5.0 (iPad; CPU OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
 async function setup(page:Page){await page.goto('/?work=iphigenie&section=s001&view=reader');await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();page.on('request',request=>{if(request.url().includes('/api/handwriting'))throw new Error('Paid recognition must not be called');});}
 async function mark(page:Page){await page.locator('[data-text]').first().evaluate(el=>{const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),node=walker.nextNode()!,range=document.createRange();range.setStart(node,1);range.setEnd(node,5);const r=range.getBoundingClientRect(),y=r.top+r.height/2;for(const [type,x] of [['pointerdown',r.left],['pointermove',r.right],['pointerup',r.right]] as const)el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId:101,pointerType:'pen',clientX:x,clientY:y}));});}

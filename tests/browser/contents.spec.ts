@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './reader-test';
 
 async function openContents(page:Page){
   const header=page.getByRole('button',{name:'Inhalt',exact:true});

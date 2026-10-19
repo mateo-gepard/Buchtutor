@@ -1,7 +1,7 @@
 'use client';
 import {useCallback,useEffect,useLayoutEffect,useRef,useState,type CSSProperties,type PointerEvent,type KeyboardEvent} from 'react';
 import {nearestDock,palettePosition,placementAt,popoverPosition,validPlacement,PALETTE_POSITION_KEY,type Dock,type Placement,type Rect} from '@/lib/pencil-placement';
-export function usePencilPlacement(enabled:boolean,closePanels:()=>void){
+export function usePencilPlacement(enabled:boolean,closePanels:()=>void,practice=false){
  const element=useRef<HTMLElement>(null),placement=useRef<Placement>({dock:'floating',x:.5,y:.9}),restored=useRef(false);
  const drag=useRef<{id:number;clientX:number;clientY:number;bar:Rect;original:Placement;moved:boolean}|null>(null);
  const close=useRef(closePanels);useLayoutEffect(()=>{close.current=closePanels},[closePanels]);
@@ -24,14 +24,14 @@ export function usePencilPlacement(enabled:boolean,closePanels:()=>void){
    panel.style.left=(position.x-bar.x)+'px';panel.style.top=(position.y-bar.y)+'px';panel.style.right='auto';panel.style.bottom='auto';panel.style.transform='none';panel.dataset.positioned='true';
   }
  },[viewport]);
- function remember(p:Placement){placement.current=p;setDock(p.dock);try{localStorage.setItem(PALETTE_POSITION_KEY,JSON.stringify(p));}catch{/* Placement is optional; drawing and saving remain available. */}}
+ function remember(p:Placement){placement.current=p;setDock(p.dock);try{if(!practice)localStorage.setItem(PALETTE_POSITION_KEY,JSON.stringify(p));}catch{/* Placement is optional; drawing and saving remain available. */}}
  useLayoutEffect(()=>{
   if(!enabled)return;
   const frame=requestAnimationFrame(()=>{
-   if(!restored.current){try{const p=JSON.parse(localStorage.getItem(PALETTE_POSITION_KEY)??'null');if(validPlacement(p))placement.current=p;}catch{/* Ignore invalid positioning data. */}restored.current=true;setDock(placement.current.dock);}
+   if(!restored.current){try{const p=practice?null:JSON.parse(localStorage.getItem(PALETTE_POSITION_KEY)??'null');if(validPlacement(p))placement.current=p;}catch{/* Ignore invalid positioning data. */}restored.current=true;setDock(placement.current.dock);}
    layout();
   });return()=>cancelAnimationFrame(frame);
- },[enabled,layout]);
+ },[enabled,layout,practice]);
  useEffect(()=>{
   if(!enabled)return;let frame=0;
   const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(!drag.current)layout();});};
@@ -40,7 +40,7 @@ export function usePencilPlacement(enabled:boolean,closePanels:()=>void){
   if(element.current)mutation.observe(element.current,{childList:true,subtree:true});
   window.addEventListener('resize',schedule);window.visualViewport?.addEventListener('resize',schedule);window.visualViewport?.addEventListener('scroll',schedule);
   schedule();return()=>{cancelAnimationFrame(frame);observer.disconnect();mutation.disconnect();window.removeEventListener('resize',schedule);window.visualViewport?.removeEventListener('resize',schedule);window.visualViewport?.removeEventListener('scroll',schedule);drag.current=null;};
- },[enabled,layout]);
+ },[enabled,layout,practice]);
  useLayoutEffect(()=>{if(enabled){const frame=requestAnimationFrame(layout);return()=>cancelAnimationFrame(frame);}},[dock,enabled,layout]);
  function start(e:PointerEvent<HTMLButtonElement>){
   if(e.button!==0||drag.current||!element.current)return;e.preventDefault();e.stopPropagation();

@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page} from './reader-test';
 import type {Anchor} from '../../lib/reader-model';
 
 type ReadingState={selection:Anchor|null;blocks:{id:string;text:string;number:number}[];sectionId:string};
