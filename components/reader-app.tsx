@@ -1,10 +1,12 @@
 'use client';
 import {useCallback,useEffect,useMemo,useRef,useState,type MouseEvent} from 'react';
 import {ArrowRight,Bookmark,Check,ChevronDown,ChevronLeft,ChevronRight,Copy,ExternalLink,Highlighter,Info,List,LoaderCircle,Maximize2,MessageSquare,Search,Settings2,Share2,Users,X,Lightbulb,Minimize2,MonitorSmartphone} from 'lucide-react';
+import {ApplePencilIcon} from './apple-pencil-icon';
 import {BrandMark} from './brand-mark';
 import {brand} from '@/lib/brand';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '@/components/ui/dialog';
 import {Switch} from '@/components/ui/switch';
+import {ReaderPencil} from './reader-pencil';
 import {ReaderText} from './reader-text';
 import {ReaderFigures} from './reader-figures';
 import {ReaderLibrary} from './reader-library';
@@ -48,6 +50,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const [shareTarget,setShareTarget]=useState<ShareTarget|null>(null),[bookmarkBusy,setBookmarkBusy]=useState(false);
   const [query,setQuery]=useState(''),[jump,setJump]=useState(''),[jumpError,setJumpError]=useState('');
   const [selectedCharacters,setSelectedCharacters]=useState<string[]>([]),[selectMode,setSelectMode]=useState(false),[bookBusy,setBookBusy]=useState(false),[notice,setNotice]=useState(''),[deleted,setDeleted]=useState<SavedNote|null>(null);
+  const [pencilMode,setPencilMode]=useState(false);
   const [currentBlock,setCurrentBlock]=useState(''),[scrub,setScrub]=useState<number|null>(null);
   const section=book.sections.find(s=>s.id===sectionId)??firstReadable(book),sectionIndex=book.sections.findIndex(s=>s.id===section.id);
   const bookCache=useRef(new Map([[initialBook.id,initialBook]])),bookRequest=useRef(0),analysisRequest=useRef<AbortController|null>(null);
@@ -67,7 +70,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const bookmarkAnchor=selection??(bookmarkRow?makeAnchor(section,bookmarkRow.id):null);
   const bookmarked=!!bookmarkAnchor&&notes.some(note=>matchesBookmark(note,book.id,book.editionId,bookmarkAnchor));
   const announce=useCallback((message:string)=>{setNotice(message);if(noticeTimer.current)clearTimeout(noticeTimer.current);noticeTimer.current=setTimeout(()=>setNotice(''),7000);},[]);
-  const nativeSelection=useTextSelection({root:article,section,enabled:view==='reader'&&!dialog&&!contentsOpen,onSelect:anchor=>{
+  const nativeSelection=useTextSelection({root:article,section,enabled:view==='reader'&&!dialog&&!contentsOpen&&!pencilMode,onSelect:anchor=>{
     if(sameAnchor(activeSelection.current.anchor,anchor))return;
     linePivot.current=anchor.startId;rangeStart.current=null;setSelectMode(false);changeSelection(anchor);
   },onError:announce});
@@ -86,7 +89,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     if(url.href!==window.location.href)window.history[replace?'replaceState':'pushState']({},'',url);
   }
   function cancelAnalysis(){analysisRequest.current?.abort();setAnalysisBusy(false);}
-  function resetSelection(){cancelAnalysis();nativeSelection.clear();activeSelection.current={bookId:book.id,anchor:null};linePivot.current=null;rangeStart.current=null;setSelection(null);setResult(null);setAnalysisError('');setEditNote(null);setQuestion('');setNormalized(false);setSelectMode(false);}
+  function resetSelection(){setPencilMode(false);cancelAnalysis();nativeSelection.clear();activeSelection.current={bookId:book.id,anchor:null};linePivot.current=null;rangeStart.current=null;setSelection(null);setResult(null);setAnalysisError('');setEditNote(null);setQuestion('');setNormalized(false);setSelectMode(false);}
   function changeSelection(anchor:Anchor){cancelAnalysis();activeSelection.current={bookId:book.id,anchor};setSelection(anchor);setResult(null);setAnalysisError('');setEditNote(null);setQuestion('');setNormalized(false);}
   function closePanel(){const saved=capturePosition();setPanelOpen(false);setPanelExpanded(false);restorePosition(saved);panelTrigger.current?.focus({preventScroll:true});}
   function openPanel(tab='help'){
@@ -220,7 +223,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   async function save(kind:SavedNote['kind']='note',analysis?:Analysis){
     const anchor=analysis?.anchor??selection;if(!anchor)return;setSaving(true);const key=draftKey;
     const id=editNote&&editNote.kind===kind?editNote.id:crypto.randomUUID(),now=new Date().toISOString();
-    const note:SavedNote={id,workId:book.id,editionId:book.editionId,anchor,kind,body:kind==='note'?draft:'',analysis,createdAt:editNote?.id===id?editNote.createdAt:now,updatedAt:now};
+    const note:SavedNote={id,workId:book.id,editionId:book.editionId,anchor,kind,body:kind==='note'?draft:'',analysis,...(editNote?.id===id&&editNote.pencil?{pencil:{...editNote.pencil,transcription:'manual' as const,uncertain:false}}:{}),createdAt:editNote?.id===id?editNote.createdAt:now,updatedAt:now};
     try{
       await saveLocalNote(note);
       setDrafts(old=>{const next={...old};delete next[key];return next;});
@@ -292,9 +295,9 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     {view==='library'?<ReaderLibrary catalog={catalog} progress={prefs.autoBookmark?local.data.progress:[]} onOpen={id=>void openBook(id)}/>:view==='notes'?<Notebook notes={notes} catalog={catalog} onOpen={openNote} onDelete={removeNote} onTransfer={()=>openSettings('transfer')}/>:<>
       <main className="reading-main" id="main-content">
         <article ref={article} className="reading-page">
-          <div className="section-heading"><p>{[...section.path,section.title].join(' · ')}</p><div><button className="icon-button" aria-label="Text durchsuchen oder zu einem Vers springen" onClick={()=>setDialog('search')}><Search size={17}/></button><button className="icon-button" aria-label="Stelle teilen" onClick={openShare}><Share2 size={17}/></button><button className={'icon-button '+(selectMode?'pressed':'')} aria-label="Bereich durch Antippen auswählen" aria-pressed={selectMode} onClick={()=>{const next=!selectMode;resetSelection();setSelectMode(next);}}><Highlighter size={17}/></button></div></div>
+          <div className="section-heading"><p>{[...section.path,section.title].join(' · ')}</p><div><button className="icon-button" aria-label="Text durchsuchen oder zu einem Vers springen" onClick={()=>setDialog('search')}><Search size={17}/></button><button className="icon-button" aria-label="Stelle teilen" onClick={openShare}><Share2 size={17}/></button><button className={'icon-button '+(selectMode?'pressed':'')} aria-label="Bereich durch Antippen auswählen" aria-pressed={selectMode} onClick={()=>{const next=!selectMode;resetSelection();setSelectMode(next);}}><Highlighter size={17}/></button><button className={'icon-button '+(pencilMode?'pressed':'')} aria-label="Apple Pencil Modus" aria-pressed={pencilMode} onClick={()=>{const next=!pencilMode;nativeSelection.clear();setSelectMode(false);setPanelOpen(false);setPencilMode(next);}}><ApplePencilIcon size={20}/></button></div></div>
           <h1 className="sr-only">{book.title} · {section.title}</h1>
-          <ReaderText book={book} section={section} selection={selection} notes={notes} showNumbers={prefs.numbers} showCharacters={prefs.characters} selectMode={selectMode} canActivate={nativeSelection.canActivate} onSelect={selectLine} onCharacter={selectCharacter} onNote={openNote} onNotes={openAttached}/>
+          <ReaderPencil key={book.id+book.editionId+section.id} book={book} section={section} prefs={prefs} selection={selection} enabled={pencilMode} onToggle={()=>setPencilMode(false)} onSaved={announce}>{drafts=><ReaderText book={book} section={section} selection={selection} notes={[...notes,...drafts]} showNumbers={prefs.numbers} showCharacters={prefs.characters&&!pencilMode} selectMode={selectMode} canActivate={nativeSelection.canActivate} onSelect={selectLine} onCharacter={selectCharacter} onNote={openNote} onNotes={openAttached}/>}</ReaderPencil>
           <nav className="section-pagination" aria-label="Weiterlesen"><button disabled={sectionIndex===0} onClick={()=>goToSection(book.sections[sectionIndex-1].id)}><ChevronLeft size={18}/>Voriger Abschnitt</button><button disabled={sectionIndex===book.sections.length-1} onClick={()=>goToSection(book.sections[sectionIndex+1].id)}>Nächster Abschnitt<ChevronRight size={18}/></button></nav>
           <button className="reading-source-link" onClick={()=>setDialog('source')}>Quelle und Zitierweise<ExternalLink size={13}/></button>
         </article>
@@ -307,7 +310,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
         <button className={'icon-button reader-bookmark '+(bookmarked?'is-bookmarked':'')} aria-label={bookmarked?'Lesezeichen entfernen':'Lesezeichen setzen'} aria-pressed={bookmarked} disabled={bookmarkBusy||!local.ready} onClick={()=>void bookmark()} title={bookmarked?'Lesezeichen entfernen':'Lesezeichen setzen'}><Bookmark size={18} fill={bookmarked?'currentColor':'none'}/></button>
         <button className="mobile-type" onClick={()=>openSettings()} aria-label="Leseeinstellungen">Aa</button><button className="mobile-help" onClick={()=>panelOpen?closePanel():openPanel()} aria-expanded={panelOpen}><Lightbulb size={18}/>Hilfe</button>
       </footer>}
-      {(selection||selectMode)&&!panelOpen&&<div className={'selection-dock '+(selectMode?'range-selection-dock':'')} role="group" aria-label="Aktionen zur Textauswahl">
+      {(selection||selectMode)&&!panelOpen&&!pencilMode&&<div className={'selection-dock '+(selectMode?'range-selection-dock':'')} role="group" aria-label="Aktionen zur Textauswahl">
         {selectMode?<><span role="status">{selection?'Tippe auf das Ende der Passage.':'Tippe auf den Anfang der Passage.'}</span><button onClick={resetSelection}>Abbrechen</button></>:selection&&<><span>{referenceLabel(section,selection)}</span><button onClick={()=>void analyze('summary')}><Lightbulb size={17}/>Verstehen</button><button onClick={()=>openPanel('notes')}><MessageSquare size={17}/>Notiz</button><button className={'icon-button '+(bookmarked?'is-bookmarked':'')} aria-label={bookmarked?'Lesezeichen der Auswahl entfernen':'Auswahl als Lesezeichen speichern'} aria-pressed={bookmarked} disabled={bookmarkBusy||!local.ready} onClick={()=>void bookmark()}><Bookmark size={17} fill={bookmarked?'currentColor':'none'}/></button><button className="icon-button" aria-label="Weitere Analysearten" onClick={()=>openPanel('help')}><ChevronDown size={18}/></button><button className="icon-button" aria-label="Auswahl aufheben" onClick={resetSelection}><X size={18}/></button></>}
       </div>}
     </>}
@@ -351,6 +354,6 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
       </DialogContent>
     </Dialog>
     {bookBusy&&<div className="loading-overlay" role="status"><LoaderCircle className="spin" size={22}/><span>Werk wird geöffnet …</span></div>}
-    {(notice||deleted)&&<div className={'toast '+(view==='reader'&&(selection||selectMode)&&!panelOpen?'above-selection':'')} role="status"><span>{notice||'Eintrag gelöscht.'}</span>{deleted&&<button onClick={()=>void undo()}>Rückgängig</button>}<button className="icon-button" aria-label="Hinweis schließen" onClick={()=>{setNotice('');setDeleted(null);}}><X size={16}/></button></div>}
+    {(notice||deleted)&&<div className={'toast '+(view==='reader'&&(selection||selectMode)&&!panelOpen&&!pencilMode?'above-selection':'')} role="status"><span>{notice||'Eintrag gelöscht.'}</span>{deleted&&<button onClick={()=>void undo()}>Rückgängig</button>}<button className="icon-button" aria-label="Hinweis schließen" onClick={()=>{setNotice('');setDeleted(null);}}><X size={16}/></button></div>}
   </div>;
 }

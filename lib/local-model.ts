@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {pencilAnnotationSchema} from './pencil-model';
 import {defaultPrefs, preferencesSchema} from './preferences';
 import type {ReadingProgress, SavedNote} from './reader-model';
 
@@ -22,7 +23,7 @@ export const portableAnalysisSchema=z.object({
 export const portableNoteSchema=z.object({
   id:identifier,workId:identifier,editionId:identifier,anchor:portableAnchorSchema,
   kind:z.enum(['summary','style','meter','context','conflict','question','note','bookmark']),
-  body:z.string().max(12000),analysis:portableAnalysisSchema.nullable().optional(),
+  body:z.string().max(12000),pencil:pencilAnnotationSchema.optional(),analysis:portableAnalysisSchema.nullable().optional(),
   createdAt:timestamp,updatedAt:timestamp,deletedAt:timestamp.optional(),conflictOf:identifier.optional(),
 });
 const progressSchema=z.object({workId:identifier,editionId:identifier,sectionId:identifier,blockId:identifier,updatedAt:timestamp});
@@ -36,7 +37,7 @@ export type LocalSnapshot=z.infer<typeof snapshotSchema>;
 export const EMPTY_SNAPSHOT:LocalSnapshot={schemaVersion:2,preferences:{value:defaultPrefs,updatedAt:'1970-01-01T00:00:00.000Z'},notes:[],progress:[]};
 
 function noteContent(n:SavedNote) {
-  return JSON.stringify([n.workId,n.editionId,n.anchor,n.kind,n.body,n.analysis??null]);
+  return JSON.stringify([n.workId,n.editionId,n.anchor,n.kind,n.body,n.analysis??null,n.pencil??null]);
 }
 export function mergeSnapshots(local:LocalSnapshot,incoming:LocalSnapshot,importPreferences=true):{snapshot:LocalSnapshot;conflicts:number} {
   const notes=new Map(local.notes.map(note=>[note.id,note]));

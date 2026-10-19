@@ -9,7 +9,7 @@ import {recordUsage} from '@/lib/usage-stats';
 import type {UsageDelta} from '@/lib/usage-model';
 
 export const runtime='nodejs';
-export const maxDuration=180;
+export const maxDuration=300;
 export async function GET(){return json(aiStatus());}
 export async function POST(request:Request){
  const usage:UsageDelta={requests:1};

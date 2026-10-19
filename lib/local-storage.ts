@@ -59,6 +59,7 @@ export async function updateLocal(change:(data:LocalSnapshot)=>LocalSnapshot){
     throw new Error('Nicht gespeichert: Der Gerätespeicher ist voll oder gesperrt. Dein Entwurf bleibt geöffnet.');
   }
 }
+export function saveLocalNotes(notes:SavedNote[]){return updateLocal(data=>({...data,notes:[...notes,...data.notes.filter(n=>!notes.some(saved=>saved.id===n.id))]}));}
 export function saveLocalNote(note:SavedNote){return updateLocal(data=>({...data,notes:[note,...data.notes.filter(n=>n.id!==note.id)]}));}
 export function deleteLocalNote(id:string){return updateLocal(data=>({...data,notes:data.notes.map(n=>n.id===id?{...n,deletedAt:new Date().toISOString(),updatedAt:new Date().toISOString()}:n)}));}
 export function setLocalBookmark(workId:string,editionId:string,anchor:Anchor,enabled:boolean){return updateLocal(data=>{

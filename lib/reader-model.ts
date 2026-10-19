@@ -1,3 +1,4 @@
+import type {PencilAnnotation} from './pencil-model';
 export type Unit = 'verse' | 'textline' | 'paragraph';
 export type Block = { id: string; kind: 'verse'|'prose'|'stage'|'speaker'|'heading'|'trailer'; text: string; number?: number; numberEnd?: number; unit?: Unit; part?: string|null; group?: string|null; speaker?: string; page?: string };
 export type Section = { id:string; title:string; path:string[]; kind:string; blocks:Block[]; firstRef:number|null; lastRef:number|null; unit:Unit|null; characters:string[] };
@@ -8,7 +9,7 @@ export type Book = WorkMeta & {characters:Character[];relations:Relation[];secti
 export type Anchor = {sectionId:string;startId:string;endId:string;startOffset:number;endOffset:number;quote:string};
 export type AnalysisMode = 'summary'|'style'|'meter'|'context'|'conflict'|'question';
 export type Analysis = {id:string;mode:AnalysisMode;title:string;summary:string;observations:{label:string;text:string;quotes:{blockId:string;quote:string}[]}[];uncertainty:string;source:'prepared'|'live'|'cache';model:string;generatedAt:string;promptVersion:string;anchor:Anchor;workId:string;editionId:string;question?:string};
-export type SavedNote = {id:string;workId:string;editionId:string;anchor:Anchor;kind:AnalysisMode|'note'|'bookmark';body:string;analysis?:Analysis|null;createdAt:string;updatedAt:string;deletedAt?:string;conflictOf?:string};
+export type SavedNote = {id:string;workId:string;editionId:string;anchor:Anchor;kind:AnalysisMode|'note'|'bookmark';body:string;pencil?:PencilAnnotation;analysis?:Analysis|null;createdAt:string;updatedAt:string;deletedAt?:string;conflictOf?:string};
 export type ReadingProgress = {workId:string;editionId:string;sectionId:string;blockId:string;updatedAt:string};
 export const MODE_LABELS: Record<AnalysisMode|string,string> = {summary:'Inhalt',style:'Stilmittel',meter:'Metrik',context:'Hintergrund',conflict:'Konflikt',question:'Eigene Frage',note:'Notiz',bookmark:'Lesezeichen'};
 export const MODE_COLORS: Record<string,string> = {summary:'#d8e7f4',style:'#ecdef5',meter:'#d5ebdf',context:'#f3e5c9',conflict:'#f4ddd5',question:'#dee4f5',note:'#faeab4',bookmark:'#dce8e7'};

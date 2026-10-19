@@ -1,6 +1,8 @@
 import {z} from 'zod';
+import {pencilColors} from './pencil-model';
 
 export const preferencesSchema = z.object({
+  pencilMeanings:z.record(z.enum(pencilColors),z.string().min(1).max(80)).optional(),
   fontSize: z.number().min(16).max(30),
   lineHeight: z.number().min(1.5).max(2.4),
   theme: z.enum(['paper', 'sepia', 'night']),

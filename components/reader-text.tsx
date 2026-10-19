@@ -3,6 +3,7 @@ import {useLayoutEffect,useMemo} from 'react';
 import {MessageSquare} from 'lucide-react';
 import type {Anchor,Block,Book,Character,SavedNote,Section} from '@/lib/reader-model';
 import {MODE_COLORS,MODE_LABELS,unitLabel} from '@/lib/reader-model';
+import {pencilPalette} from '@/lib/pencil-model';
 import {aliasesAt} from '@/lib/mentions';
 type Props={book:Book;section:Section;selection:Anchor|null;notes:SavedNote[];showNumbers:boolean;showCharacters:boolean;selectMode:boolean;canActivate:(event:MouseEvent)=>boolean;onSelect:(id:string,extend?:boolean)=>void;onCharacter:(id:string)=>void;onNote:(note:SavedNote)=>void;onNotes?:(notes:SavedNote[])=>void};
 function segments(text:string,characters:Character[],onCharacter:(id:string)=>void,key:string,canActivate:Props['canActivate'],selectMode:boolean){
@@ -23,7 +24,7 @@ export function ReaderText({book,section,selection,notes,showNumbers,showCharact
  const indices=useMemo(()=>new Map(section.blocks.map((b,i)=>[b.id,i])),[section]);
  const available=useMemo(()=>book.characters.filter(c=>(c.afterSection??0)<=book.sections.findIndex(s=>s.id===section.id)),[book,section.id]);
  const a=selection?indices.get(selection.startId)??-1:-1,b=selection?indices.get(selection.endId)??-1:-1;
- const relevant=notes.filter(n=>n.editionId===book.editionId&&n.anchor.sectionId===section.id);
+ const relevant=notes.filter(n=>n.workId===book.id&&n.editionId===book.editionId&&n.anchor.sectionId===section.id);
  useLayoutEffect(()=>{
   if(!('highlights' in CSS)||typeof Highlight==='undefined')return;
   CSS.highlights.delete('reader-selection');if(!selection)return;
@@ -44,7 +45,7 @@ export function ReaderText({book,section,selection,notes,showNumbers,showCharact
   const content=cuts.slice(0,-1).map((start,i)=>{
    const end=cuts[i+1],active=marks.filter(m=>start>=m.start&&end<=m.end);
    const children=showCharacters?segments(block.text.slice(start,end),aliasesAt(available,book.id,block.id),onCharacter,`${block.id}-${start}`,canActivate,selectMode):block.text.slice(start,end);
-   return <span key={start} className={active.length?'saved-highlight':''} style={active.length?{background:MODE_COLORS[active[0].n.kind]}:undefined} onClick={active.length?e=>{if(!selectMode&&canActivate(e.nativeEvent)){e.stopPropagation();if(onNotes)onNotes(active.map(m=>m.n));else onNote(active[0].n);}}:undefined}>{children}</span>;
+   return <span key={start} className={active.length?'saved-highlight':''} style={active.length?{background:active[0].n.pencil?pencilPalette[active[0].n.pencil.color].fill:MODE_COLORS[active[0].n.kind]}:undefined} onClick={active.length?e=>{if(!selectMode&&canActivate(e.nativeEvent)){e.stopPropagation();if(onNotes)onNotes(active.map(m=>m.n));else onNote(active[0].n);}}:undefined}>{children}</span>;
   });
   return <div key={block.id} id={block.id} data-block={block.id} className={`source-row text-line ${block.kind==='prose'?'prose-row':''} ${isSelected?'row-selected':''} ${selectMode?'selection-mode':''} ${block.part==='F'||block.part==='M'?'verse-continuation':''}`}>
    <button className={`line-number line-select ${showNumbers?'':'numbers-hidden'}`} aria-label={`${unitLabel(block.unit)} ${block.number}${block.part==='F'||block.part==='M'?', Fortsetzung':''} auswählen`} aria-pressed={isSelected} onClick={e=>onSelect(block.id,e.shiftKey)} title="Antippen zum Auswählen; für einen Bereich den Markierstift aktivieren oder Umschalt gedrückt halten.">{showNumbers?block.numberEnd?`${block.number}–${block.numberEnd}`:block.number:'·'}</button>
