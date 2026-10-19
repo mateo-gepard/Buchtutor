@@ -64,6 +64,7 @@ test('palette can move freely, snap to every edge, restore and keep settings ins
  await grip.focus();await grip.press('Home');await grip.press('ArrowUp');await expect(page.locator('.pencil-workspace')).toHaveAttribute('data-dock','floating');
  for(const [key,edge] of [['ArrowLeft','left'],['ArrowUp','top'],['ArrowRight','right'],['ArrowDown','bottom']] as const){
   await grip.press('Shift+'+key);await expect(page.locator('.pencil-workspace')).toHaveAttribute('data-dock',edge);
+  await expect.poll(async()=>{const bar=await page.locator('.pencil-workspace').boundingBox();return !!bar&&(edge==='left'||edge==='right'?bar.height>bar.width:bar.width>bar.height);}).toBe(true);
   if(page.viewportSize()!.width<=600&&(edge==='left'||edge==='right'))await expect.poll(async()=>{const bar=await page.locator('.pencil-workspace').boundingBox(),text=await page.locator('[data-text]').first().boundingBox();return !!bar&&!!text&&(edge==='left'?text.x>=bar.x+bar.width:text.x+text.width<=bar.x)?'inside':JSON.stringify({edge,bar,text});}).toBe('inside');
   await page.getByRole('button',{name:'Farbbedeutungen anpassen',exact:true}).click();await expect(page.locator('.pencil-settings')).toBeVisible();const viewport=page.viewportSize()!;await expect.poll(async()=>{const box=await page.locator('.pencil-settings').boundingBox();return !!box&&box.x>=0&&box.y>=0&&box.x+box.width<=viewport.width&&box.y+box.height<=viewport.height;}).toBe(true);await page.getByRole('button',{name:'Farbbedeutungen schließen',exact:true}).click();
  }

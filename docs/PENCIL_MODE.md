@@ -30,3 +30,5 @@ Der erste reale KI-Test am 19.10.2026 zeigte einen Token-Abbruch bei Metrik und 
 Nach diesen Korrekturen bestanden alle sieben realen API-Anfragen: Inhalt 14,6 s; Stilmittel 38,3 s; Metrik 92,0 s; Hintergrund 41,4 s; Konflikt 26,1 s; eigene Frage 21,9 s; Handschrift 33,9 s. Alle Analysen waren echte Live-Antworten; „Hain“ wurde korrekt erkannt. Das ist eine Stichprobe je Anfrageart und keine Garantie für jede künftige Modellantwort.
 
 Emulation und synthetische Pointer-Ereignisse ersetzen keinen Hardwaretest mit echtem iPad, Safari und Apple Pencil, insbesondere für Handballen, Druckgefühl und den Wechsel zwischen Touch und Pencil.
+
+Die Live-Prüfung fand am 19.10. eine veraltete CSS-Transformation aus dem wiederhergestellten Build-Cache. Pencil-Stile werden deshalb als eigene Datei `app/pencil.css` eingebunden. Browserprüfungen kontrollieren neben der Randposition auch die tatsächliche vertikale/horizontale Darstellung und den Abstand zum Text.

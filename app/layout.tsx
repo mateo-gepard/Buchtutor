@@ -3,6 +3,7 @@ import {brand} from '@/lib/brand';
 import {VisitorAnalytics} from '@/components/visitor-analytics';
 import './globals.css';
 import './reader.css';
+import './pencil.css';
 export const metadata:Metadata={
   metadataBase:new URL(brand.url),title:brand.name,applicationName:brand.name,description:brand.description,
   openGraph:{type:'website',locale:'de_DE',siteName:brand.name,title:brand.name,description:brand.description,url:brand.url,images:[{url:brand.shareImage,width:1200,height:630,alt:'Buchtutor · Lesen, Lesehilfe und Notizen'}]},
