@@ -91,3 +91,43 @@ test('a real pointer drag moves the palette freely and leaves the text stationar
  await page.mouse.move(grip!.x+12,grip!.y+12);await page.mouse.down();await page.mouse.move((page.viewportSize()!.width-bar!.width)/2+12,220,{steps:6});await page.mouse.up();
  await expect(page.locator('.pencil-workspace')).toHaveAttribute('data-dock','floating');await expect.poll(async()=>{const b=await page.locator('.pencil-workspace').boundingBox();return !!b&&b.y<300;}).toBe(true);const after=await page.locator('[data-text]').first().boundingBox();expect(after!.y).toBeCloseTo(before!.y,0);
 });
+
+async function wordsGesture(page:Page,start:number,end=start,ending='pointerup',pointerType='pen'){
+ await page.locator('[data-text]').first().evaluate((el,{start,end,ending,pointerType})=>{
+  const words=[...(el.textContent??'').matchAll(/\S+/gu)];
+  function box(index:number){const word=words[index],range=document.createRange(),walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let total=0,node:Node|null,begun=false;while((node=walker.nextNode())){const length=node.textContent?.length??0;if(!begun&&word.index!<total+length){range.setStart(node,word.index!-total);begun=true;}if(begun&&word.index!+word[0].length<=total+length){range.setEnd(node,word.index!+word[0].length-total);return range.getBoundingClientRect();}total+=length;}throw new Error('Word not found');}
+  const a=box(start),b=box(end),y=a.top+a.height/2;
+  for(const [type,x] of [['pointerdown',a.left+2],['pointermove',b.right-2],[ending,b.right-2]] as const)el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId:98,pointerType,clientX:x,clientY:y,buttons:type==='pointerup'?0:1}));
+ },{start,end,ending,pointerType});
+}
+test('eraser removes individual words and ink lines; undo restores each complete eraser gesture',async({page})=>{
+ await page.route('**/api/handwriting',route=>route.fulfill({json:{text:'Notiz nach dem Radieren',uncertain:false}}));
+ await wordsGesture(page,0,2);await expect(page.locator('.saved-highlight')).toHaveText('Heraus in eure');
+ const y=await page.locator('[data-text]').first().evaluate(el=>el.getBoundingClientRect().top-el.closest('.pencil-text')!.getBoundingClientRect().top);
+ await stroke(page,[{x:-38,y:y+4},{x:-38,y:y+25}]);await stroke(page,[{x:-14,y:y+4},{x:-14,y:y+25}]);await expect(page.locator('[data-ink-group] path')).toHaveCount(2);
+ await page.getByRole('button',{name:'Radiergummi',exact:true}).click();await expect(page.getByRole('button',{name:'Radiergummi',exact:true})).toHaveAttribute('aria-pressed','true');
+ await wordsGesture(page,1);await expect(page.locator('.saved-highlight')).toHaveText(['Heraus','eure']);await expect(page.locator('[data-ink-group] path')).toHaveCount(2);
+ await page.getByRole('button',{name:'Letzten Strich entfernen',exact:true}).click();await expect(page.locator('.saved-highlight')).toHaveText('Heraus in eure');
+ await stroke(page,[{x:-38,y:y+7},{x:-38,y:y+20}]);await expect(page.locator('[data-ink-group] path')).toHaveCount(1);
+ await page.getByRole('button',{name:'Letzten Strich entfernen',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveCount(2);
+ await stroke(page,[{x:-38,y:y+7},{x:-38,y:y+20}]);await wordsGesture(page,1);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);
+ await openNotebook(page);await expect(page.locator('.note-card')).toHaveCount(1);await expect(page.locator('.note-card')).toContainText('Notiz nach dem Radieren');await page.getByText('Originalhandschrift',{exact:true}).click();await expect(page.locator('.saved-ink path')).toHaveCount(1);
+});
+test('erasing saved word highlights survives draft reload and keeps the existing note and original ink',async({page})=>{
+ let requests=0;await page.route('**/api/handwriting',route=>{requests++;return route.fulfill({json:{text:'Gespeicherte Notiz bleibt',uncertain:false}});});await wordsGesture(page,0,2);await writeNear(page);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);
+ await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await page.getByRole('button',{name:'Radiergummi',exact:true}).click();await wordsGesture(page,1);await expect(page.locator('.saved-highlight')).toHaveText(['Heraus','eure']);
+ await page.reload();await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await expect(page.locator('.saved-highlight')).toHaveText(['Heraus','eure']);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);expect(requests).toBe(1);
+ await page.reload();await expect(page.locator('.saved-highlight')).toHaveText(['Heraus','eure']);await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await page.getByRole('button',{name:'Radiergummi',exact:true}).click();await wordsGesture(page,0,2);await expect(page.locator('.saved-highlight')).toHaveCount(0);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);await page.reload();await expect(page.locator('.saved-highlight')).toHaveCount(0);
+ await openNotebook(page);await expect(page.locator('.note-card')).toHaveCount(1);await expect(page.locator('.note-card')).toContainText('Gespeicherte Notiz bleibt');await page.getByText('Originalhandschrift',{exact:true}).click();await expect(page.locator('.saved-ink path')).toHaveCount(3);expect(requests).toBe(1);
+});
+test('cancelled erasing and finger scrolling keep words intact; a new color leaves eraser mode',async({page})=>{
+ await wordsGesture(page,0,2);await page.getByRole('button',{name:'Radiergummi',exact:true}).click();await wordsGesture(page,1,1,'pointercancel');await wordsGesture(page,1,1,'pointerup','touch');await expect(page.locator('.saved-highlight')).toHaveText('Heraus in eure');await chooseColor(page,'Blau: Interpretationsansatz');await expect(page.getByRole('button',{name:'Radiergummi',exact:true})).toHaveAttribute('aria-pressed','false');await mark(page,5);await expect(page.locator('.saved-highlight')).toHaveCount(2);
+ await page.setViewportSize({width:320,height:700});await expect.poll(async()=>{const r=await page.locator('.pencil-workspace').boundingBox();return !!r&&r.x>=0&&r.x+r.width<=320;}).toBe(true);await expect(page.getByRole('button',{name:'Radiergummi',exact:true})).toBeVisible();
+});
+test('erasing partially recognized ink invalidates only its cached transcription before retry',async({page})=>{
+ let requests=0;await page.route('**/api/handwriting',route=>{requests++;return route.fulfill(requests===2?{status:503,json:{error:'Zweite Notiz fehlgeschlagen'}}:{json:{text:requests===1?'Veraltete Erkennung':requests===3?'Korrigierte Schrift':'Zweite Notiz',uncertain:false}});});
+ await mark(page);await writeNear(page);await mark(page,5);await writeNear(page,5);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-error')).toContainText('Zweite Notiz fehlgeschlagen');
+ const y=await page.locator('[data-block]').first().evaluate(el=>el.getBoundingClientRect().top-el.closest('.pencil-text')!.getBoundingClientRect().top);
+ await page.getByRole('button',{name:'Radiergummi',exact:true}).click();await stroke(page,[{x:-37,y:y+5},{x:-37,y:y+23}]);await expect(page.locator('[data-ink-group] path')).toHaveCount(4);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);expect(requests).toBe(4);
+ await openNotebook(page);await expect(page.locator('.note-card')).toHaveCount(2);await expect(page.locator('.note-card').filter({hasText:'Korrigierte Schrift'})).toHaveCount(1);await expect(page.locator('.note-card').filter({hasText:'Veraltete Erkennung'})).toHaveCount(0);
+});

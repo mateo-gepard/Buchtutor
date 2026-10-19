@@ -4,6 +4,7 @@ import {MessageSquare} from 'lucide-react';
 import type {Anchor,Block,Book,Character,SavedNote,Section} from '@/lib/reader-model';
 import {MODE_COLORS,MODE_LABELS,unitLabel} from '@/lib/reader-model';
 import {pencilPalette} from '@/lib/pencil-model';
+import {highlightRanges} from '@/lib/pencil-eraser';
 import {aliasesAt} from '@/lib/mentions';
 type Props={book:Book;section:Section;selection:Anchor|null;notes:SavedNote[];showNumbers:boolean;showCharacters:boolean;selectMode:boolean;canActivate:(event:MouseEvent)=>boolean;onSelect:(id:string,extend?:boolean)=>void;onCharacter:(id:string)=>void;onNote:(note:SavedNote)=>void;onNotes?:(notes:SavedNote[])=>void};
 function segments(text:string,characters:Character[],onCharacter:(id:string)=>void,key:string,canActivate:Props['canActivate'],selectMode:boolean){
@@ -24,7 +25,8 @@ export function ReaderText({book,section,selection,notes,showNumbers,showCharact
  const indices=useMemo(()=>new Map(section.blocks.map((b,i)=>[b.id,i])),[section]);
  const available=useMemo(()=>book.characters.filter(c=>(c.afterSection??0)<=book.sections.findIndex(s=>s.id===section.id)),[book,section.id]);
  const a=selection?indices.get(selection.startId)??-1:-1,b=selection?indices.get(selection.endId)??-1:-1;
- const relevant=notes.filter(n=>n.workId===book.id&&n.editionId===book.editionId&&n.anchor.sectionId===section.id);
+ const relevant=useMemo(()=>notes.filter(n=>n.workId===book.id&&n.editionId===book.editionId&&n.anchor.sectionId===section.id),[notes,book.id,book.editionId,section.id]);
+ const visibleMarks=useMemo(()=>relevant.flatMap(n=>highlightRanges(section,n.anchor,n.pencil).map(range=>({...range,n}))),[relevant,section]);
  useLayoutEffect(()=>{
   if(!('highlights' in CSS)||typeof Highlight==='undefined')return;
   CSS.highlights.delete('reader-selection');if(!selection)return;
@@ -39,7 +41,7 @@ export function ReaderText({book,section,selection,notes,showNumbers,showCharact
  },[selection,section,a,b,notes]);
  function lineContent(block:Block,index:number){
   const attached=relevant.filter(n=>index>=(indices.get(n.anchor.startId)??Infinity)&&index<=(indices.get(n.anchor.endId)??-1));
-  const marks=attached.map(n=>({start:n.anchor.startId===block.id?n.anchor.startOffset:0,end:n.anchor.endId===block.id?n.anchor.endOffset:block.text.length,n}));
+  const marks=visibleMarks.filter(m=>m.blockId===block.id);
   const isSelected=index>=a&&index<=b;
   const cuts=[...new Set([0,block.text.length,...marks.flatMap(m=>[m.start,m.end])])].sort((x,y)=>x-y);
   const content=cuts.slice(0,-1).map((start,i)=>{

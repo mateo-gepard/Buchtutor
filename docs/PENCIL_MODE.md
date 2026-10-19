@@ -32,3 +32,9 @@ Nach diesen Korrekturen bestanden alle sieben realen API-Anfragen: Inhalt 14,6 s
 Emulation und synthetische Pointer-Ereignisse ersetzen keinen Hardwaretest mit echtem iPad, Safari und Apple Pencil, insbesondere für Handballen, Druckgefühl und den Wechsel zwischen Touch und Pencil.
 
 Die Live-Prüfung fand am 19.10. eine veraltete CSS-Transformation aus dem wiederhergestellten Build-Cache. Pencil-Stile werden deshalb als eigene Datei `app/pencil.css` eingebunden. Browserprüfungen kontrollieren neben der Randposition auch die tatsächliche vertikale/horizontale Darstellung und den Abstand zum Text.
+
+## Radiergummi
+
+Der Radiergummi in der Pencil-Leiste entfernt getroffene Wortmarkierungen und ganze getroffene Schriftstriche auf der Leseseite. Er testet den gesamten Weg zwischen Pointer-Ereignissen, damit auch schnelle Gesten funktionieren. Finger scrollen weiterhin; abgebrochene Radiergesten verändern nichts. Farbauswahl oder Schreibstift verlassen den Radiermodus.
+
+Die Wortlöschung wird als begrenzte Liste kanonischer Block-/Zeichenbereiche gespeichert. Sie kann eine Markierung in getrennte sichtbare Teile teilen. Buchtext, ursprünglicher Notizanker, Notiztext und bereits gespeicherte Originalhandschrift bleiben erhalten, auch wenn alle farbigen Wörter entfernt wurden. Änderungen an gespeicherten Markierungen werden zunächst als lokaler Entwurf vorgemerkt und bei „Fertig“ gesichert. Die verschlüsselte Sicherung erhält die ausgesparten Wörter. Pro Radiergeste ist Rückgängig möglich. Wird nach einer teilweise erfolgreichen Transkription weiter radiert, wird die betreffende Erkennung ungültig und beim nächsten Fertig nur die verbleibende Schrift neu transkribiert.

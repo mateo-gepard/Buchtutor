@@ -15,8 +15,9 @@ export function placementAt(rect:Rect,viewport:Rect,dock:Dock='floating'):Placem
  return {dock,x:clamp((rect.x-viewport.x)/Math.max(1,viewport.width-rect.width),0,1),y:clamp((rect.y-viewport.y)/Math.max(1,viewport.height-rect.height),0,1)};
 }
 export function nearestDock(rect:Rect,viewport:Rect,threshold=30):Dock{
+ const horizontal=Math.min(threshold,Math.max(4,(viewport.width-rect.width)/4)),vertical=Math.min(threshold,Math.max(4,(viewport.height-rect.height)/4));
  const edges:[Dock,number][]=[['left',Math.abs(rect.x-viewport.x)],['right',Math.abs(rect.x+rect.width-viewport.x-viewport.width)],['top',Math.abs(rect.y-viewport.y)],['bottom',Math.abs(rect.y+rect.height-viewport.y-viewport.height)]];
- edges.sort((a,b)=>a[1]-b[1]);return edges[0][1]<=threshold?edges[0][0]:'floating';
+ const close=edges.filter(([edge,distance])=>distance<=(edge==='left'||edge==='right'?horizontal:vertical)).sort((a,b)=>a[1]-b[1]);return close[0]?.[0]??'floating';
 }
 export function popoverPosition(bar:Rect,size:{width:number;height:number},viewport:Rect,dock:Dock):{x:number;y:number}{
  let x=bar.x+bar.width-size.width,y=bar.y-size.height-10;

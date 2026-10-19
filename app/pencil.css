@@ -22,3 +22,8 @@
 .pencil-workspace.positioned .pencil-popover,.pencil-workspace.positioned .pencil-error{z-index:3}
 .pencil-workspace.positioned[data-dock=left] .pencil-toolbar,.pencil-workspace.positioned[data-dock=right] .pencil-toolbar{max-height:var(--pencil-available-height,calc(100dvh - 24px));overflow-y:auto;scrollbar-width:none}.pencil-workspace.positioned[data-compact=true][data-dock=left] .pencil-colors,.pencil-workspace.positioned[data-compact=true][data-dock=right] .pencil-colors{display:none!important}.pencil-workspace.positioned[data-compact=true][data-dock=left] .pencil-color-menu,.pencil-workspace.positioned[data-compact=true][data-dock=right] .pencil-color-menu{display:grid!important}
 @media(max-width:600px){.reader-app:has(.pencil-workspace[data-dock=left]) .reading-page{padding-left:86px}.reader-app:has(.pencil-workspace[data-dock=right]) .reading-page{padding-right:86px}}
+
+/* Erase annotations without changing source text or the linked note. */
+.pencil-text.active[data-erasing=true],.pencil-text.active[data-erasing=true] *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ffffff80' stroke='%2364758b' stroke-width='1.5'/%3E%3C/svg%3E") 12 12,crosshair}
+.pencil-eraser[aria-pressed=true]{background:var(--secondary);color:var(--primary)}
+@media(max-width:359px){.pencil-workspace.positioned .pencil-toolbar{gap:2px;padding:5px}.pencil-workspace.positioned .pencil-toolbar .icon-button{width:30px;min-width:30px}.pencil-workspace.positioned .pencil-grip{min-width:30px}}

@@ -15,6 +15,7 @@ test('palette edges, normalized free placement and popovers stay within changed 
   const rotated=palettePosition({dock,x:.5,y:.7},size,{x:12,y:12,width:1170,height:810});assert.ok(rotated.x>=12&&rotated.y>=12&&rotated.x+rotated.width<=1182&&rotated.y+rotated.height<=822);
  }
  const free=placementAt({x:400,y:100,width:500,height:54},viewport);assert.ok(free.x<=1);assert.equal(nearestDock({x:12,y:200,width:58,height:500},viewport),'left');assert.equal(nearestDock({x:300,y:300,width:100,height:50},viewport),'floating');
+ const narrow={x:12,y:12,width:366,height:820};assert.equal(nearestDock({x:38,y:200,width:314,height:54},narrow),'floating');assert.equal(nearestDock({x:12,y:200,width:314,height:54},narrow),'left');
 });
 const layout:InkLayout={width:640,fontSize:20,tops:{a:100,b:400}},targets=[{id:'green',boxes:[{left:0,right:90,top:100,bottom:125}]},{id:'blue',boxes:[{left:0,right:90,top:400,bottom:425}]}];
 const stroke=(x:number,y:number)=>[{x,y,pressure:.6},{x:x+12,y:y+20,pressure:.8}];

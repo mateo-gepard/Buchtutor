@@ -11,7 +11,8 @@ export const pencilPalette:Record<PencilColor,{name:string;fill:string;ink:strin
 };
 export const inkPointSchema=z.object({x:z.number().finite().min(0).max(2000),y:z.number().finite().min(0).max(1000),pressure:z.number().min(0).max(1)});
 export const inkStrokeSchema=z.array(inkPointSchema).min(1).max(3000);
-export const pencilAnnotationSchema=z.object({color:z.enum(pencilColors),meaning:z.string().min(1).max(80),ink:z.array(inkStrokeSchema).max(1200),inkWidth:z.number().int().min(1).max(2000).optional(),inkHeight:z.number().int().min(1).max(1000).optional(),uncertain:z.boolean().optional(),transcription:z.enum(['none','recognized','manual','pending']).default('none')});
+const erasedRangeSchema=z.object({blockId:z.string().min(1).max(200),start:z.number().int().min(0).max(1000000),end:z.number().int().min(1).max(1000000)}).refine(r=>r.end>r.start);
+export const pencilAnnotationSchema=z.object({color:z.enum(pencilColors),meaning:z.string().min(1).max(80),ink:z.array(inkStrokeSchema).max(1200),inkWidth:z.number().int().min(1).max(2000).optional(),inkHeight:z.number().int().min(1).max(1000).optional(),erasedRanges:z.array(erasedRangeSchema).max(5000).optional(),uncertain:z.boolean().optional(),transcription:z.enum(['none','recognized','manual','pending']).default('none')});
 export type InkPoint=z.infer<typeof inkPointSchema>;
 export type InkStroke=InkPoint[];
 export type PencilAnnotation=z.infer<typeof pencilAnnotationSchema>;
