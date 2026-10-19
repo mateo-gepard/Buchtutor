@@ -17,6 +17,7 @@ for(const path of ['/api/notes','/api/progress']){
  assert.equal((await fetch(origin+path)).status,410);
  assert.equal((await fetch(origin+path,{method:'POST',body:'{}',headers:{'Content-Type':'application/json'}})).status,410);
 }
+assert.equal((await fetch(origin+'/api/handwriting',{method:'POST',body:'{}',headers:{'Content-Type':'application/json'}})).status,410);
 for(const work of catalog){assert.equal((await fetch(origin+'/api/books/'+work.id)).status,200,work.id);}
 const status=await (await fetch(origin+'/api/analysis')).json();assert.equal(status.provider,'GPT-6 Luna');assert.equal(status.reasoning,'max');
 if(!status.live){

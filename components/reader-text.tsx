@@ -1,12 +1,12 @@
 'use client';
-import {useLayoutEffect,useMemo} from 'react';
+import {Fragment,useLayoutEffect,useMemo,type ReactNode} from 'react';
 import {MessageSquare} from 'lucide-react';
 import type {Anchor,Block,Book,Character,SavedNote,Section} from '@/lib/reader-model';
 import {MODE_COLORS,MODE_LABELS,unitLabel} from '@/lib/reader-model';
 import {pencilPalette} from '@/lib/pencil-model';
 import {highlightRanges} from '@/lib/pencil-eraser';
 import {aliasesAt} from '@/lib/mentions';
-type Props={book:Book;section:Section;selection:Anchor|null;notes:SavedNote[];showNumbers:boolean;showCharacters:boolean;selectMode:boolean;canActivate:(event:MouseEvent)=>boolean;onSelect:(id:string,extend?:boolean)=>void;onCharacter:(id:string)=>void;onNote:(note:SavedNote)=>void;onNotes?:(notes:SavedNote[])=>void};
+type Props={book:Book;section:Section;selection:Anchor|null;notes:SavedNote[];showNumbers:boolean;showCharacters:boolean;selectMode:boolean;canActivate:(event:MouseEvent)=>boolean;onSelect:(id:string,extend?:boolean)=>void;onCharacter:(id:string)=>void;onNote:(note:SavedNote)=>void;onNotes?:(notes:SavedNote[])=>void;afterBlock?:Record<string,ReactNode>};
 function segments(text:string,characters:Character[],onCharacter:(id:string)=>void,key:string,canActivate:Props['canActivate'],selectMode:boolean){
  const aliases=characters.flatMap(c=>c.aliases.filter(a=>a.length>2).map(alias=>({alias,id:c.id}))).sort((a,b)=>b.alias.length-a.alias.length);
  if(!aliases.length)return text;
@@ -21,7 +21,7 @@ function segments(text:string,characters:Character[],onCharacter:(id:string)=>vo
  }
  if(start<text.length)result.push(text.slice(start));return result;
 }
-export function ReaderText({book,section,selection,notes,showNumbers,showCharacters,selectMode,canActivate,onSelect,onCharacter,onNote,onNotes}:Props){
+export function ReaderText({book,section,selection,notes,showNumbers,showCharacters,selectMode,canActivate,onSelect,onCharacter,onNote,onNotes,afterBlock}:Props){
  const indices=useMemo(()=>new Map(section.blocks.map((b,i)=>[b.id,i])),[section]);
  const available=useMemo(()=>book.characters.filter(c=>(c.afterSection??0)<=book.sections.findIndex(s=>s.id===section.id)),[book,section.id]);
  const a=selection?indices.get(selection.startId)??-1:-1,b=selection?indices.get(selection.endId)??-1:-1;
@@ -49,11 +49,11 @@ export function ReaderText({book,section,selection,notes,showNumbers,showCharact
    const children=showCharacters?segments(block.text.slice(start,end),aliasesAt(available,book.id,block.id),onCharacter,`${block.id}-${start}`,canActivate,selectMode):block.text.slice(start,end);
    return <span key={start} className={active.length?'saved-highlight':''} style={active.length?{background:active[0].n.pencil?pencilPalette[active[0].n.pencil.color].fill:MODE_COLORS[active[0].n.kind]}:undefined} onClick={active.length?e=>{if(!selectMode&&canActivate(e.nativeEvent)){e.stopPropagation();if(onNotes)onNotes(active.map(m=>m.n));else onNote(active[0].n);}}:undefined}>{children}</span>;
   });
-  return <div key={block.id} id={block.id} data-block={block.id} className={`source-row text-line ${block.kind==='prose'?'prose-row':''} ${isSelected?'row-selected':''} ${selectMode?'selection-mode':''} ${block.part==='F'||block.part==='M'?'verse-continuation':''}`}>
+  return <Fragment key={block.id}><div id={block.id} data-block={block.id} className={`source-row text-line ${block.kind==='prose'?'prose-row':''} ${isSelected?'row-selected':''} ${selectMode?'selection-mode':''} ${block.part==='F'||block.part==='M'?'verse-continuation':''}`}>
    <button className={`line-number line-select ${showNumbers?'':'numbers-hidden'}`} aria-label={`${unitLabel(block.unit)} ${block.number}${block.part==='F'||block.part==='M'?', Fortsetzung':''} auswählen`} aria-pressed={isSelected} onClick={e=>onSelect(block.id,e.shiftKey)} title="Antippen zum Auswählen; für einen Bereich den Markierstift aktivieren oder Umschalt gedrückt halten.">{showNumbers?block.numberEnd?`${block.number}–${block.numberEnd}`:block.number:'·'}</button>
    <span data-text className="text-content" onClick={selectMode?e=>{if(canActivate(e.nativeEvent))onSelect(block.id,e.shiftKey)}:undefined}>{content}</span>
    {attached.length>0&&<button className="annotation-marker" aria-label={`${attached.length} ${attached.some(n=>!n.createdAt)?'Markierungsentwürfe':'gespeicherte Einträge'}: ${[...new Set(attached.map(n=>MODE_LABELS[n.kind]))].join(', ')}`} onClick={()=>onNotes?onNotes(attached):onNote(attached[0])}><MessageSquare size={13}/><span>{attached.length}</span></button>}
-  </div>;
+  </div>{afterBlock?.[block.id]}</Fragment>;
  }
  return <div className="source-text">{section.blocks.map((block,index)=>{
   if(block.kind==='verse'||block.kind==='prose')return lineContent(block,index);
