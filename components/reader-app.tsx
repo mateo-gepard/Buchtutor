@@ -7,6 +7,7 @@ import {brand} from '@/lib/brand';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '@/components/ui/dialog';
 import {Switch} from '@/components/ui/switch';
 import {ReaderOnboarding} from './reader-onboarding';
+import {pencilPalette,type PencilColor} from '@/lib/pencil-model';
 import {ONBOARDING_KEY,tourSteps} from '@/lib/onboarding';
 import {ReaderPencil} from './reader-pencil';
 import {ReaderText} from './reader-text';
@@ -53,7 +54,8 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const [query,setQuery]=useState(''),[jump,setJump]=useState(''),[jumpError,setJumpError]=useState('');
   const [selectedCharacters,setSelectedCharacters]=useState<string[]>([]),[selectMode,setSelectMode]=useState(false),[bookBusy,setBookBusy]=useState(false),[notice,setNotice]=useState(''),[deleted,setDeleted]=useState<SavedNote|null>(null);
   const [pencilMode,setPencilMode]=useState(false);
-  const [tourStep,setTourStep]=useState<number|null>(null);
+  const [tourStep,setTourStep]=useState<number|null>(null),[tourOpen,setTourOpen]=useState(false);
+  const [tourColor,setTourColor]=useState<PencilColor>('green'),[tourStamp,setTourStamp]=useState('');
   const [tourDone,setTourDone]=useState<Record<string,boolean>>({}),[tourSelection,setTourSelection]=useState<Anchor|null>(null),[tourBookmark,setTourBookmark]=useState(false),[tourMode,setTourMode]=useState<AnalysisMode>(),[tourNote,setTourNote]=useState(''),[tourCharacters,setTourCharacters]=useState<string[]>([]);
   const tourSnapshot=useRef<{view:View;focus:boolean;panel:string;panelOpen:boolean;panelExpanded:boolean;pencilMode:boolean;scrub:number|null;scrollY:number;position:Position|null;trigger:HTMLElement|null}|null>(null);
   const [currentBlock,setCurrentBlock]=useState(''),[scrub,setScrub]=useState<number|null>(null);
@@ -75,7 +77,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const bookmarkAnchor=selection??(bookmarkRow?makeAnchor(section,bookmarkRow.id):null);
   const bookmarked=tourStep!==null&&tourSteps[tourStep].id==='bookmark'?tourBookmark:!!bookmarkAnchor&&notes.some(note=>matchesBookmark(note,book.id,book.editionId,bookmarkAnchor));
   const announce=useCallback((message:string)=>{setNotice(message);if(noticeTimer.current)clearTimeout(noticeTimer.current);noticeTimer.current=setTimeout(()=>setNotice(''),7000);},[]);
-  const nativeSelection=useTextSelection({root:article,section,enabled:view==='reader'&&!dialog&&!contentsOpen&&!pencilMode&&(tourStep===null||tourSteps[tourStep].id==='selection'),onSelect:anchor=>{
+  const nativeSelection=useTextSelection({root:article,section,enabled:view==='reader'&&!dialog&&!contentsOpen&&!pencilMode&&(!tourOpen||tourStep!==null&&tourSteps[tourStep].id==='selection'),onSelect:anchor=>{
     if(tourStep!==null){changeSelection(anchor);return;}
     if(sameAnchor(activeSelection.current.anchor,anchor))return;
     linePivot.current=anchor.startId;rangeStart.current=null;setSelectMode(false);changeSelection(anchor);
@@ -83,25 +85,26 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
 
   function prepareTour(index:number){
     const step=tourSteps[index];setTourStep(index);setView(step.view);setDialog(null);setContentsOpen(false);setFocus(false);setPanelExpanded(false);
-    setScrub(null);setPencilMode(['pencil','handwriting'].includes(step.id));setPanelOpen(['help','figures'].includes(step.id));setPanel(step.id==='figures'?'figures':'help');
+    setScrub(null);setPencilMode(['pencil','handwriting','eraser'].includes(step.id));setPanelOpen(['notes','help','figures'].includes(step.id));setPanel(step.id==='figures'?'figures':step.id==='notes'?'notes':'help');
   }
   function startTour(){
-    if(tourStep!==null)return;
+    if(tourOpen)return;
     tourSnapshot.current={view,focus,panel,panelOpen,panelExpanded,pencilMode,scrub,scrollY:window.scrollY,position:capturePosition(),trigger:document.activeElement instanceof HTMLElement?document.activeElement:null};
-    setTourDone({});setTourSelection(null);setTourBookmark(false);setTourMode(undefined);setTourNote('');setTourCharacters([]);prepareTour(0);
+    setTourDone({});setTourSelection(null);setTourBookmark(false);setTourMode(undefined);setTourNote('');setTourCharacters([]);setTourColor('green');setTourStamp(new Date().toISOString());setDialog(null);setTourOpen(true);
   }
   function closeTour(){
     try{localStorage.setItem(ONBOARDING_KEY,'1');}catch{/* Optional per-device tour preference. */}
-    const previous=tourSnapshot.current;setTourStep(null);
+    const previous=tourSnapshot.current;setTourOpen(false);setTourStep(null);
     if(previous){setView(previous.view);setFocus(previous.focus);setPanel(previous.panel);setPanelOpen(previous.panelOpen);setPanelExpanded(previous.panelExpanded);setPencilMode(previous.pencilMode);setScrub(previous.scrub);
       afterLayout(()=>{const anchor=previous.view==='reader'&&previous.position?document.getElementById(previous.position.id):null;if(anchor&&previous.position)window.scrollBy({top:anchor.getBoundingClientRect().top-previous.position.top,behavior:'instant'});else window.scrollTo({top:previous.scrollY,behavior:'instant'});const trigger=previous.trigger?.isConnected?previous.trigger:document.querySelector<HTMLElement>('.tour-launch');trigger?.focus({preventScroll:true});});
     }
   }
   function markTour(id:string){setTourDone(old=>old[id]?old:{...old,[id]:true});}
-  const pencilPractice=tourStep!==null&&['pencil','handwriting'].includes(tourSteps[tourStep].id);
+  const pencilPractice=tourStep!==null;
   const firstTourBlock=section.blocks.find(isText);
-  const displaySelection=tourStep!==null?tourSelection??(tourSteps[tourStep].id==='help'&&firstTourBlock?makeAnchor(section,firstTourBlock.id):null):selection;
+  const displaySelection=tourStep!==null?tourSelection??(['notes','help'].includes(tourSteps[tourStep].id)&&firstTourBlock?makeAnchor(section,firstTourBlock.id):null):selection;
   const displayDraft=tourStep!==null?tourNote:draft;
+  const tourExample:SavedNote|null=firstTourBlock?{id:'onboarding-example',workId:book.id,editionId:book.editionId,anchor:tourSelection??makeAnchor(section,firstTourBlock.id),kind:'note',body:tourNote||'Beispiel: Diese Stelle möchte ich genauer untersuchen.',pencil:{color:tourColor,meaning:prefs.pencilMeanings?.[tourColor]??pencilPalette[tourColor].meaning,ink:[],transcription:tourNote?'manual':'none'},createdAt:tourStamp,updatedAt:tourStamp}:null;
   function capturePosition(){
     const row=[...(article.current?.querySelectorAll<HTMLElement>('[data-block]')??[])].find(el=>el.getBoundingClientRect().bottom>95);
     return row?{id:row.dataset.block!,top:row.getBoundingClientRect().top}:null;
@@ -177,19 +180,19 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   });
   useEffect(()=>{
     function keyboard(event:KeyboardEvent){
-      if(event.key!=='Escape'||dialog||contentsOpen||tourStep!==null)return;
+      if(event.key!=='Escape'||dialog||contentsOpen||tourOpen)return;
       if(panelOpen){event.preventDefault();setPanelOpen(false);panelTrigger.current?.focus({preventScroll:true});}
       else if(focus)setFocus(false);
     }
     window.addEventListener('keydown',keyboard);return()=>window.removeEventListener('keydown',keyboard);
-  },[dialog,contentsOpen,panelOpen,focus,tourStep]);
+  },[dialog,contentsOpen,panelOpen,focus,tourOpen]);
   useEffect(()=>{
     function unload(event:BeforeUnloadEvent){if(Object.entries(drafts).some(([key,value])=>value.trim()&&(!editNote||!key.endsWith(editNote.id)||value!==editNote.body)))event.preventDefault();}
     window.addEventListener('beforeunload',unload);return()=>window.removeEventListener('beforeunload',unload);
   },[drafts,editNote]);
 
   useEffect(()=>{
-    if(view!=='reader'||!local.ready||tourStep!==null)return;
+    if(view!=='reader'||!local.ready||tourOpen)return;
     let timer:ReturnType<typeof setTimeout>,frame=0,last='';
     let latest:ReadingProgress|undefined;
     function persist(){if(prefs.autoBookmark&&latest)void saveLocalProgress(latest).catch(e=>announce(e.message));}
@@ -206,18 +209,18 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     const initial=setTimeout(schedule,250);
     window.addEventListener('scroll',schedule,{passive:true});document.addEventListener('visibilitychange',hidden);
     return()=>{clearTimeout(initial);clearTimeout(timer);cancelAnimationFrame(frame);persist();window.removeEventListener('scroll',schedule);document.removeEventListener('visibilitychange',hidden);};
-  },[book.id,book.editionId,section.id,view,local.ready,prefs.autoBookmark,focus,announce,tourStep]);
+  },[book.id,book.editionId,section.id,view,local.ready,prefs.autoBookmark,focus,announce,tourOpen]);
   useEffect(()=>{
     let width=window.innerWidth,timer:ReturnType<typeof setTimeout>;
     function resized(){
-      if(view!=='reader'||tourStep!==null||window.innerWidth===width)return;
+      if(view!=='reader'||tourOpen||window.innerWidth===width)return;
       width=window.innerWidth;
       const saved=resizePosition.current;
       clearTimeout(timer);timer=setTimeout(()=>restorePosition(saved),140);
     }
     window.addEventListener('resize',resized);
     return()=>{clearTimeout(timer);window.removeEventListener('resize',resized);};
-  },[view,tourStep]);
+  },[view,tourOpen]);
 
   function selectLine(id:string,extend=false){
     try{
@@ -322,12 +325,12 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     </header>:<header className="library-header"><button className="wordmark" aria-label="Buchtutor · Bibliothek" onClick={()=>showView('library')}><BrandMark/><span>{brand.name}</span></button><nav aria-label="Hauptnavigation"><button aria-current={view==='library'?'page':undefined} onClick={()=>showView('library')}>Bibliothek</button><button aria-current={view==='notes'?'page':undefined} onClick={()=>showView('notes')}>Meine Notizen</button></nav><button className="icon-button tour-launch" aria-label="Einführung starten" title="Einführung" onClick={startTour}><CircleHelp size={19}/></button><button className="icon-button" aria-label="Einstellungen und Geräteübertragung" onClick={()=>openSettings()}><Settings2 size={20}/></button></header>}
     {focus&&<button className="focus-exit" onClick={toggleFocus}><Minimize2 size={17}/>Fokus beenden</button>}
     {local.error&&<div className="storage-error" role="alert">{local.error}</div>}
-    {view==='library'?<ReaderLibrary catalog={catalog} progress={prefs.autoBookmark?local.data.progress:[]} onOpen={id=>void openBook(id)}/>:view==='notes'?<Notebook notes={notes} catalog={catalog} onOpen={openNote} onDelete={removeNote} onTransfer={()=>openSettings('transfer')}/>:<>
+    {view==='library'?<ReaderLibrary catalog={catalog} progress={prefs.autoBookmark?local.data.progress:[]} onOpen={id=>void openBook(id)}/>:view==='notes'?<Notebook practice={tourStep!==null} notes={tourStep!==null&&tourExample?[tourExample]:notes} catalog={catalog} onOpen={note=>tourStep!==null?prepareTour(4):openNote(note)} onDelete={note=>{if(tourStep===null)void removeNote(note);}} onTransfer={()=>openSettings('transfer')}/>:<>
       <main className="reading-main" id="main-content">
         <article ref={article} className="reading-page">
           <div className="section-heading"><p>{[...section.path,section.title].join(' · ')}</p><div><span data-tour="search-share" className="tour-search-share"><button className="icon-button" aria-label="Text durchsuchen oder zu einem Vers springen" onClick={()=>setDialog('search')}><Search size={17}/></button><button className="icon-button" aria-label="Stelle teilen" onClick={openShare}><Share2 size={17}/></button></span><button data-tour="selection" className={'icon-button '+(selectMode?'pressed':'')} aria-label="Bereich durch Antippen auswählen" aria-pressed={selectMode} onClick={()=>{const next=!selectMode;resetSelection();setSelectMode(next);}}><Highlighter size={17}/></button><button className={'icon-button '+(pencilMode?'pressed':'')} aria-label="Apple Pencil Modus" aria-pressed={pencilMode} onClick={()=>{const next=!pencilMode;nativeSelection.clear();setSelectMode(false);setPanelOpen(false);setPencilMode(next);}}><ApplePencilIcon size={20}/></button></div></div>
           <h1 className="sr-only">{book.title} · {section.title}</h1>
-          <ReaderPencil key={book.id+book.editionId+section.id+(pencilPractice?':tour':':reader')} practice={pencilPractice} onPractice={kind=>markTour(kind==='mark'?'pencil':'handwriting')} book={book} section={section} prefs={prefs} selection={selection} savedNotes={pencilPractice?[]:sectionNotes} enabled={pencilMode} onToggle={()=>setPencilMode(false)} onSaved={announce}>{(drafts,afterBlock)=><ReaderText afterBlock={afterBlock} book={book} section={section} selection={displaySelection} notes={[...notes.filter(n=>!drafts.some(d=>d.id===n.id)),...drafts]} showNumbers={prefs.numbers} showCharacters={prefs.characters&&!pencilMode} selectMode={selectMode} canActivate={nativeSelection.canActivate} onSelect={selectLine} onCharacter={selectCharacter} onNote={openNote} onNotes={openAttached}/>}</ReaderPencil>
+          <ReaderPencil key={book.id+book.editionId+section.id+(pencilPractice?':tour':':reader')} practice={pencilPractice} onPractice={(kind,data)=>{markTour(kind==='mark'?'pencil':kind==='erase'?'eraser':'handwriting');if(data?.color)setTourColor(data.color);if(data?.anchor)setTourSelection(data.anchor);if(data?.body!==undefined)setTourNote(data.body);}} book={book} section={section} prefs={prefs} selection={selection} savedNotes={pencilPractice?[]:sectionNotes} enabled={pencilMode} onToggle={()=>setPencilMode(false)} onSaved={announce}>{(drafts,afterBlock)=><ReaderText afterBlock={afterBlock} book={book} section={section} selection={displaySelection} notes={[...notes.filter(n=>!drafts.some(d=>d.id===n.id)),...drafts]} showNumbers={prefs.numbers} showCharacters={prefs.characters&&!pencilMode} selectMode={selectMode} canActivate={nativeSelection.canActivate} onSelect={selectLine} onCharacter={selectCharacter} onNote={openNote} onNotes={openAttached}/>}</ReaderPencil>
           <nav className="section-pagination" aria-label="Weiterlesen"><button disabled={sectionIndex===0} onClick={()=>goToSection(book.sections[sectionIndex-1].id)}><ChevronLeft size={18}/>Voriger Abschnitt</button><button disabled={sectionIndex===book.sections.length-1} onClick={()=>goToSection(book.sections[sectionIndex+1].id)}>Nächster Abschnitt<ChevronRight size={18}/></button></nav>
           <button className="reading-source-link" onClick={()=>setDialog('source')}>Quelle und Zitierweise<ExternalLink size={13}/></button>
         </article>
@@ -350,7 +353,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
       <div className="companion-tabs" role="group" aria-label="Lesehilfe auswählen">{[['help','Verstehen',Lightbulb],['figures','Figuren',Users],['notes','Notizen',MessageSquare]].map(([value,label,Icon])=>{const TabIcon=Icon as typeof Lightbulb;return <button key={value as string} aria-pressed={panel===value} onClick={()=>setPanel(value as string)}><TabIcon size={18}/>{label as string}</button>;})}</div>
       <div className="panel-scroll">
         {panel==='help'?<ReaderAssistant book={book} section={section} selection={displaySelection} practiceMode={tourStep!==null?tourMode:undefined} analysis={tourStep!==null?null:result} status={aiStatus} busy={analysisBusy} error={analysisError} question={question} setQuestion={setQuestion} onAnalyze={mode=>void analyze(mode)} onExample={example} onFigures={()=>setPanel('figures')} onNote={()=>setPanel('notes')} onSave={()=>result&&void save(result.mode,result)} onQuote={id=>{closePanel();scrollToBlock(id);}} saving={saving} saved={!!result&&notes.some(n=>n.analysis?.id===result.id)} remaining={remaining} normalized={normalized} onCancel={cancelAnalysis}/>:panel==='figures'?<ReaderFigures key={book.id} book={book} section={section} selected={tourStep!==null?tourCharacters:selectedCharacters} onSelect={selectCharacter}/>:<div className="panel-notes">
-          {displaySelection?<><div className="selection-excerpt"><span>{referenceLabel(section,displaySelection)}</span><blockquote>{displaySelection.quote.slice(0,220)}{displaySelection.quote.length>220?' …':''}</blockquote></div><label className="note-editor"><span>Deine Notiz</span><textarea value={displayDraft} onChange={e=>{if(tourStep!==null){setTourNote(e.target.value);if(e.target.value.trim())markTour('help');}else setDrafts(old=>({...old,[draftKey]:e.target.value}));}} maxLength={12000} placeholder="Was möchtest du festhalten?" rows={4}/></label><p className="small-note">{tourStep!==null?'Probenotiz · wird nicht gespeichert.':draft!==editNote?.body&&draft?'Ungespeicherter Entwurf':'Wird auf diesem Gerät gespeichert.'}</p><button className="primary-button" onClick={()=>{if(tourStep!==null)markTour('help');else void save('note');}} disabled={saving||!displayDraft.trim()}>{saving?<LoaderCircle className="spin" size={17}/>:<Check size={17}/>}{tourStep!==null?'Übung abschließen':'Notiz speichern'}</button></>:<p>Wähle eine Stelle im Text aus, um eine Notiz anzulegen.</p>}
+          {displaySelection?<><div className="selection-excerpt"><span>{referenceLabel(section,displaySelection)}</span><blockquote>{displaySelection.quote.slice(0,220)}{displaySelection.quote.length>220?' …':''}</blockquote></div><label className="note-editor"><span>Deine Notiz</span><textarea value={displayDraft} onChange={e=>{if(tourStep!==null){setTourNote(e.target.value);if(e.target.value.trim())markTour('notes');}else setDrafts(old=>({...old,[draftKey]:e.target.value}));}} maxLength={12000} placeholder="Was möchtest du festhalten?" rows={4}/></label><p className="small-note">{tourStep!==null?'Probenotiz · wird nicht gespeichert.':draft!==editNote?.body&&draft?'Ungespeicherter Entwurf':'Wird auf diesem Gerät gespeichert.'}</p><button className="primary-button" onClick={()=>{if(tourStep!==null)markTour('notes');else void save('note');}} disabled={saving||!displayDraft.trim()}>{saving?<LoaderCircle className="spin" size={17}/>:<Check size={17}/>}{tourStep!==null?'Übungsnotiz merken':'Notiz speichern'}</button></>:<p>Wähle eine Stelle im Text aus, um eine Notiz anzulegen.</p>}
           <h3 className="notes-section-heading">In diesem Abschnitt</h3><NotesList notes={sectionNotes} catalog={catalog} onOpen={openNote} onDelete={removeNote} compact/>{!sectionNotes.length&&<p className="small-note">Noch keine gespeicherten Einträge.</p>}
         </div>}
       </div>
@@ -383,7 +386,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
         {dialog==='source'&&<div className="source-details"><h3>Nummern dieser Ausgabe</h3><p>{book.note}</p>{!!book.validation.missingReferences?.length&&<p>Die Vorlage lässt die Nummern {book.validation.missingReferences[0]}–{book.validation.missingReferences.at(-1)} im Lesetext aus. Diese Lücke bleibt erhalten.</p>}<p>Ein Abgleich mit einer bestimmten Reclam-ISBN und die vollständige fachliche Durchsicht stehen noch aus.</p><h3>Textgrundlage</h3><p>{book.sourceEdition}</p><a href={book.sourceUrl} target="_blank" rel="noreferrer">{book.sourceLabel}<ExternalLink size={14}/></a><h3>Nutzung</h3>{book.licenses.map(license=><p key={license.name}><a href={license.url} target="_blank" rel="noreferrer">{license.name}<ExternalLink size={13}/></a></p>)}{book.id==='faust'&&<p>Diese Faust-Textgrundlage darf nur nichtkommerziell weiterverwendet werden.</p>}<details><summary>Ausgabe identifizieren</summary><code>{book.editionId}</code><p className="small-note">SHA-256: {book.revision}</p></details><button className="secondary-button" onClick={async()=>{try{await navigator.clipboard.writeText(book.author+': '+book.title+'. '+section.path.join(', ')+' '+section.title+', '+referenceLabel(section,selection??undefined)+'. '+book.sourceEdition+'. '+book.sourceUrl);announce('Quellenangabe kopiert.');}catch{announce('Kopieren wurde vom Browser nicht erlaubt.');}}}><Copy size={16}/>Quellenangabe kopieren</button></div>}
       </DialogContent>
     </Dialog>
-    <ReaderOnboarding done={tourDone} onTry={()=>tourStep!==null&&markTour(tourSteps[tourStep].id)} ready={local.ready&&!bookBusy&&!analysisBusy&&!dialog&&!contentsOpen} step={tourStep} onStart={startTour} onStep={prepareTour} onClose={closeTour}/>
+    <ReaderOnboarding open={tourOpen} bookTitle={book.title} colorLabel={pencilPalette[tourColor].name} exampleText={tourExample?.body??''} onBegin={()=>prepareTour(0)} done={tourDone} onTry={value=>{if(tourStep!==null&&(tourSteps[tourStep].id!=='notebook'||value===tourColor))markTour(tourSteps[tourStep].id);}} ready={local.ready&&!bookBusy&&!analysisBusy&&!dialog&&!contentsOpen} step={tourStep} onStart={startTour} onStep={prepareTour} onClose={closeTour}/>
     {bookBusy&&<div className="loading-overlay" role="status"><LoaderCircle className="spin" size={22}/><span>Werk wird geöffnet …</span></div>}
     {(notice||deleted)&&<div className={'toast '+(view==='reader'&&(selection||selectMode)&&!panelOpen&&!pencilMode?'above-selection':'')} role="status"><span>{notice||'Eintrag gelöscht.'}</span>{deleted&&<button onClick={()=>void undo()}>Rückgängig</button>}<button className="icon-button" aria-label="Hinweis schließen" onClick={()=>{setNotice('');setDeleted(null);}}><X size={16}/></button></div>}
   </div>;

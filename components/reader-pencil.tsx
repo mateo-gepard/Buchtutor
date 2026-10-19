@@ -19,7 +19,7 @@ const entrySchema=z.object({id:z.string(),anchor:portableAnchorSchema,pencil:pen
 const entriesSchema=z.array(entrySchema).max(100);
 const draftSchema=z.union([z.object({version:z.literal(2),entries:entriesSchema,groups:z.array(pageInkGroupSchema).max(100)}),entriesSchema.transform(entries=>({version:2 as const,entries,groups:[] as PageInkGroup[]}))]);
 type Entry=z.infer<typeof entrySchema>;
-type Props={practice?:boolean;onPractice?:(kind:'mark'|'ink')=>void;book:Book;section:Section;prefs:Prefs;selection:Anchor|null;savedNotes:SavedNote[];enabled:boolean;onToggle:()=>void;onSaved:(message:string)=>void;children:(drafts:SavedNote[],afterBlock:Record<string,ReactNode>)=>ReactNode};
+type Props={practice?:boolean;onPractice?:(kind:'mark'|'ink'|'erase',data?:{anchor?:Anchor;color?:PencilColor;body?:string})=>void;book:Book;section:Section;prefs:Prefs;selection:Anchor|null;savedNotes:SavedNote[];enabled:boolean;onToggle:()=>void;onSaved:(message:string)=>void;children:(drafts:SavedNote[],afterBlock:Record<string,ReactNode>)=>ReactNode};
 export function ReaderPencil({practice=false,onPractice,book,section,prefs,selection,savedNotes,enabled,onToggle,onSaved,children}:Props){
  const liveLine=useRef<SVGPathElement>(null),root=useRef<HTMLDivElement>(null);
  const continueWriting=useRef(false);
@@ -75,7 +75,7 @@ export function ReaderPencil({practice=false,onPractice,book,section,prefs,selec
   if(entries.length>=100){setError('Bitte sichere zuerst diese 100 Markierungen.');return;}
   const duplicate=entries.find(e=>JSON.stringify(e.anchor)===JSON.stringify(anchor)&&e.pencil.color===color);
   if(duplicate){if(duplicate.pencil.erasedRanges?.length){remember();setEntries(old=>old.map(e=>e.id===duplicate.id?{...e,pencil:{...e.pencil,erasedRanges:[]}}:e));setError('');}return;}
-  remember();setEntries(old=>[...old,{id:crypto.randomUUID(),anchor,pencil:{color,meaning:meaning(color),ink:[],transcription:'none'},body:'',order:Date.now()}]);setError('');if(practice)onPractice?.('mark');
+  remember();setEntries(old=>[...old,{id:crypto.randomUUID(),anchor,pencil:{color,meaning:meaning(color),ink:[],transcription:'none'},body:'',order:Date.now()}]);setError('');if(practice)onPractice?.('mark',{anchor,color});
  }
  function down(e:PointerEvent<HTMLDivElement>){
   if((e.target as Element).closest('[data-pencil-input]'))return;
@@ -132,7 +132,7 @@ export function ReaderPencil({practice=false,onPractice,book,section,prefs,selec
    const original=savedNotes.find(note=>note.id===entry.id)?.pencil;
    return {...entry,recognizedInk:undefined,body:entry.prefix??'',pencil:{...entry.pencil,ink:original?.ink??[],inkWidth:original?.inkWidth,inkHeight:original?.inkHeight,transcription:original?.transcription??'none',uncertain:original?.uncertain}};
   });
-  remember();setEntries(next);setGroups(nextGroups);setLayout(current);setError('');
+  remember();setEntries(next);setGroups(nextGroups);setLayout(current);setError('');if(practice)onPractice?.('erase');
  }
  function undo(){
   const previous=history.at(-1);if(previous){setEntries(previous.entries);setGroups(previous.groups);setHistory(old=>old.slice(0,-1));setError('');return;}
@@ -140,7 +140,7 @@ export function ReaderPencil({practice=false,onPractice,book,section,prefs,selec
   if(last&&last.order>=(mark?.order??0))setGroups(old=>old.map(g=>g.id===last.groupId?{...g,strokes:g.strokes.filter(s=>s.id!==last.id)}:g).filter(g=>g.strokes.length));else setEntries(old=>old.slice(0,-1));setError('');
  }
  function changeNativeNote(note:typeof eligible[number],body:string){
-  if(!note.pencil)return;showHandwritingInfo();remember();if(practice&&body.trim())onPractice?.('ink');
+  if(!note.pencil)return;showHandwritingInfo();remember();if(practice&&body.trim())onPractice?.('ink',{anchor:note.anchor,color:note.pencil.color,body});
   const existing=entries.find(e=>e.id===note.id),entry:Entry={...existing,id:note.id,anchor:note.anchor,body,pencil:{...note.pencil,transcription:body.trim()?'manual':'none',uncertain:false},createdAt:existing?.createdAt??note.createdAt};
   setEntries(old=>[...old.filter(e=>e.id!==note.id),entry]);setError('');
  }
@@ -175,7 +175,7 @@ export function ReaderPencil({practice=false,onPractice,book,section,prefs,selec
  const pageInk=groups.map(group=>({group,strokes:projectedInk(group,layout),target:eligible.find(e=>e.id===group.targetId)}));
  return <>
   <div ref={root} className={enabled?'pencil-text active page-writing-surface':'pencil-text'} data-writing={writing} data-erasing={erasing} onPointerOverCapture={e=>{if(root.current&&enabled&&!gesture.current)root.current.style.touchAction=(e.target as Element).closest('[data-pencil-input]')?'auto':e.pointerType==='pen'?'none':'pan-y pinch-zoom';}} onPointerDownCapture={down} onPointerMoveCapture={move} onPointerUpCapture={end} onPointerCancelCapture={end} onLostPointerCapture={end} onClickCapture={e=>{if(enabled&&!(e.target as Element).closest('[data-pencil-input]')){e.preventDefault();e.stopPropagation();}}}>
-   {children(enabled?preview:[],inlineNotes)}
+   {children(enabled||practice?preview:[],inlineNotes)}
    {enabled&&<svg className="pencil-page-ink" role="img" aria-label="Handschrift auf der Seite">{pageInk.map(({group,strokes,target})=>{const box=inkBounds(strokes.flat());return <g key={group.id} data-ink-group={group.id} data-ink-target={target?.id??''}>{strokes.map((stroke,i)=><path key={group.strokes[i].id} d={inkPath(stroke)} stroke="#314d43" fill="none" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"/>)}<text x={box.left} y={box.bottom+16} className="pencil-ink-label">{target?`↳ ${referenceLabel(section,target.anchor)}`:'Keine nahe Markierung'}</text></g>;})}</svg>}
    <svg className="pencil-live" aria-hidden="true"><path ref={liveLine} stroke="#314d43" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
   </div>
