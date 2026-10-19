@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useLayoutEffect,useRef,useState,type PointerEvent,type ReactNode} from 'react';
-import {Check,ChevronDown,ChevronUp,Highlighter,LoaderCircle,RotateCcw,Trash2,X} from 'lucide-react';
+import {Check,ChevronDown,Highlighter,LoaderCircle,RotateCcw,Trash2,X,Settings2,PenLine,Keyboard} from 'lucide-react';
 import {ApplePencilIcon} from './apple-pencil-icon';
 import {z} from 'zod';
 import type {Anchor,Book,SavedNote,Section} from '@/lib/reader-model';
@@ -49,8 +49,9 @@ export function ReaderPencil({book,section,prefs,selection,enabled,onToggle,onSa
  const liveLine=useRef<SVGPolylineElement>(null),operation=useRef<AbortController|null>(null);
  useEffect(()=>()=>operation.current?.abort(),[]);
  const root=useRef<HTMLDivElement>(null),gesture=useRef<{id:number;points:Point[];boxes:WordBox[];origin:Point}|null>(null);
- const [entries,setEntries]=useState<Entry[]>([]),[activeId,setActiveId]=useState(''),[color,setColor]=useState<PencilColor>('green'),[expanded,setExpanded]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[loaded,setLoaded]=useState(false);
+ const [entries,setEntries]=useState<Entry[]>([]),[activeId,setActiveId]=useState(''),[color,setColor]=useState<PencilColor>('green'),[expanded,setExpanded]=useState(false),[settings,setSettings]=useState(false),[palette,setPalette]=useState(false),[noteTool,setNoteTool]=useState<'ink'|'text'>('ink'),[busy,setBusy]=useState(false),[error,setError]=useState(''),[loaded,setLoaded]=useState(false);
  const key=`buchtutor-pencil-draft:${book.id}:${book.editionId}:${section.id}`;
+ useEffect(()=>{if(enabled)return;const frame=requestAnimationFrame(()=>{setExpanded(false);setSettings(false);setPalette(false);});return()=>cancelAnimationFrame(frame);},[enabled]);
  const active=entries.find(e=>e.id===activeId)??entries.at(-1);
  const meaning=(c:PencilColor)=>prefs.pencilMeanings?.[c]??pencilPalette[c].meaning;
  useLayoutEffect(()=>{
@@ -113,22 +114,35 @@ export function ReaderPencil({book,section,prefs,selection,enabled,onToggle,onSa
  const preview=entries.map(e=>({...e,workId:book.id,editionId:book.editionId,kind:'note' as const,createdAt:'',updatedAt:''}));
  return <>
   <div ref={root} className={enabled?'pencil-text active':'pencil-text'} onPointerOverCapture={e=>{if(root.current&&enabled&&!gesture.current)root.current.style.touchAction=e.pointerType==='pen'?'none':'pan-y pinch-zoom';}} onPointerDownCapture={down} onPointerMoveCapture={e=>{const g=gesture.current;if(g?.id!==e.pointerId)return;e.preventDefault();const events=e.nativeEvent.getCoalescedEvents?.()??[e.nativeEvent];for(const p of events)if(g.points.length<6000)g.points.push({x:p.pageX,y:p.pageY});liveLine.current?.setAttribute('points',g.points.map(p=>`${p.x-g.origin.x},${p.y-g.origin.y}`).join(' '));}} onPointerUpCapture={end} onPointerCancelCapture={end} onLostPointerCapture={end} onClickCapture={e=>{if(enabled){e.preventDefault();e.stopPropagation();}}}>
-   {children(preview)}
+   {children(enabled?preview:[])}
    <svg className="pencil-live" aria-hidden="true"><polyline ref={liveLine} stroke={pencilPalette[color].ink} strokeOpacity="0.4" strokeWidth="18" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
   </div>
   {enabled&&<section className="pencil-workspace" aria-label="Apple Pencil Werkzeuge" aria-busy={busy}>
-   <div className="pencil-toolbar"><span className="pencil-title"><ApplePencilIcon size={20}/>Apple Pencil</span><div className="pencil-colors" role="group" aria-label="Markierungsfarbe">{pencilColors.map(c=><button key={c} disabled={busy} style={{background:pencilPalette[c].fill}} aria-label={`${pencilPalette[c].name}: ${meaning(c)}`} aria-pressed={color===c} title={meaning(c)} onClick={()=>setColor(c)}>{color===c?<Check size={17}/>:<span className="sr-only">{pencilPalette[c].name}</span>}</button>)}</div><button className="icon-button" disabled={busy} aria-label={expanded?'Schreibfläche einklappen':'Schreibfläche öffnen'} onClick={()=>setExpanded(!expanded)}>{expanded?<ChevronDown size={18}/>:<ChevronUp size={18}/>}</button><button className="primary-button" onClick={()=>void finish()} disabled={busy||!entries.length}>{busy?<LoaderCircle size={16} className="spin"/>:<Check size={16}/>} {busy?'Erkennen …':'Fertig'}</button><button className="icon-button" disabled={busy} aria-label="Pencil-Modus schließen, Entwürfe behalten" onClick={onToggle}><X size={18}/></button></div>
-   {expanded&&<div className="pencil-detail"><p className="small-note">Mit dem Pencil über Wörter streichen. Mit dem Finger im Text scrollen. Handschrift wird bei „Fertig“ erkannt.</p>
-    <details className="pencil-meanings"><summary>Farbbedeutungen anpassen</summary>{pencilColors.map(c=><label key={c}><i style={{background:pencilPalette[c].fill}}/>{pencilPalette[c].name}<input aria-label={`Bedeutung für ${pencilPalette[c].name}`} maxLength={80} defaultValue={meaning(c)} key={meaning(c)} onBlur={e=>{const value=e.target.value.trim()||pencilPalette[c].meaning;setEntries(old=>old.map(entry=>entry.pencil.color===c?{...entry,pencil:{...entry.pencil,meaning:value}}:entry));void saveLocalPreferences({...prefs,pencilMeanings:{...prefs.pencilMeanings,[c]:value}}).catch(e=>setError(e.message));}}/></label>)}</details>
-    {!!selection&&<button className="text-button" disabled={busy} onClick={()=>add(selection)}><Highlighter size={15}/>Aktuelle Textauswahl übernehmen</button>}
-    {entries.length>0?<><label className="pencil-target">Notiz zu Markierung<select aria-label="Markierung für Handschrift auswählen" disabled={busy} value={active?.id??''} onChange={e=>setActiveId(e.target.value)}>{entries.map((e,i)=><option key={e.id} value={e.id}>{i+1}. {pencilPalette[e.pencil.color].name} · {e.anchor.quote.slice(0,55)}</option>)}</select></label>
+   {expanded&&<div className="pencil-detail pencil-popover">
+    <div className="pencil-sheet-heading"><strong>Notiz zur Markierung</strong><button className="icon-button" aria-label="Schreibfläche einklappen" onClick={()=>setExpanded(false)}><ChevronDown size={18}/></button></div>
+    {entries.length>0?<><label className="pencil-target"><span className="sr-only">Notiz zu Markierung</span><select aria-label="Markierung für Handschrift auswählen" disabled={busy} value={active?.id??''} onChange={e=>setActiveId(e.target.value)}>{entries.map((e,i)=><option key={e.id} value={e.id}>{i+1}. {pencilPalette[e.pencil.color].name} · {e.anchor.quote.slice(0,55)}</option>)}</select></label>
     {active&&<div key={active.id}><div className="pencil-excerpt"><i style={{background:pencilPalette[active.pencil.color].fill}}/><span>{referenceLabel(section,active.anchor)} · {active.pencil.meaning}</span><button className="icon-button" aria-label="Markierungsentwurf entfernen" disabled={busy} onClick={()=>setEntries(old=>old.filter(e=>e.id!==active.id))}><Trash2 size={15}/></button></div><blockquote>{active.anchor.quote.slice(0,140)}</blockquote>
-     <InkPad ink={active.pencil.ink} disabled={busy} onChange={ink=>update({...active,pencil:{...active.pencil,ink,transcription:ink.length?'pending':'none'}})}/>
-     <textarea aria-label="Notiz zur Pencil-Markierung" placeholder="Alternativ eine Notiz eintippen" maxLength={12000} value={active.body} disabled={busy} onChange={e=>update({...active,body:e.target.value,pencil:{...active.pencil,transcription:'manual',uncertain:false}})}/>
-     {!!active.body&&active.pencil.transcription==='manual'&&<p className="small-note">Der eingegebene Text wird gespeichert. Handschrift bleibt als Original erhalten.</p>}
-    </div>}</>:<p className="pencil-empty">Markiere zuerst eine Textstelle. Danach kannst du eine zugehörige Notiz schreiben.</p>}
-    <p className="small-note">„Fertig“ sendet ausschließlich die Schreibfläche zur KI-Erkennung über OpenRouter. Originalschrift und Notiz bleiben lokal gespeichert.</p>
+     <div className="pencil-note-tabs" role="group" aria-label="Notiz eingeben"><button aria-pressed={noteTool==='ink'} onClick={()=>setNoteTool('ink')}><PenLine size={14}/>Handschrift</button><button aria-pressed={noteTool==='text'} onClick={()=>setNoteTool('text')}><Keyboard size={14}/>Text</button></div>
+     {noteTool==='ink'?<InkPad ink={active.pencil.ink} disabled={busy} onChange={ink=>update({...active,pencil:{...active.pencil,ink,transcription:ink.length?'pending':'none'}})}/>:<textarea autoFocus aria-label="Notiz zur Pencil-Markierung" placeholder="Notiz eingeben" maxLength={12000} value={active.body} disabled={busy} onChange={e=>update({...active,body:e.target.value,pencil:{...active.pencil,transcription:'manual',uncertain:false}})}/>}
+     {!!active.body&&active.pencil.transcription==='manual'&&<p className="small-note">Eingegebener Text wird gespeichert.</p>}
+    </div>}</>:<p className="pencil-empty">Streiche mit dem Pencil über eine Textstelle.</p>}
+    {!!selection&&<button className="text-button" disabled={busy} onClick={()=>add(selection)}><Highlighter size={15}/>Textauswahl übernehmen</button>}
+    <p className="small-note pencil-privacy">„Fertig“ erkennt die Handschrift über OpenRouter.</p>
    </div>}
+   {settings&&<div className="pencil-settings pencil-popover"><div className="pencil-sheet-heading"><strong>Farbbedeutungen</strong><button className="icon-button" aria-label="Farbbedeutungen schließen" onClick={()=>setSettings(false)}><X size={17}/></button></div><div className="pencil-meanings">{pencilColors.map(c=><label key={c}><i style={{background:pencilPalette[c].fill}}/><span>{pencilPalette[c].name}</span><input aria-label={`Bedeutung für ${pencilPalette[c].name}`} maxLength={80} defaultValue={meaning(c)} key={meaning(c)} onBlur={e=>{const value=e.target.value.trim()||pencilPalette[c].meaning;setEntries(old=>old.map(entry=>entry.pencil.color===c?{...entry,pencil:{...entry.pencil,meaning:value}}:entry));void saveLocalPreferences({...prefs,pencilMeanings:{...prefs.pencilMeanings,[c]:value}}).catch(e=>setError(e.message));}}/></label>)}</div></div>}
+   {palette&&<div className="pencil-mobile-palette pencil-popover" role="group" aria-label="Markierungsfarbe wählen">{pencilColors.map(c=><button key={c} aria-label={`${pencilPalette[c].name}: ${meaning(c)}`} onClick={()=>{setColor(c);setPalette(false);}}><i style={{background:pencilPalette[c].fill}}/>{pencilPalette[c].name}{color===c&&<Check size={15}/>}</button>)}</div>}
+   <div className="pencil-toolbar">
+    <span className="pencil-title" title="Mit dem Pencil markieren, mit dem Finger scrollen"><ApplePencilIcon size={21}/><span className="sr-only">Apple Pencil</span></span>
+    <div className="pencil-colors" role="group" aria-label="Markierungsfarbe">{pencilColors.map(c=><button key={c} disabled={busy} style={{background:pencilPalette[c].fill}} aria-label={`${pencilPalette[c].name}: ${meaning(c)}`} aria-pressed={color===c} title={meaning(c)} onClick={()=>setColor(c)}>{color===c?<Check size={16}/>:<span className="sr-only">{pencilPalette[c].name}</span>}</button>)}</div>
+    <button className="pencil-color-menu icon-button" aria-label="Markierungsfarbe wählen" aria-expanded={palette} disabled={busy} onClick={()=>{setPalette(!palette);setExpanded(false);setSettings(false);}}><i style={{background:pencilPalette[color].fill}}/></button>
+    <span className="pencil-divider"/>
+    <button className={'icon-button pencil-notes-toggle '+(expanded?'pressed':'')} disabled={busy||!entries.length} aria-label="Schreibfläche öffnen" title="Handschriftliche Notiz" aria-expanded={expanded} onClick={()=>{setExpanded(!expanded);setSettings(false);setPalette(false);}}><PenLine size={19}/>{entries.length>0&&<small>{entries.length}</small>}</button>
+    <button className="icon-button pencil-undo" disabled={busy||!entries.length} aria-label="Letzte Markierung entfernen" title="Letzte Markierung entfernen" onClick={()=>setEntries(old=>old.slice(0,-1))}><RotateCcw size={18}/></button>
+    <button className={'icon-button '+(settings?'pressed':'')} aria-label="Farbbedeutungen anpassen" title="Farbbedeutungen" aria-expanded={settings} disabled={busy} onClick={()=>{setSettings(!settings);setExpanded(false);setPalette(false);}}><Settings2 size={18}/></button>
+    <span className="pencil-divider"/>
+    <button className="pencil-done" onClick={()=>void finish()} disabled={busy||!entries.length}>{busy?<LoaderCircle size={16} className="spin"/>:null}{busy?'Erkennen …':'Fertig'}</button>
+    <button className="icon-button" disabled={busy} aria-label="Pencil-Modus schließen, Entwürfe behalten" onClick={onToggle}><X size={18}/></button>
+   </div>
    {error&&<p className="inline-error pencil-error" role="alert">{error}</p>}
   </section>}
  </>;

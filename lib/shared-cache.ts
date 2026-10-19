@@ -37,7 +37,7 @@ export async function writeAnalysis(analysis:Analysis){
 }
 export async function acquireGeneration(id:string){
   const token=randomUUID(),key=prefix+'lock:'+id;
-  const acquired=await redis().set(key,token,{nx:true,ex:240});
+  const acquired=await redis().set(key,token,{nx:true,ex:360});
   if(!acquired)throw new ApiError('Diese Stelle wird gerade untersucht. Versuche es in einigen Sekunden erneut; dafür wurde noch kein Kontingent verbraucht.',409,8);
   return async()=>{await redis().eval("if redis.call('GET',KEYS[1])==ARGV[1] then return redis.call('DEL',KEYS[1]) else return 0 end",[key],[token]);};
 }

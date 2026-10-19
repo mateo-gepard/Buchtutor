@@ -50,7 +50,7 @@ export function ReaderText({book,section,selection,notes,showNumbers,showCharact
   return <div key={block.id} id={block.id} data-block={block.id} className={`source-row text-line ${block.kind==='prose'?'prose-row':''} ${isSelected?'row-selected':''} ${selectMode?'selection-mode':''} ${block.part==='F'||block.part==='M'?'verse-continuation':''}`}>
    <button className={`line-number line-select ${showNumbers?'':'numbers-hidden'}`} aria-label={`${unitLabel(block.unit)} ${block.number}${block.part==='F'||block.part==='M'?', Fortsetzung':''} auswählen`} aria-pressed={isSelected} onClick={e=>onSelect(block.id,e.shiftKey)} title="Antippen zum Auswählen; für einen Bereich den Markierstift aktivieren oder Umschalt gedrückt halten.">{showNumbers?block.numberEnd?`${block.number}–${block.numberEnd}`:block.number:'·'}</button>
    <span data-text className="text-content" onClick={selectMode?e=>{if(canActivate(e.nativeEvent))onSelect(block.id,e.shiftKey)}:undefined}>{content}</span>
-   {attached.length>0&&<button className="annotation-marker" aria-label={`${attached.length} gespeicherte Einträge: ${[...new Set(attached.map(n=>MODE_LABELS[n.kind]))].join(', ')}`} onClick={()=>onNotes?onNotes(attached):onNote(attached[0])}><MessageSquare size={13}/><span>{attached.length}</span></button>}
+   {attached.length>0&&<button className="annotation-marker" aria-label={`${attached.length} ${attached.some(n=>!n.createdAt)?'Markierungsentwürfe':'gespeicherte Einträge'}: ${[...new Set(attached.map(n=>MODE_LABELS[n.kind]))].join(', ')}`} onClick={()=>onNotes?onNotes(attached):onNote(attached[0])}><MessageSquare size={13}/><span>{attached.length}</span></button>}
   </div>;
  }
  return <div className="source-text">{section.blocks.map((block,index)=>{
