@@ -86,8 +86,9 @@ test('grouped tools fit without overlapping in narrow readers and at every dock 
    await fits(page,'.reader-workspace');
    await expect.poll(()=>page.locator('.workspace-main').evaluate(el=>{
     const bar=el.getBoundingClientRect(),buttons=[...el.querySelectorAll('button')].map(button=>button.getBoundingClientRect()).filter(r=>r.width&&r.height);
-    return buttons.every((r,i)=>r.left>=bar.left&&r.right<=bar.right+1&&r.top>=bar.top&&r.bottom<=bar.bottom+1&&buttons.slice(i+1).every(s=>Math.min(r.right,s.right)-Math.max(r.left,s.left)<=1||Math.min(r.bottom,s.bottom)-Math.max(r.top,s.top)<=1));
-   })).toBe(true);
+    const bad=buttons.filter((r,i)=>!(r.left>=bar.left&&r.right<=bar.right+1&&r.top>=bar.top&&r.bottom<=bar.bottom+1&&buttons.slice(i+1).every(s=>Math.min(r.right,s.right)-Math.max(r.left,s.left)<=1||Math.min(r.bottom,s.bottom)-Math.max(r.top,s.top)<=1)));
+    return bad.length?{bar:bar.toJSON(),bad:bad.map(r=>r.toJSON()),viewport:[innerWidth,innerHeight],dock:el.closest('.reader-workspace')?.getAttribute('data-dock')}:null;
+   })).toBeNull();
    if(edge==='Left'||edge==='Right')await expect.poll(()=>page.locator('.reader-workspace').evaluate((el,edge)=>{
     const bar=el.getBoundingClientRect(),text=document.querySelector('.source-row [data-text]')!.getBoundingClientRect(),number=document.querySelector('.source-row .line-number')!.getBoundingClientRect();
     return edge==='Left'?number.left-bar.right:bar.left-text.right;

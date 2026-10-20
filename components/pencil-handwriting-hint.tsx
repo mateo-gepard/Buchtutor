@@ -1,5 +1,6 @@
-export function PencilHandwritingHint({scribble}:{scribble:boolean}){return <>
+export function PencilHandwritingHint({scribble,onEnableCloud}:{scribble:boolean;onEnableCloud?:()=>void}){return <>
  <strong className="pencil-hint-title">{scribble?'Handschrift → Text':'Handschrift behalten'}</strong>
  {scribble?<><p><strong>Safari auf dem iPad:</strong> Schreibe mit Apple Pencil direkt ins <strong>Notizfeld</strong>. Die Umwandlung läuft <strong>kostenlos auf deinem Gerät</strong>.</p><p className="pencil-hint-setting">Aktivieren: Einstellungen → Apple Pencil → <strong>„Kritzeln“</strong></p></>:<p>Für <strong>kostenlose Schrifterkennung</strong> öffne Buchtutor auf einem iPad in <strong>Safari</strong> und aktiviere <strong>„Kritzeln“</strong>.</p>}
  <p className="pencil-hint-original">{scribble?'Frei gezeichnete Striche':'Deine handschriftlichen Notizen'} werden {scribble?'':'auch hier '}<strong>als Original gespeichert</strong> – ohne Texterkennung.</p>
+ {onEnableCloud&&<details className="pencil-cloud-choice"><summary>Original behalten & online erkennen</summary><p>Eine Bildkopie der Schrift geht zur Erkennung über OpenRouter an Google. Der Suchtext wird bei der Markierung gespeichert.</p><button className="text-button" onClick={onEnableCloud}>Online-Erkennung aktivieren</button></details>}
  </>;}

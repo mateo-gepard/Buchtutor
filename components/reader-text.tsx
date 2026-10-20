@@ -1,13 +1,13 @@
 'use client';
 import {Fragment,useLayoutEffect,useMemo,type ReactNode} from 'react';
-import {MessageSquare} from 'lucide-react';
+import {Check,LoaderCircle,MessageSquare,TriangleAlert} from 'lucide-react';
 import type {Anchor,Block,Book,Character,SavedNote,Section} from '@/lib/reader-model';
 import {MODE_COLORS,MODE_LABELS,unitLabel} from '@/lib/reader-model';
 import {pencilPalette} from '@/lib/pencil-model';
 import {highlightRanges} from '@/lib/pencil-eraser';
 import {aliasesAt} from '@/lib/mentions';
 import type {AudioPosition} from '@/lib/audiobook';
-type Props={book:Book;section:Section;selection:Anchor|null;notes:SavedNote[];showNumbers:boolean;showCharacters:boolean;selectMode:boolean;canActivate:(event:MouseEvent)=>boolean;onSelect:(id:string,extend?:boolean)=>void;onCharacter:(id:string)=>void;onNote:(note:SavedNote)=>void;onNotes?:(notes:SavedNote[])=>void;afterBlock?:Record<string,ReactNode>;listening?:AudioPosition|null};
+type Props={book:Book;section:Section;selection:Anchor|null;notes:SavedNote[];showNumbers:boolean;showCharacters:boolean;showHighlights?:boolean;showNotes?:boolean;selectMode:boolean;canActivate:(event:MouseEvent)=>boolean;onSelect:(id:string,extend?:boolean)=>void;onCharacter:(id:string)=>void;onNote:(note:SavedNote)=>void;onNotes?:(notes:SavedNote[])=>void;afterBlock?:Record<string,ReactNode>;listening?:AudioPosition|null};
 function segments(text:string,characters:Character[],onCharacter:(id:string)=>void,key:string,canActivate:Props['canActivate'],selectMode:boolean){
  const aliases=characters.flatMap(c=>c.aliases.filter(a=>a.length>2).map(alias=>({alias,id:c.id}))).sort((a,b)=>b.alias.length-a.alias.length);
  if(!aliases.length)return text;
@@ -22,7 +22,7 @@ function segments(text:string,characters:Character[],onCharacter:(id:string)=>vo
  }
  if(start<text.length)result.push(text.slice(start));return result;
 }
-export function ReaderText({book,section,selection,notes,showNumbers,showCharacters,selectMode,canActivate,onSelect,onCharacter,onNote,onNotes,afterBlock,listening}:Props){
+export function ReaderText({book,section,selection,notes,showNumbers,showCharacters,showHighlights=true,showNotes=true,selectMode,canActivate,onSelect,onCharacter,onNote,onNotes,afterBlock,listening}:Props){
  const indices=useMemo(()=>new Map(section.blocks.map((b,i)=>[b.id,i])),[section]);
  const available=useMemo(()=>book.characters.filter(c=>(c.afterSection??0)<=book.sections.findIndex(s=>s.id===section.id)),[book,section.id]);
  const a=selection?indices.get(selection.startId)??-1:-1,b=selection?indices.get(selection.endId)??-1:-1;
@@ -50,7 +50,9 @@ export function ReaderText({book,section,selection,notes,showNumbers,showCharact
  },[selection,section,a,b,notes]);
  function lineContent(block:Block,index:number){
   const attached=relevant.filter(n=>index>=(indices.get(n.anchor.startId)??Infinity)&&index<=(indices.get(n.anchor.endId)??-1));
-  const marks=visibleMarks.filter(m=>m.blockId===block.id);
+  const marks=showHighlights?visibleMarks.filter(m=>m.blockId===block.id):[];
+  const pending=attached.some(n=>n.pencil?.transcription==='pending'),failed=attached.some(n=>n.pencil?.transcription==='failed'||n.pencil?.uncertain),recognized=attached.some(n=>n.pencil?.transcription==='recognized');
+  const status=pending?' · Handschrift wird erkannt':failed?' · Schrifterkennung prüfen':recognized?' · Suchtext gespeichert':'';
   const isSelected=index>=a&&index<=b;
   const cuts=[...new Set([0,block.text.length,...marks.flatMap(m=>[m.start,m.end])])].sort((x,y)=>x-y);
   const content=cuts.slice(0,-1).map((start,i)=>{
@@ -61,7 +63,7 @@ export function ReaderText({book,section,selection,notes,showNumbers,showCharact
   return <Fragment key={block.id}><div id={block.id} data-block={block.id} aria-current={listening?.blockId===block.id&&listening.sectionId===section.id?'location':undefined} className={`source-row text-line ${block.kind==='prose'?'prose-row':''} ${isSelected?'row-selected':''} ${listening?.blockId===block.id&&listening.sectionId===section.id?'audio-current':''} ${selectMode?'selection-mode':''} ${block.part==='F'||block.part==='M'?'verse-continuation':''}`}>
    <button className={`line-number line-select ${showNumbers?'':'numbers-hidden'}`} aria-label={`${unitLabel(block.unit)} ${block.number}${block.part==='F'||block.part==='M'?', Fortsetzung':''} auswählen`} aria-pressed={isSelected} onClick={e=>onSelect(block.id,e.shiftKey)} title="Antippen zum Auswählen; für einen Bereich den Markierstift aktivieren oder Umschalt gedrückt halten.">{showNumbers?block.numberEnd?`${block.number}–${block.numberEnd}`:block.number:'·'}</button>
    <span data-text className="text-content" onClick={selectMode?e=>{if(canActivate(e.nativeEvent))onSelect(block.id,e.shiftKey)}:undefined}>{content}</span>
-   {attached.length>0&&<button className="annotation-marker" aria-label={`${attached.length} ${attached.some(n=>!n.createdAt)?'Markierungsentwürfe':'gespeicherte Einträge'}: ${[...new Set(attached.map(n=>MODE_LABELS[n.kind]))].join(', ')}`} onClick={()=>onNotes?onNotes(attached):onNote(attached[0])}><MessageSquare size={13}/><span>{attached.length}</span></button>}
+   {attached.length>0&&(showHighlights||showNotes)&&<button className="annotation-marker" aria-label={`${attached.length} ${attached.some(n=>!n.createdAt)?'Markierungsentwürfe':'gespeicherte Einträge'}: ${[...new Set(attached.map(n=>MODE_LABELS[n.kind]))].join(', ')}${status}`} title={status.slice(3)||'Notiz öffnen'} onClick={()=>onNotes?onNotes(attached):onNote(attached[0])}>{pending?<LoaderCircle size={13} className="spin"/>:failed?<TriangleAlert size={13}/>:recognized?<Check size={13}/>:<MessageSquare size={13}/>}<span>{attached.length}</span></button>}
   </div>{afterBlock?.[block.id]}</Fragment>;
  }
  return <div className="source-text">{section.blocks.map((block,index)=>{

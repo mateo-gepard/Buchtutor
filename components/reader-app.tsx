@@ -13,6 +13,9 @@ import type {AudioPosition} from '@/lib/audiobook';
 import {pencilPalette,type PencilColor} from '@/lib/pencil-model';
 import {ONBOARDING_KEY,tourSteps} from '@/lib/onboarding';
 import {ReaderPencil} from './reader-pencil';
+import {useNoteDrafts} from '@/hooks/use-note-drafts';
+import {queueHandwriting,retryHandwriting} from '@/lib/handwriting-client';
+import {noteText} from '@/lib/reader-model';
 import {ReaderText} from './reader-text';
 import {ReaderFigures} from './reader-figures';
 import {ReaderLibrary} from './reader-library';
@@ -22,7 +25,7 @@ import {ReaderTransfer} from './reader-transfer';
 import {ReaderShare,type ShareTarget} from './reader-share';
 import {useLocalReader} from '@/hooks/use-local-reader';
 import {defaultPrefs,type Prefs} from '@/lib/preferences';
-import {deleteLocalNote,deviceId,saveLocalNote,saveLocalPreferences,saveLocalProgress,setLocalBookmark} from '@/lib/local-storage';
+import {deleteLocalNote,deviceId,saveLocalNote,saveLocalPreferences,saveLocalProgress,setLocalBookmark,updateLocal} from '@/lib/local-storage';
 import {matchesBookmark} from '@/lib/bookmarks';
 import {readerShareUrl} from '@/lib/share-links';
 import {useReaderTools} from '@/hooks/use-reader-tools';
@@ -51,10 +54,14 @@ const serverInlineToolsSnapshot=()=>false;
 export function ReaderApp({initialBook,catalog,initialSection,initialView,explicitSection,aiStatus}:Props){
   const local=useLocalReader(),prefs=local.data.preferences.value;
   const notes=useMemo(()=>local.data.notes.filter(n=>!n.deletedAt).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)),[local.data.notes]);
+  useEffect(()=>{if(local.ready&&prefs.handwritingCloud)queueHandwriting(notes);},[local.ready,prefs.handwritingCloud,notes]);
   const [book,setBook]=useState(initialBook),[sectionId,setSectionId]=useState(initialSection),[view,setView]=useState<View>(initialView as View);
   const [selection,setSelection]=useState<Anchor|null>(null),[result,setResult]=useState<Analysis|null>(null),[question,setQuestion]=useState('');
   const [analysisBusy,setAnalysisBusy]=useState(false),[analysisError,setAnalysisError]=useState(''),[remaining,setRemaining]=useState<number>(),[normalized,setNormalized]=useState(false);
-  const [saving,setSaving]=useState(false),[editNote,setEditNote]=useState<SavedNote|null>(null),[drafts,setDrafts]=useState<Record<string,string>>({});
+  const [saving,setSaving]=useState(false),[editNote,setEditNote]=useState<SavedNote|null>(null);
+  const {drafts,ready:draftsReady,error:draftError,change:changeDraft,clear:clearDraft}=useNoteDrafts();
+  const [noteComposing,setNoteComposing]=useState(false);
+  const noteInput=useRef<HTMLTextAreaElement>(null),noteComposition=useRef(false);
   const [panel,setPanel]=useState('help'),[panelOpen,setPanelOpen]=useState(false),[panelExpanded,setPanelExpanded]=useState(false),[contentsOpen,setContentsOpen]=useState(false),[focus,setFocus]=useState(false);
   const [dialog,setDialog]=useState<'search'|'settings'|'source'|'share'|null>(null),[settingsTab,setSettingsTab]=useState('reading');
   const [shareTarget,setShareTarget]=useState<ShareTarget|null>(null),[bookmarkBusy,setBookmarkBusy]=useState(false);
@@ -82,7 +89,8 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const linePivot=useRef<string|null>(null),rangeStart=useRef<string|null>(null);
   useEffect(()=>{activeSelection.current={bookId:book.id,anchor:selection};},[book.id,selection]);
   const draftKey=selection?book.editionId+':'+JSON.stringify(selection)+':'+(editNote?.id??'new'):'none';
-  const draft=drafts[draftKey]??editNote?.body??'';
+  const currentNote=editNote?(notes.find(n=>n.id===editNote.id)??editNote):null;
+  const draft=drafts[draftKey]??(currentNote?noteText(currentNote):'');
   const sectionNotes=notes.filter(n=>n.workId===book.id&&n.editionId===book.editionId&&n.anchor.sectionId===section.id);
   const locations=useMemo(()=>book.sections.flatMap(s=>s.blocks.filter(isText).map(b=>({section:s,block:b}))),[book]);
   const progressIndex=Math.max(0,locations.findIndex(item=>item.block.id===currentBlock));
@@ -91,6 +99,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const bookmarkAnchor=selection??(bookmarkRow?makeAnchor(section,bookmarkRow.id):null);
   const bookmarked=tourStep!==null&&tourSteps[tourStep].id==='bookmark'?tourBookmark:!!bookmarkAnchor&&notes.some(note=>matchesBookmark(note,book.id,book.editionId,bookmarkAnchor));
   const announce=useCallback((message:string)=>{setNotice(message);if(noticeTimer.current)clearTimeout(noticeTimer.current);noticeTimer.current=setTimeout(()=>setNotice(''),7000);},[]);
+  useEffect(()=>{const failed=()=>announce('Der Suchtext konnte nicht gespeichert werden. Das Original ist gesichert. Prüfe den Gerätespeicher und lade die Seite erneut.');window.addEventListener('buchtutor-handwriting-save-error',failed);return()=>window.removeEventListener('buchtutor-handwriting-save-error',failed);},[announce]);
   const nativeSelection=useTextSelection({root:article,section,enabled:view==='reader'&&!dialog&&!contentsOpen&&!pencilMode&&(!tourOpen||tourStep!==null&&tourSteps[tourStep].id==='selection'),onSelect:anchor=>{
     if(tourStep!==null){changeSelection(anchor);return;}
     if(sameAnchor(activeSelection.current.anchor,anchor))return;
@@ -313,13 +322,20 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     const item=aiStatus.examples.find(e=>e.workId===book.id);if(!item)return;
     goToSection(item.anchor.sectionId,item.anchor.startId);changeSelection(item.anchor);openPanel('help');
   }
+  function changeNoteInput(value:string){
+    if(tourStep!==null){setTourNote(value);if(value.trim())markTour('notes');}
+    else if(value!==draft)changeDraft(draftKey,value);
+  }
   async function save(kind:SavedNote['kind']='note',analysis?:Analysis){
+    if(saving||kind==='note'&&noteComposition.current)return;
     const anchor=analysis?.anchor??selection;if(!anchor)return;setSaving(true);const key=draftKey;
+    const text=kind==='note'?(noteInput.current?.value??draft):'';
+    if(kind==='note')changeDraft(key,text);
     const id=editNote&&editNote.kind===kind?editNote.id:crypto.randomUUID(),now=new Date().toISOString();
-    const note:SavedNote={id,workId:book.id,editionId:book.editionId,anchor,kind,body:kind==='note'?draft:'',analysis,...(editNote?.id===id&&editNote.pencil?{pencil:{...editNote.pencil,transcription:'manual' as const,uncertain:false}}:{}),createdAt:editNote?.id===id?editNote.createdAt:now,updatedAt:now};
+    const note:SavedNote={id,workId:book.id,editionId:book.editionId,anchor,kind,body:text,analysis,...(currentNote?.id===id&&currentNote.pencil?{pencil:{...currentNote.pencil,transcript:undefined,transcriptionError:undefined,transcription:'manual' as const,uncertain:false}}:{}),createdAt:editNote?.id===id?editNote.createdAt:now,updatedAt:now};
     try{
       await saveLocalNote(note);
-      setDrafts(old=>{const next={...old};delete next[key];return next;});
+      if(kind==='note')clearDraft(key,text);
       if(activeSelection.current.bookId===note.workId&&JSON.stringify(activeSelection.current.anchor)===JSON.stringify(anchor))setEditNote(note);
       announce(kind==='note'?'Notiz auf diesem Gerät gespeichert.':kind==='bookmark'?'Lesezeichen gespeichert.':'Analyse mit der Textstelle gespeichert.');
     }catch(e){announce((e as Error).message);}finally{setSaving(false);}
@@ -385,11 +401,12 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
       <div className="companion-tabs" role="group" aria-label="Lesehilfe auswählen">{[['help','Verstehen',Lightbulb],['figures','Figuren',Users],['notes','Notizen',MessageSquare]].map(([value,label,Icon])=>{const TabIcon=Icon as typeof Lightbulb;return <button key={value as string} aria-pressed={panel===value} onClick={()=>setPanel(value as string)}><TabIcon size={18}/>{label as string}</button>;})}</div>
       <div className="panel-scroll" key={panel} ref={panelScroll} onScroll={event=>{if(panelOpen)panelScrollPositions.current[panel]=event.currentTarget.scrollTop;}}>
         {panel==='help'?<ReaderAssistant book={book} section={section} selection={displaySelection} practiceMode={tourStep!==null?tourMode:undefined} analysis={tourStep!==null?null:result} status={aiStatus} busy={analysisBusy} error={analysisError} question={question} setQuestion={setQuestion} onAnalyze={mode=>void analyze(mode)} onExample={example} onFigures={()=>setPanel('figures')} onNote={()=>setPanel('notes')} onSave={()=>result&&void save(result.mode,result)} onQuote={id=>{closePanel();scrollToBlock(id);}} saving={saving} saved={!!result&&notes.some(n=>n.analysis?.id===result.id)} remaining={remaining} normalized={normalized} onCancel={cancelAnalysis}/>:panel==='figures'?<ReaderFigures key={book.id} book={book} section={section} selected={tourStep!==null?tourCharacters:selectedCharacters} onSelect={selectCharacter}/>:<div className="panel-notes">
-          {displaySelection?<><div className="selection-excerpt"><span>{referenceLabel(section,displaySelection)}</span><blockquote>{displaySelection.quote.slice(0,220)}{displaySelection.quote.length>220?' …':''}</blockquote></div><label className="note-editor"><span>Deine Notiz</span><textarea value={displayDraft} onChange={e=>{const value=e.currentTarget.value;if(tourStep!==null){setTourNote(value);if(value.trim())markTour('notes');}else setDrafts(old=>({...old,[draftKey]:value}));}} maxLength={12000} placeholder="Was möchtest du festhalten?" rows={4}/></label></>:<p>Wähle eine Stelle im Text aus, um eine Notiz anzulegen.</p>}
+          {displaySelection?<><div className="selection-excerpt"><span>{referenceLabel(section,displaySelection)}</span><blockquote>{displaySelection.quote.slice(0,220)}{displaySelection.quote.length>220?' …':''}</blockquote></div><label className="note-editor"><span>Deine Notiz</span><textarea ref={noteInput} value={displayDraft} readOnly={saving||!draftsReady} onChange={e=>changeNoteInput(e.currentTarget.value)} onCompositionStart={()=>{noteComposition.current=true;setNoteComposing(true);}} onCompositionEnd={e=>{changeNoteInput(e.currentTarget.value);noteComposition.current=false;setNoteComposing(false);}} onBlur={e=>{changeNoteInput(e.currentTarget.value);noteComposition.current=false;setNoteComposing(false);}} maxLength={12000} placeholder="Was möchtest du festhalten?" rows={4}/></label></>:<p>Wähle eine Stelle im Text aus, um eine Notiz anzulegen.</p>}
+          {editNote?.pencil&&<div className="note-recognition-status" role="status">{(()=>{const current=notes.find(n=>n.id===editNote.id)??editNote;return current.pencil?.transcription==='pending'?'Original gespeichert · Suchtext wird erkannt …':current.pencil?.transcription==='failed'?<><span>{current.pencil.transcriptionError??'Erkennung nicht verfügbar. Das Original bleibt gespeichert.'}</span>{prefs.handwritingCloud&&<button className="text-button" onClick={()=>void retryHandwriting(current.id).catch(e=>announce(e.message))}>Erneut erkennen</button>}</>:current.pencil?.transcription==='recognized'?'Suchtext gespeichert · Originalhandschrift unverändert':null;})()}</div>}
           {sectionNotes.length>0&&<details className="workspace-saved-notes"><summary>{sectionNotes.length} {sectionNotes.length===1?'Eintrag':'Einträge'} in diesem Abschnitt</summary><NotesList notes={sectionNotes} catalog={catalog} onOpen={openNote} onDelete={removeNote} compact/></details>}
         </div>}
       </div>
-      {panel==='notes'&&displaySelection&&<div className="workspace-note-actions"><p className="small-note">{tourStep!==null?'Probenotiz · wird nicht gespeichert.':draft!==editNote?.body&&draft?'Ungespeicherter Entwurf':'Wird auf diesem Gerät gespeichert.'}</p><button className="primary-button" onClick={()=>{if(tourStep!==null)markTour('notes');else void save('note');}} disabled={saving||!displayDraft.trim()}>{saving?<LoaderCircle className="spin" size={17}/>:<Check size={17}/>}{tourStep!==null?'Übungsnotiz merken':'Notiz speichern'}</button></div>}
+      {panel==='notes'&&displaySelection&&<div className="workspace-note-actions"><p className="small-note">{tourStep!==null?'Probenotiz · wird nicht gespeichert.':draftError|| (drafts[draftKey]!==undefined?'Entwurf auf diesem Gerät gesichert':'Wird auf diesem Gerät gespeichert.')}</p><button className="primary-button" onClick={()=>{if(tourStep!==null)markTour('notes');else void save('note');}} disabled={saving||noteComposing||!draftsReady||!displayDraft.trim()&&!currentNote}>{saving?<LoaderCircle className="spin" size={17}/>:<Check size={17}/>}{tourStep!==null?'Übungsnotiz merken':'Notiz speichern'}</button></div>}
     </aside>;
 
   return <div className={'reader-app unified-tools '+(view==='reader'?'focus-reader':'')+(focus?' focus-mode':'')+(panelOpen?' has-panel':'')+(audioOpen?' has-audio':'')} style={{'--text-size':prefs.fontSize+'px','--text-leading':prefs.lineHeight,'--reading-font':prefs.font==='sans'?"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif":"Charter,'Bitstream Charter','Sitka Text',Cambria,serif"} as React.CSSProperties}>
@@ -406,7 +423,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
         <article ref={article} className="reading-page">
           <div className="section-heading"><p>{[...section.path,section.title].join(' · ')}</p><div><span data-tour="search-share" className="tour-search-share"><button className="icon-button" aria-label="Text durchsuchen oder zu einem Vers springen" onClick={()=>setDialog('search')}><Search size={17}/></button><button className="icon-button" aria-label="Stelle teilen" onClick={openShare}><Share2 size={17}/></button></span></div></div>
           <h1 className="sr-only">{book.title} · {section.title}</h1>
-          <ReaderPencil contentAnchor={inlineDetails?inlineAnchorId:undefined} toolbarHost={pencilHost} dismissMenusKey={menusKey} onPopover={()=>{setPanelOpen(false);setAudioExpanded(false);}} key={book.id+book.editionId+section.id+(pencilPractice?':tour':':reader')} practice={pencilPractice} onPractice={(kind,data)=>{markTour(kind==='mark'?'pencil':kind==='erase'?'eraser':'handwriting');if(data?.color)setTourColor(data.color);if(data?.anchor)setTourSelection(data.anchor);if(data?.body!==undefined)setTourNote(data.body);}} book={book} section={section} prefs={prefs} selection={selection} savedNotes={pencilPractice?[]:sectionNotes} enabled={pencilMode} onToggle={()=>setPencilMode(false)} onSaved={announce}>{(drafts,afterBlock)=><ReaderText listening={tourOpen?null:audioPosition} afterBlock={inlineDetails&&inlineAnchorId?{...afterBlock,[inlineAnchorId]:<>{afterBlock[inlineAnchorId]}<div ref={setDetailHost} className="workspace-inline-host" data-pencil-input data-inline-after={inlineAnchorId}/></>}:afterBlock} book={book} section={section} selection={displaySelection} notes={[...notes.filter(n=>!drafts.some(d=>d.id===n.id)),...drafts]} showNumbers={prefs.numbers} showCharacters={prefs.characters&&!pencilMode} selectMode={selectMode} canActivate={nativeSelection.canActivate} onSelect={selectLine} onCharacter={selectCharacter} onNote={openNote} onNotes={openAttached}/>}</ReaderPencil>
+          <ReaderPencil contentAnchor={inlineDetails?inlineAnchorId:undefined} toolbarHost={pencilHost} dismissMenusKey={menusKey} onPopover={()=>{setPanelOpen(false);setAudioExpanded(false);}} key={book.id+book.editionId+section.id+(pencilPractice?':tour':':reader')} practice={pencilPractice} onPractice={(kind,data)=>{markTour(kind==='mark'?'pencil':kind==='erase'?'eraser':'handwriting');if(data?.color)setTourColor(data.color);if(data?.anchor)setTourSelection(data.anchor);if(data?.body!==undefined)setTourNote(data.body);}} book={book} section={section} prefs={prefs} selection={selection} savedNotes={pencilPractice?[]:sectionNotes} enabled={pencilMode} onToggle={()=>setPencilMode(false)} onSaved={announce}>{(drafts,afterBlock)=><ReaderText showHighlights={tourOpen||prefs.annotationVisibility!=='notes'&&prefs.annotationVisibility!=='none'} showNotes={tourOpen||prefs.annotationVisibility!=='marks'&&prefs.annotationVisibility!=='none'} listening={tourOpen?null:audioPosition} afterBlock={inlineDetails&&inlineAnchorId?{...afterBlock,[inlineAnchorId]:<>{afterBlock[inlineAnchorId]}<div ref={setDetailHost} className="workspace-inline-host" data-pencil-input data-inline-after={inlineAnchorId}/></>}:afterBlock} book={book} section={section} selection={displaySelection} notes={[...notes.filter(n=>!drafts.some(d=>d.id===n.id)),...drafts]} showNumbers={prefs.numbers} showCharacters={prefs.characters&&!pencilMode} selectMode={selectMode} canActivate={nativeSelection.canActivate} onSelect={selectLine} onCharacter={selectCharacter} onNote={openNote} onNotes={openAttached}/>}</ReaderPencil>
           {inlineDetails&&!inlineAnchorId&&<div ref={setDetailHost} className="workspace-inline-host" data-pencil-input/>}
           <nav className="section-pagination" aria-label="Weiterlesen"><button disabled={sectionIndex===0} onClick={()=>goToSection(book.sections[sectionIndex-1].id)}><ChevronLeft size={18}/>Voriger Abschnitt</button><button disabled={sectionIndex===book.sections.length-1} onClick={()=>goToSection(book.sections[sectionIndex+1].id)}>Nächster Abschnitt<ChevronRight size={18}/></button></nav>
           <button className="reading-source-link" onClick={()=>setDialog('source')}>Quelle und Zitierweise<ExternalLink size={13}/></button>
@@ -423,7 +440,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
 
     </>}
 
-    {(view==='reader'||audioOpen)&&<ReaderWorkspace practice={tourOpen} inline={inlineDetails} detailHost={detailHost} audioHost={setAudioHost} onBeforeChange={()=>restorePosition(capturePosition())} onDismiss={()=>{restorePosition(capturePosition());setPanelOpen(false);setAudioExpanded(false);setMenusKey(n=>n+1);}} selection={selectionTools} panel={companionPanel}>
+    {(view==='reader'||audioOpen)&&<ReaderWorkspace visibility={prefs.annotationVisibility} onVisibilityChange={value=>{void updateLocal(data=>({...data,preferences:{value:{...data.preferences.value,annotationVisibility:value},updatedAt:new Date().toISOString()}})).catch(e=>announce(e.message));}} practice={tourOpen} inline={inlineDetails} detailHost={detailHost} audioHost={setAudioHost} onBeforeChange={()=>restorePosition(capturePosition())} onDismiss={()=>{restorePosition(capturePosition());setPanelOpen(false);setAudioExpanded(false);setMenusKey(n=>n+1);}} selection={selectionTools} panel={companionPanel}>
      {view==='reader'&&<>
       <div className="workspace-tool-group workspace-modes" role="group" aria-label="Lesen und Markieren">
       <button data-tour="selection" className="workspace-tool" aria-label="Bereich durch Antippen auswählen" aria-pressed={selectMode} title="Text auswählen" onClick={()=>{const next=!selectMode;resetSelection();setPanelOpen(false);setAudioExpanded(false);setMenusKey(n=>n+1);setSelectMode(next);}}><MousePointer2 size={19}/><span>Auswahl</span></button>

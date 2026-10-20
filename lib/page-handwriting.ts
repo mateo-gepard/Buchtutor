@@ -1,8 +1,7 @@
 import {z} from 'zod';
-import type {InkPoint,InkStroke} from './pencil-model';
+import {pageInkGroupSchema,type InkPoint,type InkStroke} from './pencil-model';
+export {pageInkGroupSchema};
 export type InkBox={left:number;right:number;top:number;bottom:number};
-const point=z.object({x:z.number().finite().min(-10000).max(10000),y:z.number().finite().min(-10000).max(10000),pressure:z.number().min(0).max(1)});
-export const pageInkGroupSchema=z.object({id:z.string().max(100),referenceId:z.string().max(200),width:z.number().positive().max(10000),fontSize:z.number().min(8).max(100),targetId:z.string().max(200).optional(),strokes:z.array(z.object({id:z.string().max(100),order:z.number().finite(),points:z.array(point).min(1).max(3000)})).min(1).max(1200)});
 export type PageInkGroup=z.infer<typeof pageInkGroupSchema>;
 export type InkLayout={width:number;fontSize:number;tops:Record<string,number>;minX?:number;maxX?:number};
 export type InkTarget={id:string;boxes:InkBox[]};

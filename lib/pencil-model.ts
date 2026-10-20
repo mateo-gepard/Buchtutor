@@ -11,8 +11,10 @@ export const pencilPalette:Record<PencilColor,{name:string;fill:string;ink:strin
 };
 export const inkPointSchema=z.object({x:z.number().finite().min(0).max(2000),y:z.number().finite().min(0).max(1000),pressure:z.number().min(0).max(1)});
 export const inkStrokeSchema=z.array(inkPointSchema).min(1).max(3000);
+const pagePoint=z.object({x:z.number().finite().min(-10000).max(10000),y:z.number().finite().min(-10000).max(10000),pressure:z.number().min(0).max(1)});
+export const pageInkGroupSchema=z.object({id:z.string().max(100),referenceId:z.string().max(200),width:z.number().positive().max(10000),fontSize:z.number().min(8).max(100),targetId:z.string().max(200).optional(),strokes:z.array(z.object({id:z.string().max(100),order:z.number().finite(),points:z.array(pagePoint).min(1).max(3000)})).min(1).max(1200)});
 const erasedRangeSchema=z.object({blockId:z.string().min(1).max(200),start:z.number().int().min(0).max(1000000),end:z.number().int().min(1).max(1000000)}).refine(r=>r.end>r.start);
-export const pencilAnnotationSchema=z.object({color:z.enum(pencilColors),meaning:z.string().min(1).max(80),ink:z.array(inkStrokeSchema).max(1200),inkWidth:z.number().int().min(1).max(2000).optional(),inkHeight:z.number().int().min(1).max(1000).optional(),erasedRanges:z.array(erasedRangeSchema).max(5000).optional(),uncertain:z.boolean().optional(),transcription:z.enum(['none','recognized','manual','pending']).default('none')});
+export const pencilAnnotationSchema=z.object({color:z.enum(pencilColors),meaning:z.string().min(1).max(80),ink:z.array(inkStrokeSchema).max(1200),inkWidth:z.number().int().min(1).max(2000).optional(),inkHeight:z.number().int().min(1).max(1000).optional(),pageInk:z.array(pageInkGroupSchema).max(100).optional(),erasedRanges:z.array(erasedRangeSchema).max(5000).optional(),uncertain:z.boolean().optional(),transcription:z.enum(['none','recognized','manual','pending','failed']).default('none'),transcript:z.string().max(6000).optional(),transcriptionError:z.string().max(300).optional()});
 export type InkPoint=z.infer<typeof inkPointSchema>;
 export type InkStroke=InkPoint[];
 export type PencilAnnotation=z.infer<typeof pencilAnnotationSchema>;

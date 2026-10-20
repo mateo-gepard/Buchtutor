@@ -19,7 +19,7 @@ test('fast, reverse, slanted and slightly imprecise Pencil sweeps snap to full c
 });
 test('Pencil colors, custom meanings and original handwriting survive encrypted transfer and conflict merging',async()=>{
  const now='2026-10-19T18:00:00.000Z';
- const note:SavedNote={id:'pencil',workId:'book',editionId:'edition',anchor:makeAnchor(section,'a'),kind:'note',body:'Natur als Zuflucht',pencil:{color:'green',meaning:'Eigene Stilmittel',ink:[[{x:10,y:20,pressure:0.7},{x:20,y:30,pressure:0.9}]],transcription:'recognized'},createdAt:now,updatedAt:now};
+ const note:SavedNote={id:'pencil',workId:'book',editionId:'edition',anchor:makeAnchor(section,'a'),kind:'note',body:'Natur als Zuflucht',pencil:{color:'green',meaning:'Eigene Stilmittel',ink:[[{x:10,y:20,pressure:0.7},{x:20,y:30,pressure:0.9}]],transcription:'recognized',transcript:'Natur als Zuflucht',pageInk:[{id:'ink',targetId:'pencil',referenceId:'a',width:640,fontSize:20,strokes:[{id:'stroke',order:1,points:[{x:-30,y:5,pressure:.5},{x:-20,y:18,pressure:.7}]}]}]},createdAt:now,updatedAt:now};
  const snapshot=snapshotSchema.parse({...EMPTY_SNAPSHOT,notes:[note],preferences:{value:{...EMPTY_SNAPSHOT.preferences.value,pencilMeanings:{green:'Eigene Stilmittel'}},updatedAt:now}});
  assert.deepEqual(await decryptSnapshot(await encryptSnapshot(snapshot,'Mein sicheres iPad-Passwort'),'Mein sicheres iPad-Passwort'),snapshot);
  const changed={...snapshot,notes:[{...note,pencil:{...note.pencil!,color:'blue' as const},updatedAt:'2026-10-19T19:00:00.000Z'}]};
