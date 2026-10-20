@@ -19,7 +19,7 @@ async function setup(page:Page,broken=false,local=false){
 }
 async function at(page:Page,time:number){await page.locator('audio').evaluate((el,time)=>{(el as HTMLAudioElement).currentTime=time;el.dispatchEvent(new Event('timeupdate'));},time);}
 async function details(page:Page){await page.getByRole('button',{name:'Hörbuch-Details öffnen',exact:true}).click();}
-async function geometry(page:Page){expect(await page.locator('.reader-audio').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight;})).toBe(true);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
+async function geometry(page:Page){await expect.poll(()=>page.locator('.reader-audio').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight;})).toBe(true);await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
 
 test('recording loads only on play, follows text, pauses following on interaction, and resumes locally',async({page})=>{
  const requests=await setup(page);await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeEnabled();expect(requests()).toBe(0);await geometry(page);
@@ -27,7 +27,11 @@ test('recording loads only on play, follows text, pauses following on interactio
  await details(page);await expect(page.getByRole('checkbox',{name:'Text automatisch mitführen'})).toBeChecked();await page.locator('[data-text]').first().dispatchEvent('pointerdown');await details(page);await expect(page.getByRole('checkbox',{name:'Text automatisch mitführen'})).not.toBeChecked();
  await page.getByRole('button',{name:'Zur Hörstelle',exact:true}).click();await expect(page.getByRole('checkbox',{name:'Text automatisch mitführen'})).toBeChecked();await page.getByRole('combobox',{name:'Hörtempo'}).selectOption('1.5');expect(await page.locator('audio').evaluate(el=>(el as HTMLAudioElement).playbackRate)).toBe(1.5);
  await at(page,8);await expect(page.locator('.audio-current')).toHaveAttribute('id',lines[3].id);await page.getByRole('button',{name:'Wiedergabe pausieren',exact:true}).click();await expect.poll(()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)??'null')?.time,audioProgressKey(book.editionId))).toBeGreaterThan(7);
- await page.evaluate(()=>window.scrollTo(0,500));const beforeClose=await page.evaluate(()=>window.scrollY);await page.getByRole('button',{name:'Player schließen und pausieren',exact:true}).click();await expect(page.locator('.reader-audio')).toHaveCount(0);await expect.poll(async()=>Math.abs(await page.evaluate(()=>window.scrollY)-beforeClose)).toBeLessThanOrEqual(24);await expect(page.locator('.audio-current')).toHaveCount(0);await page.getByRole('button',{name:'Hören und mitlesen',exact:true}).click();await details(page);await expect(page.getByRole('slider',{name:'Hörposition im Audiokapitel'})).toHaveValue(/^8/);await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();
+ await page.evaluate(()=>window.scrollTo(0,500));
+ // A detail card in the document must be brought into view before a real tap can close it.
+ const close=page.getByRole('button',{name:'Player schließen und pausieren',exact:true});await close.scrollIntoViewIfNeeded();
+ const reflow=await page.locator('.audio-details').evaluate(el=>el.closest('.workspace-inline-host')?el.getBoundingClientRect().height+34:24),beforeClose=await page.evaluate(()=>window.scrollY);
+ await close.click();await expect(page.locator('.reader-audio')).toHaveCount(0);await expect.poll(async()=>Math.abs(await page.evaluate(()=>window.scrollY)-beforeClose)).toBeLessThanOrEqual(reflow);await expect(page.locator('.audio-current')).toHaveCount(0);await page.getByRole('button',{name:'Hören und mitlesen',exact:true}).click();await details(page);await expect(page.getByRole('slider',{name:'Hörposition im Audiokapitel'})).toHaveValue(/^8/);await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();
 });
 test('locally hosted synthetic recordings validate, play and retain their clear source label',async({page})=>{
  const requests=await setup(page,false,true);await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeEnabled();expect(requests()).toBe(0);

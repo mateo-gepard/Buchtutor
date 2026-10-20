@@ -4,20 +4,50 @@ import {ONBOARDING_KEY} from '../../lib/onboarding';
 async function fits(page:Page,selector:string){
  await expect.poll(()=>page.locator(selector).evaluate(el=>{
   const r=el.getBoundingClientRect(),header=document.querySelector('.reader-header')!.getBoundingClientRect(),footer=document.querySelector('.reading-footer')!.getBoundingClientRect();
+  if(el.closest('.workspace-inline-host'))return r.width>0&&r.height>0&&r.left>=0&&r.right<=innerWidth+1&&[...document.querySelectorAll('.source-row')].every(row=>{const line=row.getBoundingClientRect();return line.bottom<=r.top||line.top>=r.bottom;});
   return r.left>=0&&r.right<=innerWidth+1&&r.top>=header.bottom&&r.bottom<=footer.top+1;
  })).toBe(true);
 }
 async function readingRoom(page:Page){
  await fits(page,'.assistant-panel');
- expect(await page.locator('.assistant-panel').evaluate(el=>{
-  const panel=el.getBoundingClientRect(),tools=document.querySelector('.reader-workspace')!.getBoundingClientRect(),text=document.querySelector('.reading-main')!.getBoundingClientRect();
-  return innerWidth>=760?panel.width<=360&&text.right<=panel.left&&text.width>=400:panel.height<=innerHeight*.42+1&&panel.top-tools.bottom>=150;
+ await expect.poll(()=>page.locator('.assistant-panel').evaluate(el=>{
+  const panel=el.getBoundingClientRect(),text=document.querySelector('.reading-main')!.getBoundingClientRect();
+  return innerWidth>=1000?panel.width<=360&&text.right<=panel.left&&text.width>=400:!!el.closest('.workspace-inline-host')&&panel.height<=300;
  })).toBe(true);
 }
 test.beforeEach(async({page})=>{
  await page.addInitScript(key=>localStorage.setItem(key,'1'),ONBOARDING_KEY);
  await page.route('**/api/analysis',()=>{throw new Error('Opening tools must not start AI requests');});
  await page.goto('/?work=iphigenie&section=s001&view=reader');
+});
+test('inline notes leave the selected passage readable and keep their draft across rotation',async({page},testInfo)=>{
+ await page.setViewportSize({width:680,height:759});
+ const line=page.locator('.source-row').first(),text=await line.locator('[data-text]').boundingBox();
+ await line.locator('.line-number').click();
+ await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();
+ await readingRoom(page);
+ const card=await page.locator('.assistant-panel').boundingBox(),selected=await line.boundingBox();
+ expect(card!.height).toBeLessThanOrEqual(220);
+ expect(card!.y).toBeGreaterThanOrEqual(selected!.y+selected!.height);
+ expect((await line.locator('[data-text]').boundingBox())!.width).toBeCloseTo(text!.width,0);
+ await expect(page.locator('.assistant-panel .companion-tabs')).toBeHidden();
+ await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Die Natur wirkt vertraut, Iphigenie fühlt sich fremd.');
+ await page.screenshot({animations:'disabled',path:testInfo.outputPath('inline-note-split-view.png')});
+ await page.getByRole('button',{name:'Lesehilfe vergrößern',exact:true}).click();
+ await expect(page.locator('.assistant-panel .companion-tabs')).toBeVisible();
+ await fits(page,'.assistant-panel');
+ await page.getByRole('button',{name:'Lesehilfe verkleinern',exact:true}).click();
+ for(const viewport of [{width:1194,height:834},{width:834,height:1194},{width:680,height:759}]){
+  await page.setViewportSize(viewport);
+  await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Die Natur wirkt vertraut, Iphigenie fühlt sich fremd.');
+  await readingRoom(page);
+ }
+ await page.getByRole('button',{name:'Notiz speichern',exact:true}).click();
+ await expect(page.locator('.workspace-saved-notes summary')).toContainText('1 Eintrag');
+ await page.getByRole('button',{name:'Lesehilfe schließen',exact:true}).click();
+ await expect(page.locator('.workspace-inline-host')).toHaveJSProperty('offsetHeight',0);
+ const next=await page.locator('.source-row').nth(1).boundingBox(),first=await line.boundingBox();
+ expect(next!.y-first!.y-first!.height).toBeLessThan(10);
 });
 test('each accessory preserves reading space in portrait, landscape and narrow readers',async({page},testInfo)=>{
  await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();

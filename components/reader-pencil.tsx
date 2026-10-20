@@ -18,8 +18,8 @@ const entrySchema=z.object({id:z.string(),anchor:portableAnchorSchema,pencil:pen
 const entriesSchema=z.array(entrySchema).max(100);
 const draftSchema=z.union([z.object({version:z.literal(2),entries:entriesSchema,groups:z.array(pageInkGroupSchema).max(100)}),entriesSchema.transform(entries=>({version:2 as const,entries,groups:[] as PageInkGroup[]}))]);
 type Entry=z.infer<typeof entrySchema>;
-type Props={toolbarHost:HTMLElement|null;dismissMenusKey:number;onPopover:()=>void;practice?:boolean;onPractice?:(kind:'mark'|'ink'|'erase',data?:{anchor?:Anchor;color?:PencilColor;body?:string})=>void;book:Book;section:Section;prefs:Prefs;selection:Anchor|null;savedNotes:SavedNote[];enabled:boolean;onToggle:()=>void;onSaved:(message:string)=>void;children:(drafts:SavedNote[],afterBlock:Record<string,ReactNode>)=>ReactNode};
-export function ReaderPencil({toolbarHost,dismissMenusKey,onPopover,practice=false,onPractice,book,section,prefs,selection,savedNotes,enabled,onToggle,onSaved,children}:Props){
+type Props={contentAnchor?:string;toolbarHost:HTMLElement|null;dismissMenusKey:number;onPopover:()=>void;practice?:boolean;onPractice?:(kind:'mark'|'ink'|'erase',data?:{anchor?:Anchor;color?:PencilColor;body?:string})=>void;book:Book;section:Section;prefs:Prefs;selection:Anchor|null;savedNotes:SavedNote[];enabled:boolean;onToggle:()=>void;onSaved:(message:string)=>void;children:(drafts:SavedNote[],afterBlock:Record<string,ReactNode>)=>ReactNode};
+export function ReaderPencil({contentAnchor,toolbarHost,dismissMenusKey,onPopover,practice=false,onPractice,book,section,prefs,selection,savedNotes,enabled,onToggle,onSaved,children}:Props){
  const liveLine=useRef<SVGPathElement>(null),root=useRef<HTMLDivElement>(null);
  const continueWriting=useRef(false);
  const gesture=useRef<{id:number;points:InkStroke;boxes:WordBox[];startedOnText:boolean;origin:{x:number;y:number}}|null>(null);
@@ -55,7 +55,7 @@ export function ReaderPencil({toolbarHost,dismissMenusKey,onPopover,practice=fal
    setScribble(offersAppleScribble(navigator.userAgent,navigator.maxTouchPoints));setLoaded(true);refresh();
   });return()=>cancelAnimationFrame(frame);
  },[key,refresh,practice]);
- useLayoutEffect(()=>{const frame=requestAnimationFrame(refresh);return()=>cancelAnimationFrame(frame);},[entries,enabled,prefs.fontSize,prefs.lineHeight,prefs.font,refresh]);
+ useLayoutEffect(()=>{const frame=requestAnimationFrame(refresh);return()=>cancelAnimationFrame(frame);},[entries,enabled,prefs.fontSize,prefs.lineHeight,prefs.font,contentAnchor,refresh]);
  useEffect(()=>{
   let frame=0;const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(refresh);};const observer=new ResizeObserver(schedule);
   if(root.current){

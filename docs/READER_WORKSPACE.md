@@ -17,8 +17,8 @@ Buchtutor übernimmt diese Anordnung als Bedienprinzip und behält seine eigene 
 - Eine gemeinsame Oberfläche enthält Textauswahl, Pencil, Notizen, KI-Hilfe und Audio. Ab 760 Pixeln passen auch die aktiven Pencil-Werkzeuge in dieselbe Zeile. In schmaler Split-View und auf Telefonen steht die Zeichenwerkzeuggruppe in einer zweiten Zeile derselben Leiste.
 - Farbe, Schreiben, Radierer, Rückgängig und „Fertig“ sind direkt erreichbar. Ein kleines Farbmenü enthält die fünf Farben und den Zugang zu ihren Bedeutungen. Der Pencil-Schalter schließt den Zeichenmodus mit erhaltenem Entwurf.
 - Play/Pause bleibt erreichbar, während Notizen oder KI-Hilfe geöffnet sind. Kapitel, Tempo, Hörposition, Timer und Quellenangaben liegen in den Hörbuchdetails.
-- Notizen, KI-Hilfe, Hörbuchdetails und Werkzeugmenüs öffnen jeweils einen gemeinsamen Detailbereich. Ab 760 Pixeln Bildschirmbreite bleibt neben dem 320–360 Pixel breiten Seitenfenster ein eigener Textbereich frei, auch im iPad-Hochformat.
-- In schmaler Split-View sitzt das Detailfenster unten: höchstens 320 Pixel beziehungsweise 42 Prozent der sichtbaren Seitenhöhe. Mehr Inhalt ist innerhalb des Fensters scrollbar; die Lesehilfe kann auf Wunsch vergrößert werden. Beim seitlichen Andocken bleibt auch die Werkzeugleiste neben dem Fenster bedienbar.
+- Notizen, KI-Hilfe, Hörbuchdetails und Werkzeugmenüs öffnen jeweils einen gemeinsamen Detailbereich. Ab 1000 Pixeln Bildschirmbreite bleibt neben dem 320–360 Pixel breiten Seitenfenster ein eigener Textbereich frei.
+- Unter 1000 Pixeln (iPad-Hochformat, Split-View, Telefon) stehen Notizen, KI-Hilfe und Hörbuchdetails direkt nach der gewählten Passage im Lesefluss. Keine Textzeile liegt unter dem Fenster; die Textbreite bleibt erhalten. Ohne Auswahl wird die erste sichtbare Passage unterhalb der Leiste verwendet. Die Notiz beginnt als etwa 200 Pixel hohes Eingabefeld mit Versangabe und Speichern. Doppelte Textvorschau und Tab-Leiste entfallen hier; Vergrößern öffnet mehr Platz und die Tabs. Bereits gespeicherte Einträge sind aufklappbar. KI und Audio verwenden eine 300 Pixel hohe, intern scrollbare Karte.
 - Griff ziehen oder mit den Pfeiltasten bewegen; Umschalt plus Pfeiltaste dockt an. „Leiste anordnen“ bietet dieselben Ziele ohne Ziehgeste. Home setzt die Leiste nach oben zurück.
 - Kopfzeile, Lesefortschritt, sichtbarer Bildschirm und Bildschirmtastatur begrenzen die Position. Die vorhandene lokale Positionskennung wird weiterverwendet.
 - Wechsel zwischen Details erhält die Audioinstanz, die Wiedergabe, Pencil-Entwürfe und angefangene Textnotizen. Die bisherigen Speicher- und Editionsanker bleiben unverändert.
@@ -28,7 +28,7 @@ Buchtutor übernimmt diese Anordnung als Bedienprinzip und behält seine eigene 
 
 Folgeauftrag „UX smoother“ vom 20.10.2026:
 
-- Audio-, KI- und Notizdetails verwenden dieselbe Fenstergröße und dieselben Textabstände. Ein Wechsel innerhalb der Leiste schließt das Audiofenster erst mit der gewählten Aktion; der vorherige Pointer-Down erzeugt keinen zusätzlichen Layoutwechsel mehr.
+- Audio- und KI-Details verwenden dieselben Textabstände. Im schmalen Lesefluss ist die Notiz bewusst kleiner. Ein Wechsel innerhalb der Leiste schließt das Audiofenster erst mit der gewählten Aktion; der vorherige Pointer-Down erzeugt keinen zusätzlichen Layoutwechsel mehr.
 - Die kanonische Lesestelle wird bei Werkzeugaktionen vor dem nächsten Bild wiederhergestellt. Dabei wird die Textbreite nicht über viele Zwischenstufen animiert, damit Textauswahl und Pencil-Anker verlässlich bleiben.
 - Detailfenster blenden kurz ein und aus; geschlossene Inhalte sind sofort inaktiv und für assistive Technik verborgen. Eigene Scrollpositionen bleiben beim Wechsel zwischen Verstehen, Figuren und Notizen erhalten. Ein Antippen bewegt den Fokus nicht zur Fensterüberschrift; Tastaturbedienung führt weiterhin dorthin und mit Escape zurück.
 - Der Griff beginnt erst nach sechs Pixeln Bewegung zu ziehen. Antippen und kleine Handbewegungen lassen die Details offen. Beim Loslassen bzw. bewussten Andocken gleitet die Leiste kurz an ihre Position; während des Ziehens folgt sie direkt.
@@ -46,3 +46,10 @@ Der kombinierte Browsertest prüft echte Medienwiedergabe mit einer lokalen Test
 Playwright-Projekte: Desktop-Chromium, mobiles Chromium und iPad-WebKit in Hoch- und Querformat. Zusätzliche Layoutprüfungen öffnen Farbmenü, Notizen, KI-Hilfe, Figuren und Audio einzeln, messen den verbleibenden Textbereich und erstellen Screenshots. Verkleinerte Ansichten prüfen Split-View und den Platzbedarf einer Tastatur. Native Apple-Pencil-Hardware und die iPad-Systemtastatur können durch diese Emulation nicht vollständig geprüft werden.
 
 Die ergänzten Interaktionsprüfungen messen die Leseposition vor/nach Werkzeugwechseln, kontrollieren den Zustand zwischen Pointer-Down und Klick, erhalten Notizentwürfe bei Griffbewegungen und prüfen Tastaturfokus, separate Scrollpositionen und reduzierte Bewegung.
+
+
+## Details im Lesefluss (20.10.2026)
+
+Die Einfügestelle bleibt beim Scrollen und Hören an ihrer kanonischen Passage. Nur eine neue Auswahl bzw. ein erneutes Öffnen ohne Auswahl legt sie neu fest. Eine außerhalb des sichtbaren Bereichs geöffnete Karte wird zusammen mit dem vorangehenden Text sichtbar gemacht. Beim Drehen wechseln die Details zwischen Lesefluss und Seitenbereich; Notizentwurf, eigener Scrollstand und die Audioinstanz bleiben erhalten. Die Einfügestelle ist ein normales Eingabeelement, kein Teil der Pencil-Zeichenfläche. Handschrift wird auch bei einem Wechsel der Einfügestelle erneut auf ihren Vers projiziert, wenn sich die Gesamthöhe des Dokuments nicht ändert.
+
+Die ergänzten Tests prüfen, dass keine Textzeile mit der Karte überlappt, die Auswahl ihre Breite behält, Schließen keinen Abstand hinterlässt und ein Entwurf nach mehrfachem Drehen gespeichert werden kann. Zusätzlich werden Zeichnung, Verszuordnung, Vergrößern und die vollständige Einführung geprüft.

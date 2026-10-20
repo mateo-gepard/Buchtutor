@@ -49,7 +49,7 @@ test('handwriting without a nearby mark remains a draft instead of being silentl
  await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await expect(page.locator('.pencil-page-ink')).toHaveCount(0);await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveCount(3);
 });
 test('custom meanings and manual transcription preserve original page ink',async({page})=>{
- await page.getByRole('button',{name:'Markierungsfarbe wählen',exact:true}).click();await page.getByRole('button',{name:'Farbbedeutungen anpassen',exact:true}).click();await page.getByLabel('Bedeutung für Grün').fill('Sprachliche Bilder');await page.getByLabel('Bedeutung für Grün').press('Tab');await page.getByRole('button',{name:'Farbbedeutungen schließen',exact:true}).click();await chooseColor(page,'Grün: Sprachliche Bilder');await mark(page);await writeNear(page);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);await openNotebook(page);await page.getByLabel('Nach Markierungsbedeutung filtern').selectOption('Sprachliche Bilder');await page.locator('.note-open').click();await page.getByRole('textbox',{name:'Deine Notiz'}).fill('Hain als Zuflucht');await page.getByRole('button',{name:'Notiz speichern',exact:true}).click();await expect(page.locator('.panel-notes .note-card')).toContainText('Hain als Zuflucht');await page.locator('.panel-notes .saved-ink summary').click();await expect(page.locator('.panel-notes .saved-ink path')).toHaveCount(3);
+ await page.getByRole('button',{name:'Markierungsfarbe wählen',exact:true}).click();await page.getByRole('button',{name:'Farbbedeutungen anpassen',exact:true}).click();await page.getByLabel('Bedeutung für Grün').fill('Sprachliche Bilder');await page.getByLabel('Bedeutung für Grün').press('Tab');await page.getByRole('button',{name:'Farbbedeutungen schließen',exact:true}).click();await chooseColor(page,'Grün: Sprachliche Bilder');await mark(page);await writeNear(page);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);await openNotebook(page);await page.getByLabel('Nach Markierungsbedeutung filtern').selectOption('Sprachliche Bilder');await page.locator('.note-open').click();await page.getByRole('textbox',{name:'Deine Notiz'}).fill('Hain als Zuflucht');await page.getByRole('button',{name:'Notiz speichern',exact:true}).click();await expect(page.locator('.panel-notes .note-card')).toContainText('Hain als Zuflucht');await page.locator('.workspace-saved-notes>summary').click();await page.locator('.panel-notes .saved-ink summary').click();await expect(page.locator('.panel-notes .saved-ink path')).toHaveCount(3);
 });
 
 test('palette can move freely, snap to every edge, restore and keep settings inside the viewport',async({page})=>{
@@ -123,4 +123,24 @@ test('legacy handwriting-pad drafts remain readable and save without recognition
  const legacy=await page.evaluate(()=>{const key=Object.keys(localStorage).find(key=>key.startsWith('buchtutor-pencil-draft:iphigenie:'))!,draft=JSON.parse(localStorage.getItem(key)!);const entry=draft.entries[0];entry.pencil.ink=[[{x:20,y:20,pressure:.5},{x:40,y:40,pressure:.5}]];entry.pencil.transcription='pending';return {key,value:JSON.stringify([entry])};});
  // Seed before the next app mounts; mutating a running draft races its autosave.
  await page.addInitScript(({key,value})=>localStorage.setItem(key,value),legacy);await page.reload();await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);await openNotebook(page);await expect(page.locator('.note-card')).toContainText('ohne Texterkennung');await page.getByText('Originalhandschrift',{exact:true}).click();await expect(page.locator('.saved-ink path')).toHaveCount(1);
+});
+
+
+test('inline details reflow handwriting with its verse, including a moving insertion point',async({page})=>{
+ await page.setViewportSize({width:680,height:759});
+ await mark(page,5);await writeNear(page,5);
+ const ink=page.locator('[data-ink-group] path').first(),line=page.locator('[data-block]').nth(5);
+ await expect(ink).toBeVisible();
+ const offset=await ink.evaluate(el=>el.getBoundingClientRect().top-document.querySelectorAll('[data-block]')[5].getBoundingClientRect().top);
+ const before=await line.boundingBox();
+ await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();
+ await expect.poll(()=>line.evaluate(el=>el.getBoundingClientRect().top)).toBeGreaterThan(before!.y+150);
+ await expect.poll(()=>ink.evaluate(el=>el.getBoundingClientRect().top-document.querySelectorAll('[data-block]')[5].getBoundingClientRect().top)).toBeCloseTo(offset,0);
+ // Change the insertion point while total document height stays the same.
+ await page.locator('[data-block]').nth(8).locator('.line-number').dispatchEvent('click',{detail:0});
+ await expect.poll(()=>ink.evaluate(el=>el.getBoundingClientRect().top-document.querySelectorAll('[data-block]')[5].getBoundingClientRect().top)).toBeCloseTo(offset,0);
+ await page.getByRole('button',{name:'Lesehilfe schließen',exact:true}).click();
+ await expect(page.locator('[data-ink-group] path')).toHaveCount(3);
+ await expect(page.locator('.pencil-ink-label')).toHaveText('↳ V. 6');
+ await expect.poll(()=>ink.evaluate(el=>el.getBoundingClientRect().top-document.querySelectorAll('[data-block]')[5].getBoundingClientRect().top)).toBeCloseTo(offset,0);
 });
