@@ -8,6 +8,28 @@ type Props={ready:boolean;open:boolean;bookTitle:string;colorLabel:string;exampl
 const icons={book:BookOpen,eraser:Eraser,note:MessageSquare,selection:Highlighter,pencil:Highlighter,pen:PenLine,bulb:Lightbulb,users:Users,bookmark:Bookmark,filter:Filter,lock:LockKeyhole};
 function visible(el:HTMLElement){const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(el).visibility!=='hidden';}
 function firstOfEach(selector:string){return selector?selector.split(',').flatMap(part=>{const el=[...document.querySelectorAll<HTMLElement>(part.trim())].find(visible);return el?[el]:[];}):[];}
+function TourAutoAdvance({complete,changing,onAdvance}:{complete:boolean;changing:boolean;onAdvance:()=>void}){
+ const [alreadyComplete]=useState(complete),[held,setHeld]=useState(false);
+ const interaction=useRef({pointers:new Set<number>(),composing:false});
+ const advance=useEffectEvent(onAdvance);
+ useEffect(()=>{
+  if(alreadyComplete||held||changing)return;
+  let timer:ReturnType<typeof setTimeout>;const activity=interaction.current;
+  const clear=()=>clearTimeout(timer);
+  function arm(){clear();if(complete&&!activity.pointers.size&&!activity.composing&&!document.hidden&&document.hasFocus())timer=setTimeout(()=>advance(),1800);}
+  function down(event:PointerEvent){activity.pointers.add(event.pointerId);clear();}
+  function up(event:PointerEvent){activity.pointers.delete(event.pointerId);arm();}
+  function move(event:PointerEvent){if(event.buttons)clear();}
+  function input(event:Event){if(event instanceof InputEvent&&event.isComposing){activity.composing=true;clear();}else arm();}
+  function compose(){activity.composing=true;clear();}
+  function composed(){activity.composing=false;arm();}
+  document.addEventListener('pointerdown',down,true);document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',up,true);document.addEventListener('pointermove',move,true);
+  document.addEventListener('input',input,true);document.addEventListener('keydown',clear,true);document.addEventListener('keyup',arm,true);document.addEventListener('compositionstart',compose,true);document.addEventListener('compositionend',composed,true);document.addEventListener('visibilitychange',arm);window.addEventListener('blur',clear);window.addEventListener('focus',arm);arm();
+  return()=>{clear();document.removeEventListener('pointerdown',down,true);document.removeEventListener('pointerup',up,true);document.removeEventListener('pointercancel',up,true);document.removeEventListener('pointermove',move,true);document.removeEventListener('input',input,true);document.removeEventListener('keydown',clear,true);document.removeEventListener('keyup',arm,true);document.removeEventListener('compositionstart',compose,true);document.removeEventListener('compositionend',composed,true);document.removeEventListener('visibilitychange',arm);window.removeEventListener('blur',clear);window.removeEventListener('focus',arm);};
+ },[complete,alreadyComplete,held,changing]);
+ if(!complete||alreadyComplete)return null;
+ return <div className="tour-auto-advance" aria-live="polite"><span>{held?'Gehe weiter, wenn du bereit bist.':'Gleich zum nächsten Schritt …'}</span>{!held&&<button onClick={()=>setHeld(true)}>Hier bleiben</button>}</div>;
+}
 export function ReaderOnboarding({ready,open,bookTitle,colorLabel,exampleText,step,done,onTry,onStart,onBegin,onStep,onClose}:Props){
  const card=useRef<HTMLDivElement>(null),attempted=useRef(false),lastPosition=useRef<{x:number;y:number}|null>(null);
  const timers=useRef<{change?:ReturnType<typeof setTimeout>;reveal?:ReturnType<typeof setTimeout>}>({});
@@ -86,6 +108,7 @@ export function ReaderOnboarding({ready,open,bookTitle,colorLabel,exampleText,st
     <p id="tour-description">{current.text}</p>
     {current.id==='pencil'&&!complete&&<div className="tour-gesture" aria-hidden="true"><span>Ein Gedanke im Text</span><i/><PenLine size={17}/></div>}
     {current.task&&<div className={'tour-task '+(complete?'is-complete':'')} aria-live="polite">{complete?<CheckCircle2 size={20}/>:<MousePointer2 size={20}/>}<div><small>{complete?'Ausprobiert':'optional' in current?'Wenn du möchtest':'Du bist dran'}</small><span>{complete?current.success:current.id==='notebook'?`Wähle „${colorLabel}“ im Farbfilter.`:current.task}</span></div></div>}
+    {current.task&&step!==null&&<TourAutoAdvance key={step} complete={!!complete} changing={changing} onAdvance={()=>navigate(step+1)}/>}
     {current.id==='notebook'&&<blockquote className="tour-note-preview">{exampleText.slice(0,160)}</blockquote>}
     {last&&<>
      <div className="tour-recap">{[['selection','Textstelle auswählen'],['pencil','Markierung setzen'],['notes','Gedanken festhalten'],['notebook','Im Notizbuch wiederfinden']].map(([id,label])=><span key={id}>{done[id]?<CheckCircle2 size={17}/>:<Check size={17}/>} {label}</span>)}</div>

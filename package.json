@@ -14,7 +14,8 @@
     "test": "tsx --test tests/*.test.ts",
     "check:corpus": "tsx scripts/check-corpus.ts",
     "test:selection": "playwright test",
-    "test:stats": "playwright test --config playwright.stats.config.ts"
+    "test:stats": "playwright test --config playwright.stats.config.ts",
+    "check:audio": "tsx scripts/check-audiobooks.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -1,0 +1,130 @@
+{
+  "iphigenie": {
+    "archiveId": "Iphigenie_Goethe_1010_librivox",
+    "narrator": "redaer",
+    "sourceUrl": "https://librivox.org/iphigenie-auf-tauris-ein-schauspiel-by-johann-wolfgang-von-goethe/"
+  },
+  "faust": {
+    "archiveId": "faust1_1012_librivox",
+    "narrator": "redaer",
+    "sourceUrl": "https://librivox.org/faust-der-tragodie-erster-teil-by-johann-wolfgang-von-goethe/"
+  },
+  "woyzeck": {
+    "archiveId": "woyzeck_librivox",
+    "narrator": "Thomas Rappel",
+    "sourceUrl": "https://librivox.org/woyzeck_by_georg_buechner/",
+    "note": "Diese Aufnahme verwendet eine andere Szenenfolge. Nicht alle Szenen unserer Ausgabe sind enthalten.",
+    "trackSections": [
+      [
+        "s038"
+      ],
+      [
+        "s034"
+      ],
+      [
+        "s035"
+      ],
+      [
+        "s025",
+        "s002",
+        "s027"
+      ],
+      [
+        "s003"
+      ],
+      [
+        "s037"
+      ],
+      [
+        "s041"
+      ],
+      [
+        "s039"
+      ],
+      [
+        "s042",
+        "s029"
+      ],
+      [
+        "s040",
+        "s030"
+      ],
+      [
+        "s043"
+      ],
+      [
+        "s044"
+      ],
+      [
+        "s045"
+      ],
+      [
+        "s046"
+      ],
+      [
+        "s032"
+      ],
+      [
+        "s009"
+      ],
+      [
+        "s047"
+      ],
+      [
+        "s048"
+      ],
+      [
+        "s049"
+      ],
+      [
+        "s050"
+      ],
+      [
+        "s015"
+      ],
+      [
+        "s016"
+      ],
+      [
+        "s018"
+      ],
+      [
+        "s020",
+        "s021"
+      ]
+    ]
+  },
+  "kabale": {
+    "archiveId": "kabaleundliebe_1009_librivox",
+    "narrator": "redaer",
+    "sourceUrl": "https://librivox.org/kabale-und-liebe-ein-burgerliches-trauerspiel-by-friedrich-schiller/",
+    "status": "preparing"
+  },
+  "maria": {
+    "archiveId": "maria_stuart_1009_librivox",
+    "narrator": "redaer",
+    "sourceUrl": "https://librivox.org/maria-stuart-by-friedrich-von-schiller/",
+    "status": "preparing"
+  },
+  "verwandlung": {
+    "archiveId": "verwandlung_mw_0811_librivox",
+    "narrator": "Markus Wachenheim",
+    "sourceUrl": "https://librivox.org/die-verwandlung-von-franz-kafka/"
+  },
+  "krug": {
+    "kind": "synthetic",
+    "narrator": "Thorsten-Voice (synthetisch)",
+    "sourceUrl": "https://thorsten-voice.de/en/guides/piper/"
+  },
+  "emilia": {
+    "kind": "synthetic",
+    "narrator": "Thorsten-Voice (synthetisch)",
+    "sourceUrl": "https://thorsten-voice.de/en/guides/piper/"
+  },
+  "nathan": {
+    "kind": "synthetic",
+    "narrator": "Thorsten-Voice (synthetisch)",
+    "sourceUrl": "https://thorsten-voice.de/en/guides/piper/",
+    "status": "preparing"
+  }
+}

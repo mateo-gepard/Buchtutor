@@ -1,6 +1,8 @@
 'use client';
 import {useState} from 'react';
-import {ArrowRight,Search} from 'lucide-react';
+import {ArrowRight,Headphones,Search} from 'lucide-react';
+import audioSources from '@/corpus/audiobook-sources.json';
+import {hasAudiobook} from '@/lib/audiobook';
 import {BookCover} from './book-cover';
 import type {ReadingProgress,WorkMeta} from '@/lib/reader-model';
 
@@ -15,7 +17,7 @@ export function ReaderLibrary({catalog,progress,onOpen}:{catalog:WorkMeta[];prog
     <div className="book-grid">{works.map((work,i)=>{
       const continuing=progress.some(p=>p.workId===work.id&&p.editionId===work.editionId);
       return <button className="library-book" key={work.id} onClick={()=>onOpen(work.id)} aria-label={`${work.title} – ${continuing?'weiterlesen':'öffnen'}`}>
-        <BookCover {...work} priority={i<4}/><span className="book-details"><strong>{work.title}</strong><span>{work.author}</span><small>{continuing?'Weiterlesen':work.genre}<ArrowRight size={14}/></small></span>
+        <BookCover {...work} priority={i<4}/><span className="book-details"><strong>{work.title}</strong><span>{work.author}</span><span className="book-audio-label"><Headphones size={12}/>{hasAudiobook(work.id)?(['krug','emilia','nathan'].includes(work.id)?'Synthetische Lesung':'Hörbuch verfügbar'):Object.hasOwn(audioSources,work.id)?'Hörbuch in Vorbereitung':'Vorlesen'}</span><small>{continuing?'Weiterlesen':work.genre}<ArrowRight size={14}/></small></span>
       </button>;
     })}
     {(filter==='all'||filter==='prose')&&(!query||'heimsuchung jenny erpenbeck'.includes(query.toLocaleLowerCase('de')))&&<article className="library-book unavailable"><BookCover id="heimsuchung" title="Heimsuchung" author="Jenny Erpenbeck" genre="Roman" year={2008}/><div className="book-details"><strong>Heimsuchung</strong><span>Jenny Erpenbeck</span><small>Kein lizenzierter Volltext</small></div></article>}

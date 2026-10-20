@@ -1,4 +1,5 @@
 import {test,expect,type Page} from './reader-test';
+import {ONBOARDING_KEY} from '../../lib/onboarding';
 import type {LocalSnapshot} from '../../lib/local-model';
 
 async function stored(page:Page):Promise<LocalSnapshot>{
@@ -41,6 +42,8 @@ test('manual bookmark toggles without duplicates and survives encrypted transfer
 
   const other=await browser.newContext({baseURL:new URL(page.url()).origin,viewport:{width:834,height:1194}});
   try{
+    // This second context tests transfer; first-visit onboarding has separate coverage.
+    await other.addInitScript(key=>localStorage.setItem(key,'1'),ONBOARDING_KEY);
     const device=await other.newPage();
     await device.goto(bookUrl);await expect(device.locator('.reader-bookmark')).toBeEnabled();
     await transfer(device);
