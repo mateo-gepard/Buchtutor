@@ -90,6 +90,23 @@ test('a fast tool tap freezes the latest handles before focus, then survives edi
   await expect.poll(async()=>(await state(page)).selection?.quote).toBe(initial.blocks[0].text.slice(3)+'\n'+initial.blocks[1].text.slice(0,12));
 });
 
+test('the shared note button keeps a native selection made in the same event turn',async({page})=>{
+  const initial=await state(page);
+  await page.evaluate(()=>{
+    const element=document.querySelectorAll('[data-text]')[2];
+    element.dispatchEvent(new Event('selectstart',{bubbles:true}));
+    const range=document.createRange();range.selectNodeContents(element);
+    window.getSelection()!.removeAllRanges();window.getSelection()!.addRange(range);
+    document.dispatchEvent(new Event('selectionchange'));
+    document.querySelector<HTMLButtonElement>('[aria-label="Notiz schreiben"]')!.click();
+  });
+  await expect(page.locator('.panel-notes .selection-excerpt blockquote')).toHaveText(initial.blocks[2].text);
+  await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Gedanke zur ausgewählten Stelle');
+  await page.getByRole('button',{name:'Notiz speichern',exact:true}).click();
+  await expect(page.locator('.panel-notes .note-card').first()).toContainText('Gedanke zur ausgewählten Stelle');
+  expect((await state(page)).selection?.startId).toBe(initial.blocks[2].id);
+});
+
 test('analysis reads the current selection, not an earlier debounced range',async({page})=>{
   await verse(page,1).click();
   const received=page.waitForRequest(r=>r.url().endsWith('/api/analysis')&&r.method()==='POST');

@@ -36,7 +36,7 @@ test('raw handwriting groups, saves original ink locally and remains editable wi
 });
 
 test('handwriting survives closing and reload; unavailable cloud recognition never blocks local saving',async({page})=>{
- await mark(page);await writeNear(page);await page.getByRole('button',{name:'Pencil-Modus schließen, Entwürfe behalten'}).click();await page.reload();await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveCount(3);await expect(page.locator('.pencil-ink-label')).toHaveText('↳ V. 1');await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);
+ await mark(page);await writeNear(page);await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await page.reload();await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveCount(3);await expect(page.locator('.pencil-ink-label')).toHaveText('↳ V. 1');await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);
 });
 
 test('two different handwritten notes keep their colors and canonical targets',async({page})=>{
@@ -46,32 +46,32 @@ test('two different handwritten notes keep their colors and canonical targets',a
 test('handwriting without a nearby mark remains a draft instead of being silently saved',async({page})=>{
  let requests=0;await page.route('**/api/handwriting',route=>{requests++;return route.abort();});await writeNear(page);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-error')).toContainText('keine nahe Markierung');expect(requests).toBe(0);
  await mark(page);await expect(page.locator('.pencil-ink-label')).toHaveText('↳ V. 1');
- await page.getByRole('button',{name:'Pencil-Modus schließen, Entwürfe behalten'}).click();await expect(page.locator('.pencil-page-ink')).toHaveCount(0);await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveCount(3);
+ await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await expect(page.locator('.pencil-page-ink')).toHaveCount(0);await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveCount(3);
 });
 test('custom meanings and manual transcription preserve original page ink',async({page})=>{
- await page.getByRole('button',{name:'Farbbedeutungen anpassen',exact:true}).click();await page.getByLabel('Bedeutung für Grün').fill('Sprachliche Bilder');await page.getByLabel('Bedeutung für Grün').press('Tab');await page.getByRole('button',{name:'Farbbedeutungen schließen',exact:true}).click();await chooseColor(page,'Grün: Sprachliche Bilder');await mark(page);await writeNear(page);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);await openNotebook(page);await page.getByLabel('Nach Markierungsbedeutung filtern').selectOption('Sprachliche Bilder');await page.locator('.note-open').click();await page.getByRole('textbox',{name:'Deine Notiz'}).fill('Hain als Zuflucht');await page.getByRole('button',{name:'Notiz speichern',exact:true}).click();await expect(page.locator('.panel-notes .note-card')).toContainText('Hain als Zuflucht');await page.locator('.panel-notes .saved-ink summary').click();await expect(page.locator('.panel-notes .saved-ink path')).toHaveCount(3);
+ await page.getByRole('button',{name:'Markierungsfarbe wählen',exact:true}).click();await page.getByRole('button',{name:'Farbbedeutungen anpassen',exact:true}).click();await page.getByLabel('Bedeutung für Grün').fill('Sprachliche Bilder');await page.getByLabel('Bedeutung für Grün').press('Tab');await page.getByRole('button',{name:'Farbbedeutungen schließen',exact:true}).click();await chooseColor(page,'Grün: Sprachliche Bilder');await mark(page);await writeNear(page);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);await openNotebook(page);await page.getByLabel('Nach Markierungsbedeutung filtern').selectOption('Sprachliche Bilder');await page.locator('.note-open').click();await page.getByRole('textbox',{name:'Deine Notiz'}).fill('Hain als Zuflucht');await page.getByRole('button',{name:'Notiz speichern',exact:true}).click();await expect(page.locator('.panel-notes .note-card')).toContainText('Hain als Zuflucht');await page.locator('.panel-notes .saved-ink summary').click();await expect(page.locator('.panel-notes .saved-ink path')).toHaveCount(3);
 });
 
 test('palette can move freely, snap to every edge, restore and keep settings inside the viewport',async({page})=>{
- const grip=page.getByRole('button',{name:'Pencil-Leiste verschieben',exact:true});
+ const grip=page.getByRole('button',{name:'Werkzeugleiste verschieben',exact:true});
  // Keyboard movement provides the same positioning without a precision drag.
- await grip.focus();await grip.press('Home');await grip.press('ArrowUp');await expect(page.locator('.pencil-workspace')).toHaveAttribute('data-dock','floating');
+ await grip.focus();await grip.press('Home');await grip.press('ArrowUp');await expect(page.locator('.reader-workspace')).toHaveAttribute('data-dock','floating');
  for(const [key,edge] of [['ArrowLeft','left'],['ArrowUp','top'],['ArrowRight','right'],['ArrowDown','bottom']] as const){
-  await grip.press('Shift+'+key);await expect(page.locator('.pencil-workspace')).toHaveAttribute('data-dock',edge);
-  await expect.poll(async()=>{const bar=await page.locator('.pencil-workspace').boundingBox();return !!bar&&(edge==='left'||edge==='right'?bar.height>bar.width:bar.width>bar.height);}).toBe(true);
-  if(page.viewportSize()!.width<=600&&(edge==='left'||edge==='right'))await expect.poll(async()=>{const bar=await page.locator('.pencil-workspace').boundingBox(),text=await page.locator('[data-text]').first().boundingBox();return !!bar&&!!text&&(edge==='left'?text.x>=bar.x+bar.width:text.x+text.width<=bar.x)?'inside':JSON.stringify({edge,bar,text});}).toBe('inside');
-  await page.getByRole('button',{name:'Farbbedeutungen anpassen',exact:true}).click();await expect(page.locator('.pencil-settings')).toBeVisible();const viewport=page.viewportSize()!;await expect.poll(async()=>{const box=await page.locator('.pencil-settings').boundingBox();return !!box&&box.x>=0&&box.y>=0&&box.x+box.width<=viewport.width&&box.y+box.height<=viewport.height;}).toBe(true);await page.getByRole('button',{name:'Farbbedeutungen schließen',exact:true}).click();
+  await grip.press('Shift+'+key);await expect(page.locator('.reader-workspace')).toHaveAttribute('data-dock',edge);
+  await expect.poll(async()=>{const bar=await page.locator('.reader-workspace').boundingBox();return !!bar&&(edge==='left'||edge==='right'?bar.height>bar.width:bar.width>bar.height);}).toBe(true);
+  if(page.viewportSize()!.width<=600&&(edge==='left'||edge==='right'))await expect.poll(async()=>{const bar=await page.locator('.reader-workspace').boundingBox(),text=await page.locator('[data-text]').first().boundingBox();return !!bar&&!!text&&(edge==='left'?text.x>=bar.x+bar.width:text.x+text.width<=bar.x)?'inside':JSON.stringify({edge,bar,text});}).toBe('inside');
+  await page.getByRole('button',{name:'Markierungsfarbe wählen',exact:true}).click();await page.getByRole('button',{name:'Farbbedeutungen anpassen',exact:true}).click();await expect(page.locator('.pencil-settings')).toBeVisible();const viewport=page.viewportSize()!;await expect.poll(async()=>{const box=await page.locator('.pencil-settings').boundingBox();return !!box&&box.x>=0&&box.y>=0&&box.x+box.width<=viewport.width&&box.y+box.height<=viewport.height;}).toBe(true);await page.getByRole('button',{name:'Farbbedeutungen schließen',exact:true}).click();
  }
- await grip.press('Shift+ArrowRight');await page.reload();await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveAttribute('data-dock','right');
- await page.setViewportSize({width:834,height:700});await expect.poll(async()=>{const b=await page.locator('.pencil-workspace').boundingBox();return !!b&&b.x>=0&&b.y>=0&&b.x+b.width<=834&&b.y+b.height<=700;}).toBe(true);
+ await grip.press('Shift+ArrowRight');await page.reload();await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await expect(page.locator('.reader-workspace')).toHaveAttribute('data-dock','right');
+ await page.setViewportSize({width:834,height:700});await expect.poll(async()=>{const b=await page.locator('.reader-workspace').boundingBox();return !!b&&b.x>=0&&b.y>=0&&b.x+b.width<=834&&b.y+b.height<=700;}).toBe(true);
 });
 test('drag grip works with pen and finger; cancel restores its previous position',async({page})=>{
- const grip=page.getByRole('button',{name:'Pencil-Leiste verschieben',exact:true});
+ const grip=page.getByRole('button',{name:'Werkzeugleiste verschieben',exact:true});
  for(const pointerType of ['pen','touch']){
   await grip.evaluate((el,pointerType)=>{const r=el.getBoundingClientRect();for(const [type,x,y] of [['pointerdown',r.x+10,r.y+10],['pointermove',12,100],['pointerup',12,100]] as const)el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerType,pointerId:93,clientX:x,clientY:y,buttons:type==='pointerup'?0:1}));},pointerType);
-  await expect(page.locator('.pencil-workspace')).toHaveAttribute('data-dock','left');
+  await expect(page.locator('.reader-workspace')).toHaveAttribute('data-dock','left');
  }
- await grip.evaluate(el=>{const r=el.getBoundingClientRect();for(const [type,x,y] of [['pointerdown',r.x+10,r.y+10],['pointermove',300,200],['pointercancel',300,200]] as const)el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerType:'touch',pointerId:94,clientX:x,clientY:y}));});await expect(page.locator('.pencil-workspace')).toHaveAttribute('data-dock','left');
+ await grip.evaluate(el=>{const r=el.getBoundingClientRect();for(const [type,x,y] of [['pointerdown',r.x+10,r.y+10],['pointermove',300,200],['pointercancel',300,200]] as const)el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerType:'touch',pointerId:94,clientX:x,clientY:y}));});await expect(page.locator('.reader-workspace')).toHaveAttribute('data-dock','left');
 });
 test('Pencil writing can cross verse-number controls and append to an existing saved mark',async({page})=>{
 
@@ -81,9 +81,9 @@ test('Pencil writing can cross verse-number controls and append to an existing s
  await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await writeNear(page);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);await openNotebook(page);await expect(page.locator('.note-card')).toHaveCount(1);await expect(page.locator('.note-card')).toContainText('ohne Texterkennung');await page.getByText('Originalhandschrift',{exact:true}).click();await expect(page.locator('.saved-ink path')).toHaveCount(4);
 });
 test('a real pointer drag moves the palette freely and leaves the text stationary',async({page})=>{
- const bar=await page.locator('.pencil-workspace').boundingBox(),grip=await page.getByRole('button',{name:'Pencil-Leiste verschieben',exact:true}).boundingBox(),before=await page.locator('[data-text]').first().boundingBox();
+ const bar=await page.locator('.reader-workspace').boundingBox(),grip=await page.getByRole('button',{name:'Werkzeugleiste verschieben',exact:true}).boundingBox(),before=await page.locator('[data-text]').first().boundingBox();
  await page.mouse.move(grip!.x+12,grip!.y+12);await page.mouse.down();await page.mouse.move((page.viewportSize()!.width-bar!.width)/2+12,220,{steps:6});await page.mouse.up();
- await expect(page.locator('.pencil-workspace')).toHaveAttribute('data-dock','floating');await expect.poll(async()=>{const b=await page.locator('.pencil-workspace').boundingBox();return !!b&&b.y<300;}).toBe(true);const after=await page.locator('[data-text]').first().boundingBox();expect(after!.y).toBeCloseTo(before!.y,0);
+ await expect(page.locator('.reader-workspace')).toHaveAttribute('data-dock','floating');await expect.poll(async()=>{const b=await page.locator('.reader-workspace').boundingBox();return !!b&&b.y<300;}).toBe(true);const after=await page.locator('[data-text]').first().boundingBox();expect(after!.y).toBeCloseTo(before!.y,0);
 });
 
 async function wordsGesture(page:Page,start:number,end=start,ending='pointerup',pointerType='pen'){

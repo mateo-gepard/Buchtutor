@@ -1,0 +1,31 @@
+# Gemeinsame Lesewerkzeuge
+
+Betreiberauftrag vom 20.10.2026: Pencil/Notizen, Hörbuch und KI-Hilfe in einer gemeinsamen, verschiebbaren Leiste zusammenführen. Die pausierte Vorbereitung weiterer Hörbücher bleibt davon unberührt.
+
+## Referenzen und Übertragung
+
+Die offiziellen Goodnotes-Beschreibungen wurden am 20.10.2026 geprüft:
+
+- [Customize the toolbar](https://support.goodnotes.com/hc/en-us/articles/8900755183631-Customize-the-toolbar): gemeinsame Werkzeugauswahl, Audio erreichbar halten, Zeichenwerkzeuge verschieben und an Bildschirmrändern andocken.
+- [What’s new for the September launch](https://support.goodnotes.com/hc/en-us/articles/13724030806927-What-s-new-for-the-September-launch): Hauptleiste plus Werkzeugoptionen im passenden Kontext, damit mehr Platz für das Dokument bleibt.
+- [Shaping Goodnotes AI to the way you work](https://www.goodnotes.com/blog/shaping-goodnotes-ai-to-the-way-you-work): KI-Hilfe neben der eigentlichen Arbeit erreichbar machen.
+
+Buchtutor übernimmt diese Anordnung als Bedienprinzip und behält seine eigene Gestaltung und deutschen Beschriftungen.
+
+## Verhalten
+
+- Eine gemeinsame Oberfläche enthält Textauswahl, Pencil, Notizen, KI-Hilfe und Audio. Ab 600 Pixeln passen auch die aktiven Pencil-Werkzeuge in dieselbe Zeile. Auf schmalen Telefonen steht die Zeichenwerkzeuggruppe in einer zweiten Zeile derselben Leiste.
+- Farbe, Schreiben, Radierer, Rückgängig und „Fertig“ sind direkt erreichbar. Ein kleines Farbmenü enthält die fünf Farben und den Zugang zu ihren Bedeutungen. Der Pencil-Schalter schließt den Zeichenmodus mit erhaltenem Entwurf.
+- Play/Pause bleibt erreichbar, während Notizen oder KI-Hilfe geöffnet sind. Kapitel, Tempo, Hörposition, Timer und Quellenangaben liegen in den Hörbuchdetails.
+- Notizen, KI-Hilfe, Hörbuchdetails und Werkzeugmenüs öffnen jeweils einen gemeinsamen Detailbereich. Ab 760 Pixeln Bildschirmbreite bleibt neben dem 320–360 Pixel breiten Seitenfenster ein eigener Textbereich frei, auch im iPad-Hochformat.
+- In schmaler Split-View sitzt das Detailfenster unten: höchstens 320 Pixel beziehungsweise 42 Prozent der sichtbaren Seitenhöhe. Mehr Inhalt ist innerhalb des Fensters scrollbar; die Lesehilfe kann auf Wunsch vergrößert werden. Beim seitlichen Andocken bleibt auch die Werkzeugleiste neben dem Fenster bedienbar.
+- Griff ziehen oder mit den Pfeiltasten bewegen; Umschalt plus Pfeiltaste dockt an. „Leiste anordnen“ bietet dieselben Ziele ohne Ziehgeste. Home setzt die Leiste nach oben zurück.
+- Kopfzeile, Lesefortschritt, sichtbarer Bildschirm und Bildschirmtastatur begrenzen die Position. Die vorhandene lokale Positionskennung wird weiterverwendet.
+- Wechsel zwischen Details erhält die Audioinstanz, die Wiedergabe, Pencil-Entwürfe und angefangene Textnotizen. Die bisherigen Speicher- und Editionsanker bleiben unverändert.
+- Die Einführung hebt die tatsächlichen Werkzeuge hervor. Überlappende Ausschnitte werden vereinigt, damit ihre Schnittfläche anklickbar bleibt.
+
+## Prüfung
+
+Der kombinierte Browsertest prüft echte Medienwiedergabe mit einer lokalen Testaufnahme, eine Pencil-Markierung, einen Textentwurf, Wechsel zwischen KI-/Audio-/Notizdetails, dieselbe weiterlaufende Audioinstanz und das Andocken. Die bestehenden Prüfungen decken zusätzlich Zeichnen, Radieren, Kritzeln, lokale Speicherung, Textauswahl und die vollständige Einführung ab.
+
+Playwright-Projekte: Desktop-Chromium, mobiles Chromium und iPad-WebKit in Hoch- und Querformat. Zusätzliche Layoutprüfungen öffnen Farbmenü, Notizen, KI-Hilfe, Figuren und Audio einzeln, messen den verbleibenden Textbereich und erstellen Screenshots. Verkleinerte Ansichten prüfen Split-View und den Platzbedarf einer Tastatur. Native Apple-Pencil-Hardware und die iPad-Systemtastatur können durch diese Emulation nicht vollständig geprüft werden.

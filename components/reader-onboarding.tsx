@@ -4,6 +4,22 @@ import {createPortal} from 'react-dom';
 import {ArrowLeft,ArrowRight,BookOpen,Bookmark,Check,CheckCircle2,Eraser,FileKey2,Filter,Highlighter,Lightbulb,LockKeyhole,MousePointer2,PenLine,MessageSquare,Users,X} from 'lucide-react';
 import {ONBOARDING_KEY,tourChapters,tourSteps} from '@/lib/onboarding';
 type Box={x:number;y:number;width:number;height:number};
+// Overlapping cutouts must form one hole; even-odd SVG paths would shade their intersection.
+function mergeSpots(spots:Box[]){
+ const merged:Box[]=[];
+ for(const spot of spots){
+  let box={...spot},index=0;
+  while(index<merged.length){
+   const other=merged[index];
+   if(box.x<=other.x+other.width&&box.x+box.width>=other.x&&box.y<=other.y+other.height&&box.y+box.height>=other.y){
+    const x=Math.min(box.x,other.x),y=Math.min(box.y,other.y);
+    box={x,y,width:Math.max(box.x+box.width,other.x+other.width)-x,height:Math.max(box.y+box.height,other.y+other.height)-y};merged.splice(index,1);index=0;
+   }else index++;
+  }
+  merged.push(box);
+ }
+ return merged;
+}
 type Props={ready:boolean;open:boolean;bookTitle:string;colorLabel:string;exampleText:string;step:number|null;done:Record<string,boolean>;onTry:(value?:string)=>void;onStart:()=>void;onBegin:()=>void;onStep:(index:number)=>void;onClose:()=>void};
 const icons={book:BookOpen,eraser:Eraser,note:MessageSquare,selection:Highlighter,pencil:Highlighter,pen:PenLine,bulb:Lightbulb,users:Users,bookmark:Bookmark,filter:Filter,lock:LockKeyhole};
 function visible(el:HTMLElement){const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(el).visibility!=='hidden';}
@@ -58,7 +74,7 @@ export function ReaderOnboarding({ready,open,bookTitle,colorLabel,exampleText,st
    function walk(el:HTMLElement){if(allowed.some(node=>node===el||node.contains(el)))return;if(allowed.some(node=>el.contains(node))){for(const child of el.children)if(child instanceof HTMLElement)walk(child);}else{inertBefore.set(el,el.inert);el.inert=true;}}
    walk(app);accessDirty=false;
   }
-  const first=primary();if(first){if(current.target==='.source-row'){first.scrollIntoView({block:'start',behavior:'instant'});window.scrollBy({top:first.getBoundingClientRect().top-90,behavior:'instant'});}else{const r=first.getBoundingClientRect();if(r.top<80||r.bottom>window.innerHeight-80)first.scrollIntoView({block:'center',behavior:'instant'});}}
+  const first=primary();if(first){if(current.target==='.source-row'){const tools=document.querySelector('.reader-workspace[data-dock="top"]')?.getBoundingClientRect(),top=Math.max(90,(tools?.bottom??0)+18);first.scrollIntoView({block:'start',behavior:'instant'});window.scrollBy({top:first.getBoundingClientRect().top-top,behavior:'instant'});}else{const r=first.getBoundingClientRect();if(r.top<80||r.bottom>window.innerHeight-80)first.scrollIntoView({block:'center',behavior:'instant'});}}
   function measure(){
    if(disposed||!card.current)return;if(accessDirty)access();
    const vv=window.visualViewport,vx=vv?.offsetLeft??0,vy=vv?.offsetTop??0,w=vv?.width??window.innerWidth,h=vv?.height??window.innerHeight;
@@ -97,7 +113,7 @@ export function ReaderOnboarding({ready,open,bookTitle,colorLabel,exampleText,st
  },[step,open]);
  if(!open)return null;
  const current=step===null?null:tourSteps[step],last=step===tourSteps.length-1,Icon=current?icons[current.icon]:BookOpen,complete=current?done[current.id]:false;
- const holes=(geometry?.spots??[]).map(r=>{const c=Math.min(10,r.width/2,r.height/2);return `M${r.x+c},${r.y} H${r.x+r.width-c} Q${r.x+r.width},${r.y} ${r.x+r.width},${r.y+c} V${r.y+r.height-c} Q${r.x+r.width},${r.y+r.height} ${r.x+r.width-c},${r.y+r.height} H${r.x+c} Q${r.x},${r.y+r.height} ${r.x},${r.y+r.height-c} V${r.y+c} Q${r.x},${r.y} ${r.x+c},${r.y} Z`;}).join(' ');
+ const holes=mergeSpots(geometry?.spots??[]).map(r=>{const c=Math.min(10,r.width/2,r.height/2);return `M${r.x+c},${r.y} H${r.x+r.width-c} Q${r.x+r.width},${r.y} ${r.x+r.width},${r.y+c} V${r.y+r.height-c} Q${r.x+r.width},${r.y+r.height} ${r.x+r.width-c},${r.y+r.height} H${r.x+c} Q${r.x},${r.y+r.height} ${r.x},${r.y+r.height-c} V${r.y+c} Q${r.x},${r.y} ${r.x+c},${r.y} Z`;}).join(' ');
  return createPortal(<div className="reader-onboarding" data-transition={changing?'changing':'ready'}>
   <svg className="tour-shade" aria-hidden="true"><path fillRule="evenodd" d={`M0,0 H100000 V100000 H0 Z ${holes}`}/>{geometry?.spots.map((r,i)=><rect key={i} className="tour-spotlight" x={r.x} y={r.y} width={r.width} height={r.height} rx={10}/>)}{changing&&<rect width="100%" height="100%" fill="transparent" style={{pointerEvents:'all'}}/>}</svg>
   <div ref={card} role="dialog" aria-modal={step===null||last?'true':'false'} aria-labelledby="tour-title" aria-describedby="tour-description" className={'tour-card '+(step===null?'tour-welcome':last?'tour-finish':'')} tabIndex={-1} data-tour-step={current?.id??'welcome'} style={geometry?{left:geometry.card.x,top:geometry.card.y,width:geometry.card.width,maxHeight:geometry.card.height}:{visibility:'hidden'}}>

@@ -27,18 +27,18 @@ test('recording loads only on play, follows text, pauses following on interactio
  await details(page);await expect(page.getByRole('checkbox',{name:'Text automatisch mitführen'})).toBeChecked();await page.locator('[data-text]').first().dispatchEvent('pointerdown');await details(page);await expect(page.getByRole('checkbox',{name:'Text automatisch mitführen'})).not.toBeChecked();
  await page.getByRole('button',{name:'Zur Hörstelle',exact:true}).click();await expect(page.getByRole('checkbox',{name:'Text automatisch mitführen'})).toBeChecked();await page.getByRole('combobox',{name:'Hörtempo'}).selectOption('1.5');expect(await page.locator('audio').evaluate(el=>(el as HTMLAudioElement).playbackRate)).toBe(1.5);
  await at(page,8);await expect(page.locator('.audio-current')).toHaveAttribute('id',lines[3].id);await page.getByRole('button',{name:'Wiedergabe pausieren',exact:true}).click();await expect.poll(()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)??'null')?.time,audioProgressKey(book.editionId))).toBeGreaterThan(7);
- await page.evaluate(()=>window.scrollTo(0,500));const beforeClose=await page.evaluate(()=>window.scrollY);await page.getByRole('button',{name:'Player schließen und pausieren',exact:true}).click();await expect(page.locator('.reader-audio')).toHaveCount(0);await expect.poll(async()=>Math.abs(await page.evaluate(()=>window.scrollY)-beforeClose)).toBeLessThanOrEqual(24);await expect(page.locator('.audio-current')).toHaveCount(0);await page.getByRole('button',{name:'Hören und mitlesen',exact:true}).click();await expect(page.getByRole('slider',{name:'Hörposition im Audiokapitel'})).toHaveValue(/^8/);await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();
+ await page.evaluate(()=>window.scrollTo(0,500));const beforeClose=await page.evaluate(()=>window.scrollY);await page.getByRole('button',{name:'Player schließen und pausieren',exact:true}).click();await expect(page.locator('.reader-audio')).toHaveCount(0);await expect.poll(async()=>Math.abs(await page.evaluate(()=>window.scrollY)-beforeClose)).toBeLessThanOrEqual(24);await expect(page.locator('.audio-current')).toHaveCount(0);await page.getByRole('button',{name:'Hören und mitlesen',exact:true}).click();await details(page);await expect(page.getByRole('slider',{name:'Hörposition im Audiokapitel'})).toHaveValue(/^8/);await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();
 });
 test('locally hosted synthetic recordings validate, play and retain their clear source label',async({page})=>{
  const requests=await setup(page,false,true);await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeEnabled();expect(requests()).toBe(0);
- await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await at(page,2);await expect(page.locator('.audio-current')).toHaveAttribute('id',lines[0].id);await expect(page.locator('.audio-title')).toContainText('Synthetische Lesung');expect(requests()).toBeGreaterThan(0);
+ await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await at(page,2);await expect(page.locator('.audio-current')).toHaveAttribute('id',lines[0].id);await details(page);await expect(page.locator('.audio-title')).toContainText('Synthetische Lesung');expect(requests()).toBeGreaterThan(0);
 });
 test('chapter navigation preserves pause, carries text across sections, and chapter sleep stops playback',async({page})=>{
  await setup(page);await details(page);await page.getByRole('combobox',{name:'Audiokapitel wählen'}).selectOption('1');await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await at(page,2);await expect(page).toHaveURL(new RegExp('section='+second.id));await expect(page.locator('.audio-current')).toHaveCount(1);
  await page.getByRole('combobox',{name:'Schlaftimer'}).selectOption('chapter');await page.locator('audio').evaluate(el=>el.dispatchEvent(new Event('ended')));await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();await expect(page.getByRole('combobox',{name:'Schlaftimer'})).toHaveValue('off');await geometry(page);
 });
 test('unsupported edition falls back clearly and narrow layouts remain usable',async({page})=>{
- await setup(page,true);await expect(page.locator('.audio-error')).toContainText('Textausgabe');await details(page);await expect(page.getByRole('combobox',{name:'Audioquelle wählen'})).toHaveValue('device');await page.setViewportSize({width:320,height:680});await geometry(page);await page.getByRole('button',{name:'Player schließen und pausieren',exact:true}).click();await expect(page.getByRole('button',{name:'Hören und mitlesen',exact:true})).toBeFocused();
+ await setup(page,true);await details(page);await expect(page.locator('.audio-error')).toContainText('Textausgabe');await expect(page.getByRole('combobox',{name:'Audioquelle wählen'})).toHaveValue('device');await page.setViewportSize({width:320,height:680});await geometry(page);await page.getByRole('button',{name:'Player schließen und pausieren',exact:true}).click();await expect(page.getByRole('button',{name:'Hören und mitlesen',exact:true})).toBeFocused();
 });
 test('device voice reads canonical text, updates boundaries, cancels stale utterances and stops for onboarding',async({page})=>{
  await page.addInitScript(()=>{
@@ -53,7 +53,7 @@ test('device voice reads canonical text, updates boundaries, cancels stale utter
 });
 test('audio controls stay clear of text selection and the note panel',async({page})=>{
  await setup(page);await page.locator('.source-row .line-number').first().click();await expect(page.locator('.selection-dock')).toBeVisible();
- expect(await page.evaluate(()=>{const a=document.querySelector('.reader-audio')!.getBoundingClientRect(),b=document.querySelector('.selection-dock')!.getBoundingClientRect();return b.bottom<=a.top||b.right<=a.left||b.left>=a.right;})).toBe(true);
+ expect(await page.evaluate(()=>{const a=document.querySelector('.reader-audio')!.getBoundingClientRect(),b=document.querySelector('.selection-dock')!.getBoundingClientRect();return b.bottom<=a.top||a.bottom<=b.top||b.right<=a.left||b.left>=a.right;})).toBe(true);
  await page.getByRole('button',{name:'Notiz',exact:true}).click();await expect(page.getByRole('textbox',{name:'Deine Notiz'})).toBeVisible();
  expect(await page.evaluate(()=>{const a=document.querySelector('.reader-audio')!.getBoundingClientRect(),b=document.querySelector('.assistant-panel')!.getBoundingClientRect();return a.bottom<=b.top+1||a.right<=b.left+1||a.left>=b.right-1;})).toBe(true);
  await geometry(page);
@@ -66,7 +66,7 @@ test('automatic next track uses its own cues and skipping while paused does not 
 test('a failed media request can be retried without reopening the player',async({page})=>{
  await setup(page);let attempts=0,unavailable=true;
  await page.route('https://archive.org/download/buchtutor-test/**',route=>{attempts++;return unavailable?route.fulfill({status:503,body:'Temporarily unavailable'}):route.fulfill({body:wav(),contentType:'audio/wav'});});
- await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.locator('.audio-error')).toBeVisible();
+ await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.locator('.audio-error-indicator')).toBeVisible();await details(page);await expect(page.locator('.audio-error')).toBeVisible();
  unavailable=false;await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await expect(page.locator('.audio-error')).toHaveCount(0);expect(attempts).toBeGreaterThan(1);
 });
 test('loading can be canceled and a stalled recording has a bounded wait',async({page})=>{
@@ -87,4 +87,27 @@ test('unfinished recordings stay clearly marked and use device speech without mi
   await expect(page.getByRole('option',{name:'Aufnahme in Vorbereitung',exact:true})).toHaveJSProperty('disabled',true);
  }
  expect(requests).toEqual([]);
+});
+
+test('one shared toolbar preserves audio, Pencil drafts and typed notes while switching accessories',async({page})=>{
+ await setup(page);await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await at(page,2);
+ const media=await page.locator('audio').elementHandle();
+ await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();
+ await page.locator('[data-text]').first().evaluate(el=>{const node=document.createTreeWalker(el,NodeFilter.SHOW_TEXT).nextNode()!,range=document.createRange();range.setStart(node,0);range.setEnd(node,6);const r=range.getBoundingClientRect();for(const [type,x] of [['pointerdown',r.left+1],['pointermove',r.right-1],['pointerup',r.right-1]] as const)el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerId:71,pointerType:'pen',clientX:x,clientY:r.top+r.height/2,buttons:type==='pointerup'?0:1}));});
+ await expect(page.locator('.saved-highlight')).toHaveCount(1);
+ await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Natur als Zuflucht');
+ await page.getByRole('button',{name:'Lesehilfe öffnen',exact:true}).click();await expect(page.locator('.analysis-actions')).toBeVisible();
+ await expect(page.locator('.reader-workspace')).toHaveCount(1);await expect(page.locator('.workspace-popover:visible,.pencil-popover:visible')).toHaveCount(1);
+ await expect.poll(()=>page.locator('.reader-workspace').evaluate(el=>{const r=el.getBoundingClientRect(),header=document.querySelector('.reader-header')!.getBoundingClientRect();return r.top>=header.bottom+8;})).toBe(true);
+ await expect(page.getByRole('button',{name:'Radiergummi',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();
+ expect(await media!.evaluate(el=>el.isConnected&&!(el as HTMLAudioElement).paused)).toBe(true);
+ await details(page);await expect(page.locator('.assistant-panel')).toHaveCount(0);await expect(page.locator('.audio-details')).toBeVisible();
+ await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();await expect(page.locator('.audio-details')).toBeHidden();await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Natur als Zuflucht');
+ await expect(page.locator('.saved-highlight')).toHaveCount(1);expect(await media!.evaluate(el=>el.isConnected&&!(el as HTMLAudioElement).paused)).toBe(true);
+ await page.getByRole('button',{name:'Lesehilfe schließen',exact:true}).click();
+ await page.getByRole('button',{name:'Werkzeugleiste verschieben',exact:true}).press('Shift+ArrowRight');await expect(page.locator('.reader-workspace')).toHaveAttribute('data-dock','right');
+ await page.getByRole('button',{name:'Lesehilfe öffnen',exact:true}).click();
+ await expect.poll(()=>page.locator('.reader-workspace').evaluate(el=>{const r=el.getBoundingClientRect();return r.x>=0&&r.right<=innerWidth+1&&r.y>=0&&r.bottom<=innerHeight;})).toBe(true);
+ await expect.poll(()=>page.locator('.assistant-panel').evaluate(el=>{const r=el.getBoundingClientRect();return r.x>=0&&r.right<=innerWidth+1&&r.y>=0&&r.bottom<=innerHeight;})).toBe(true);
+ await page.getByRole('button',{name:'Wiedergabe pausieren',exact:true}).click();expect(await media!.evaluate(el=>(el as HTMLAudioElement).paused)).toBe(true);
 });

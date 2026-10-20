@@ -1,7 +1,7 @@
 'use client';
+import {createPortal} from 'react-dom';
 import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type PointerEvent,type ReactNode} from 'react';
-import {Check,GripVertical,Highlighter,LoaderCircle,RotateCcw,X,Settings2,PenLine,ArrowLeft,ArrowRight,ArrowUp,ArrowDown,Move,Eraser} from 'lucide-react';
-import {ApplePencilIcon} from './apple-pencil-icon';
+import {Check,Highlighter,LoaderCircle,RotateCcw,X,Settings2,PenLine,Eraser} from 'lucide-react';
 import {z} from 'zod';
 import type {Anchor,Book,SavedNote,Section} from '@/lib/reader-model';
 import {referenceLabel} from '@/lib/reader-model';
@@ -14,13 +14,12 @@ import {eraseHighlightedWords,erasePageLines} from '@/lib/pencil-eraser';
 import {inkTargets,wordBoxes} from '@/lib/pencil-dom';
 import {offersAppleScribble,PENCIL_HANDWRITING_HINT_KEY} from '@/lib/pencil-browser';
 import {PencilHandwritingHint} from './pencil-handwriting-hint';
-import {usePencilPlacement} from '@/hooks/use-pencil-placement';
 const entrySchema=z.object({id:z.string(),anchor:portableAnchorSchema,pencil:pencilAnnotationSchema,body:z.string().max(12000),createdAt:z.string().optional(),prefix:z.string().optional(),recognizedInk:z.string().optional(),order:z.number().optional()});
 const entriesSchema=z.array(entrySchema).max(100);
 const draftSchema=z.union([z.object({version:z.literal(2),entries:entriesSchema,groups:z.array(pageInkGroupSchema).max(100)}),entriesSchema.transform(entries=>({version:2 as const,entries,groups:[] as PageInkGroup[]}))]);
 type Entry=z.infer<typeof entrySchema>;
-type Props={practice?:boolean;onPractice?:(kind:'mark'|'ink'|'erase',data?:{anchor?:Anchor;color?:PencilColor;body?:string})=>void;book:Book;section:Section;prefs:Prefs;selection:Anchor|null;savedNotes:SavedNote[];enabled:boolean;onToggle:()=>void;onSaved:(message:string)=>void;children:(drafts:SavedNote[],afterBlock:Record<string,ReactNode>)=>ReactNode};
-export function ReaderPencil({practice=false,onPractice,book,section,prefs,selection,savedNotes,enabled,onToggle,onSaved,children}:Props){
+type Props={toolbarHost:HTMLElement|null;dismissMenusKey:number;onPopover:()=>void;practice?:boolean;onPractice?:(kind:'mark'|'ink'|'erase',data?:{anchor?:Anchor;color?:PencilColor;body?:string})=>void;book:Book;section:Section;prefs:Prefs;selection:Anchor|null;savedNotes:SavedNote[];enabled:boolean;onToggle:()=>void;onSaved:(message:string)=>void;children:(drafts:SavedNote[],afterBlock:Record<string,ReactNode>)=>ReactNode};
+export function ReaderPencil({toolbarHost,dismissMenusKey,onPopover,practice=false,onPractice,book,section,prefs,selection,savedNotes,enabled,onToggle,onSaved,children}:Props){
  const liveLine=useRef<SVGPathElement>(null),root=useRef<HTMLDivElement>(null);
  const continueWriting=useRef(false);
  const gesture=useRef<{id:number;points:InkStroke;boxes:WordBox[];startedOnText:boolean;origin:{x:number;y:number}}|null>(null);
@@ -30,7 +29,7 @@ export function ReaderPencil({practice=false,onPractice,book,section,prefs,selec
  const [history,setHistory]=useState<{entries:Entry[];groups:PageInkGroup[]}[]>([]);
  const [layout,setLayout]=useState<InkLayout>({width:640,fontSize:20,tops:{}});
  const inkHitBoxes=useMemo(()=>groups.flatMap(group=>projectedInk(group,layout).map(stroke=>inkBounds(stroke))),[groups,layout]);
- const {element:paletteRef,dock,preview:dockPreview,dragging,compact,style:paletteStyle,announcement,dockAt,grip}=usePencilPlacement(enabled,()=>{setSettings(false);setPalette(false);},practice);
+ useEffect(()=>{const frame=requestAnimationFrame(()=>{setSettings(false);setPalette(false);setHint(false);});return()=>cancelAnimationFrame(frame);},[dismissMenusKey]);
  const key=`buchtutor-pencil-draft:${book.id}:${book.editionId}:${section.id}`;
  const meaning=(c:PencilColor)=>prefs.pencilMeanings?.[c]??pencilPalette[c].meaning;
  const eligible=useMemo(()=>[...savedNotes.filter(n=>n.pencil&&!entries.some(e=>e.id===n.id)),...entries],[savedNotes,entries]);
@@ -67,7 +66,7 @@ export function ReaderPencil({practice=false,onPractice,book,section,prefs,selec
   return()=>{el.removeEventListener('touchstart',stylus);el.removeEventListener('touchmove',stylus);};
  },[enabled]);
  function showHandwritingInfo(){
-  if(practice||hintAcknowledged)return;try{if(localStorage.getItem(PENCIL_HANDWRITING_HINT_KEY)==='1')return;}catch{/* The notice remains dismissible without storage. */}setHint(true);
+  if(practice||hintAcknowledged)return;try{if(localStorage.getItem(PENCIL_HANDWRITING_HINT_KEY)==='1')return;}catch{/* The notice remains dismissible without storage. */}onPopover();setSettings(false);setPalette(false);setHint(true);
  }
  function dismissHandwritingInfo(){setHintAcknowledged(true);setHint(false);try{localStorage.setItem(PENCIL_HANDWRITING_HINT_KEY,'1');}catch{/* Optional device-only notice state. */}}
  function remember(){setHistory(old=>[...old.slice(-29),{entries,groups}]);}
@@ -148,6 +147,7 @@ export function ReaderPencil({practice=false,onPractice,book,section,prefs,selec
  if(scribble&&enabled)for(const blockId of new Set(eligible.map(note=>note.anchor.endId)))inlineNotes[blockId]=eligible.filter(note=>note.anchor.endId===blockId).map(note=><label key={note.id} className="pencil-inline-note" data-pencil-input style={{borderColor:pencilPalette[note.pencil!.color].ink}}><span>{referenceLabel(section,note.anchor)} · {note.pencil!.meaning}</span><textarea data-pencil-input aria-label={`Notiz zu ${referenceLabel(section,note.anchor)}`} placeholder="Mit Apple Pencil schreiben …" rows={2} maxLength={12000} value={note.body} disabled={busy} onPointerDown={e=>{if(e.pointerType==='pen')showHandwritingInfo();}} onChange={e=>changeNativeNote(note,e.target.value)}/></label>);
  async function finish(){
   if(practice||busy||!loaded||!entries.length&&!groups.length)return;
+  setPalette(false);setSettings(false);setHint(false);
   const current=measure(),linked=linkInk(groups,current,root.current?inkTargets(root.current,section,eligible):[]);
   if(linked.some(g=>!g.targetId)){setError('Eine Handschrift hat noch keine nahe Markierung. Markiere die passende Stelle daneben oder entferne den Strich mit Rückgängig. Dein Entwurf bleibt erhalten.');return;}
   setBusy(true);setError('');
@@ -179,28 +179,23 @@ export function ReaderPencil({practice=false,onPractice,book,section,prefs,selec
    {enabled&&<svg className="pencil-page-ink" role="img" aria-label="Handschrift auf der Seite">{pageInk.map(({group,strokes,target})=>{const box=inkBounds(strokes.flat());return <g key={group.id} data-ink-group={group.id} data-ink-target={target?.id??''}>{strokes.map((stroke,i)=><path key={group.strokes[i].id} d={inkPath(stroke)} stroke="#314d43" fill="none" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"/>)}<text x={box.left} y={box.bottom+16} className="pencil-ink-label">{target?`↳ ${referenceLabel(section,target.anchor)}`:'Keine nahe Markierung'}</text></g>;})}</svg>}
    <svg className="pencil-live" aria-hidden="true"><path ref={liveLine} stroke="#314d43" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
   </div>
-  {enabled&&<>
-   {dockPreview!=='floating'&&<div className={'pencil-dock-preview dock-'+dockPreview} aria-hidden="true"/>}
-   <section ref={paletteRef} className={'pencil-workspace positioned '+(dragging?'is-dragging':'')} data-dock={dock} data-compact={compact} style={paletteStyle} aria-label="Apple Pencil Werkzeuge" aria-busy={busy}>
-    {settings&&<div className="pencil-settings pencil-popover"><div className="pencil-sheet-heading"><strong>Pencil-Einstellungen</strong><button className="icon-button" aria-label="Farbbedeutungen schließen" onClick={()=>setSettings(false)}><X size={17}/></button></div><div className="pencil-dock-options" role="group" aria-label="Pencil-Leiste andocken">{([['left','Links',ArrowLeft],['top','Oben',ArrowUp],['bottom','Unten',ArrowDown],['right','Rechts',ArrowRight],['floating','Frei',Move]] as const).map(([edge,label,Icon])=><button key={edge} aria-label={`Leiste ${label.toLowerCase()} andocken`} onClick={()=>dockAt(edge)}><Icon size={16}/>{label}</button>)}</div><strong className="pencil-settings-label">Farbbedeutungen</strong><div className="pencil-meanings">{pencilColors.map(c=><label key={c}><i style={{background:pencilPalette[c].fill}}/><span>{pencilPalette[c].name}</span><input aria-label={`Bedeutung für ${pencilPalette[c].name}`} maxLength={80} defaultValue={meaning(c)} key={meaning(c)} onBlur={e=>{const value=e.target.value.trim()||pencilPalette[c].meaning;setEntries(old=>old.map(entry=>entry.pencil.color===c?{...entry,pencil:{...entry.pencil,meaning:value}}:entry));void saveLocalPreferences({...prefs,pencilMeanings:{...prefs.pencilMeanings,[c]:value}}).catch(e=>setError(e.message));}}/></label>)}</div><p className="small-note">Handschrift und Notizen bleiben auf deinem Gerät. In Safari auf dem iPad wandelt Apple „Kritzeln“ Schrift im Notizfeld kostenlos in Text um.</p>{!!selection&&<button className="text-button" onClick={()=>add(selection)}><Highlighter size={14}/>Textauswahl übernehmen</button>}</div>}
-    {palette&&<div className="pencil-mobile-palette pencil-popover" role="group" aria-label="Markierungsfarbe wählen">{pencilColors.map(c=><button key={c} aria-label={`${pencilPalette[c].name}: ${meaning(c)}`} onClick={()=>{setColor(c);setWriting(false);setErasing(false);continueWriting.current=false;setPalette(false);}}><i style={{background:pencilPalette[c].fill}}/>{pencilPalette[c].name}{color===c&&<Check size={15}/>}</button>)}</div>}
+  {enabled&&toolbarHost&&createPortal(<section className="pencil-workspace" aria-label="Apple Pencil Werkzeuge" aria-busy={busy}>
+    {settings&&<div className="pencil-settings pencil-popover"><div className="pencil-sheet-heading"><strong>Pencil-Einstellungen</strong><button className="icon-button" aria-label="Farbbedeutungen schließen" onClick={()=>setSettings(false)}><X size={17}/></button></div><strong className="pencil-settings-label">Farbbedeutungen</strong><div className="pencil-meanings">{pencilColors.map(c=><label key={c}><i style={{background:pencilPalette[c].fill}}/><span>{pencilPalette[c].name}</span><input aria-label={`Bedeutung für ${pencilPalette[c].name}`} maxLength={80} defaultValue={meaning(c)} key={meaning(c)} onBlur={e=>{const value=e.target.value.trim()||pencilPalette[c].meaning;setEntries(old=>old.map(entry=>entry.pencil.color===c?{...entry,pencil:{...entry.pencil,meaning:value}}:entry));void saveLocalPreferences({...prefs,pencilMeanings:{...prefs.pencilMeanings,[c]:value}}).catch(e=>setError(e.message));}}/></label>)}</div><p className="small-note">Handschrift und Notizen bleiben auf deinem Gerät. In Safari auf dem iPad wandelt Apple „Kritzeln“ Schrift im Notizfeld kostenlos in Text um.</p>{!!selection&&<button className="text-button" onClick={()=>add(selection)}><Highlighter size={14}/>Textauswahl übernehmen</button>}</div>}
+    {palette&&<div className="pencil-mobile-palette pencil-popover" role="group" aria-label="Markierungsfarbe wählen">{pencilColors.map(c=><button key={c} aria-label={`${pencilPalette[c].name}: ${meaning(c)}`} onClick={()=>{setColor(c);setWriting(false);setErasing(false);continueWriting.current=false;setPalette(false);}}><i style={{background:pencilPalette[c].fill}}/><span>{pencilPalette[c].name}</span>{color===c&&<Check size={15}/>}</button>)}<p className="pencil-palette-meaning">{meaning(color)}</p><button className="pencil-meanings-trigger" aria-label="Farbbedeutungen anpassen" disabled={busy||practice} onClick={()=>{setSettings(true);setPalette(false);setHint(false);}}><Settings2 size={16}/>Farbbedeutungen</button></div>}
     <div className="pencil-toolbar">
-     <button className="pencil-grip" aria-label="Pencil-Leiste verschieben" title="Ziehen zum Verschieben. Am Rand loslassen zum Andocken. Pfeiltasten: bewegen; Umschalt + Pfeiltaste: andocken; Pos1: zurücksetzen." {...grip}><GripVertical size={13}/><ApplePencilIcon size={19}/></button>
+
      <div className="pencil-colors" role="group" aria-label="Markierungsfarbe">{pencilColors.map(c=><button key={c} disabled={busy} style={{background:pencilPalette[c].fill}} aria-label={`${pencilPalette[c].name}: ${meaning(c)}`} aria-pressed={color===c&&!writing&&!erasing} title={meaning(c)} onClick={()=>{setColor(c);setWriting(false);setErasing(false);continueWriting.current=false;}}>{color===c&&!writing&&!erasing?<Check size={16}/>:<span className="sr-only">{pencilPalette[c].name}</span>}</button>)}</div>
-     <button className="pencil-color-menu icon-button" aria-label="Markierungsfarbe wählen" aria-expanded={palette} disabled={busy} onClick={()=>{setPalette(!palette);setSettings(false);setHint(false);}}><i style={{background:pencilPalette[color].fill}}/></button>
+     <button className="pencil-color-menu icon-button" aria-label="Markierungsfarbe wählen" aria-expanded={palette} disabled={busy} onClick={()=>{onPopover();setPalette(!palette);setSettings(false);setHint(false);}}><i style={{background:pencilPalette[color].fill}}/></button>
      <span className="pencil-divider"/>
      <button className={'icon-button pencil-writing-toggle '+(writing?'pressed':'')} disabled={busy} aria-label="Auf der Seite schreiben" title="Direkt neben Markierungen schreiben. Hier aktivieren, um auch über dem Text zu schreiben." aria-pressed={writing} onClick={()=>{setWriting(!writing);setErasing(false);setPalette(false);setSettings(false);}}><PenLine size={19}/></button>
      <button className={'icon-button pencil-eraser '+(erasing?'pressed':'')} disabled={busy} aria-label="Radiergummi" title="Ganze Wortmarkierungen und getroffene Schriftstriche entfernen. Verknüpfte Notizen bleiben erhalten." aria-pressed={erasing} onClick={()=>{setErasing(!erasing);setWriting(false);continueWriting.current=false;setPalette(false);setSettings(false);}}><Eraser size={19}/></button>
      <button className="icon-button pencil-undo" disabled={busy||!history.length&&!entries.length&&!groups.length} aria-label="Letzten Strich entfernen" title="Rückgängig" onClick={undo}><RotateCcw size={18}/></button>
-     <button className={'icon-button '+(settings?'pressed':'')} aria-label="Farbbedeutungen anpassen" title="Pencil-Einstellungen" aria-expanded={settings} disabled={busy||practice} onClick={()=>{setSettings(!settings);setPalette(false);setHint(false);}}><Settings2 size={18}/></button>
+
      <span className="pencil-divider"/>
-     <button className="pencil-done" title="Markierungen, Notiztext und Originalhandschrift auf diesem Gerät speichern" onClick={()=>void finish()} disabled={practice||busy||!entries.length&&!groups.length}>{busy?<LoaderCircle size={16} className="spin"/>:null}{busy?'Speichern …':'Fertig'}</button>
-     <button className="icon-button" disabled={busy||practice} aria-label="Pencil-Modus schließen, Entwürfe behalten" onClick={onToggle}><X size={18}/></button>
+     <button className="pencil-done" aria-label={busy?'Speichern …':'Fertig'} title="Markierungen, Notiztext und Originalhandschrift auf diesem Gerät speichern" onClick={()=>void finish()} disabled={practice||busy||!entries.length&&!groups.length}>{busy?<LoaderCircle size={18} className="spin"/>:<Check size={19}/>}<span>{busy?'Speichern …':'Fertig'}</span></button>
     </div>
     {hint&&<div className="pencil-handwriting-hint pencil-popover" role="status"><button className="icon-button" aria-label="Handschrift-Hinweis schließen" onClick={dismissHandwritingInfo}><X size={16}/></button><PencilHandwritingHint scribble={scribble}/></div>}
-    {error&&<p className="inline-error pencil-error" role="alert">{error}</p>}
-    <span className="sr-only" role="status">{announcement}</span>
-   </section>
-  </>}
+    {error&&!palette&&!settings&&!hint&&<p className="inline-error pencil-error" role="alert">{error}</p>}
+   </section>,toolbarHost)}
  </>;
 }
