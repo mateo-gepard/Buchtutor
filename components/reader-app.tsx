@@ -20,7 +20,7 @@ import {ReaderText} from './reader-text';
 import {ReaderFigures} from './reader-figures';
 import {ReaderLibrary} from './reader-library';
 import {ReaderAssistant,type AIStatus} from './reader-assistant';
-import {Notebook,NotesList} from './reader-notes';
+import {Notebook,NotesList,defaultNotebookFilters} from './reader-notes';
 import {ReaderTransfer} from './reader-transfer';
 import {ReaderShare,type ShareTarget} from './reader-share';
 import {useLocalReader} from '@/hooks/use-local-reader';
@@ -56,6 +56,8 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const notes=useMemo(()=>local.data.notes.filter(n=>!n.deletedAt).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)),[local.data.notes]);
   useEffect(()=>{if(local.ready&&prefs.handwritingCloud)queueHandwriting(notes);},[local.ready,prefs.handwritingCloud,notes]);
   const [book,setBook]=useState(initialBook),[sectionId,setSectionId]=useState(initialSection),[view,setView]=useState<View>(initialView as View);
+  const [notebookFilters,setNotebookFilters]=useState(defaultNotebookFilters),[tourNotebookFilters,setTourNotebookFilters]=useState(defaultNotebookFilters);
+  const notebookScroll=useRef(0);
   const [selection,setSelection]=useState<Anchor|null>(null),[result,setResult]=useState<Analysis|null>(null),[question,setQuestion]=useState('');
   const [analysisBusy,setAnalysisBusy]=useState(false),[analysisError,setAnalysisError]=useState(''),[remaining,setRemaining]=useState<number>(),[normalized,setNormalized]=useState(false);
   const [saving,setSaving]=useState(false),[editNote,setEditNote]=useState<SavedNote|null>(null);
@@ -79,7 +81,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const tourSnapshot=useRef<{view:View;focus:boolean;panel:string;panelOpen:boolean;panelExpanded:boolean;pencilMode:boolean;scrub:number|null;scrollY:number;position:Position|null;trigger:HTMLElement|null}|null>(null);
   const [currentBlock,setCurrentBlock]=useState(''),[scrub,setScrub]=useState<number|null>(null);
   const section=book.sections.find(s=>s.id===sectionId)??firstReadable(book),sectionIndex=book.sections.findIndex(s=>s.id===section.id);
-  const bookCache=useRef(new Map([[initialBook.id,initialBook]])),bookRequest=useRef(0),analysisRequest=useRef<AbortController|null>(null);
+  const bookCache=useRef(new Map([[initialBook.id,initialBook]])),bookRequest=useRef(0),bookAbort=useRef<AbortController|null>(null),analysisRequest=useRef<AbortController|null>(null);
   const article=useRef<HTMLElement>(null),noticeTimer=useRef<ReturnType<typeof setTimeout>|null>(null),restored=useRef(false),position=useRef<Position|null>(null),resizePosition=useRef<Position|null>(null),panelTrigger=useRef<HTMLElement|null>(null),panelHeading=useRef<HTMLHeadingElement>(null);
   const contentsPosition=useRef<Position|null>(null),contentsTrigger=useRef<HTMLElement|null>(null);
   const pendingPosition=useRef<Position|null>(null),positionFrame=useRef(0),pendingPanelFocus=useRef(false);
@@ -113,7 +115,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   function startTour(){
     if(tourOpen)return;
     tourSnapshot.current={view,focus,panel,panelOpen,panelExpanded,pencilMode,scrub,scrollY:window.scrollY,position:capturePosition(),trigger:document.activeElement instanceof HTMLElement?document.activeElement:null};
-    setTourDone({});setTourSelection(null);setTourBookmark(false);setTourMode(undefined);setTourNote('');setTourCharacters([]);setTourColor('green');setTourStamp(new Date().toISOString());setDialog(null);setTourOpen(true);
+    setTourDone({});setTourNotebookFilters(defaultNotebookFilters);setTourSelection(null);setTourBookmark(false);setTourMode(undefined);setTourNote('');setTourCharacters([]);setTourColor('green');setTourStamp(new Date().toISOString());setDialog(null);setTourOpen(true);
   }
   function closeTour(){
     try{localStorage.setItem(ONBOARDING_KEY,'1');}catch{/* Optional per-device tour preference. */}
@@ -124,7 +126,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   }
   function markTour(id:string){if(tourStep!==null&&tourSteps[tourStep].id===id)setTourDone(old=>old[id]?old:{...old,[id]:true});}
   function followAudio(next:AudioPosition|null,follow:boolean,requestReader=false){
-    setAudioPosition(next);if(!next||!follow||tourOpen||pencilMode||view!=='reader'&&!requestReader)return;
+    setAudioPosition(next);if(!next||!follow||tourOpen||bookBusy||pencilMode||view!=='reader'&&!requestReader)return;
     if(requestReader)setView('reader');
     const target=book.sections.find(s=>s.id===next.sectionId);if(!target)return;
     if(target.id!==section.id){goToSection(target.id,next.blockId,false);updateURL(book,target,'reader',next.blockId,true);}
@@ -180,7 +182,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     if(url.href!==window.location.href)window.history[replace?'replaceState':'pushState']({},'',url);
   }
   function cancelAnalysis(){analysisRequest.current?.abort();setAnalysisBusy(false);}
-  function resetSelection(){setPencilMode(false);cancelAnalysis();nativeSelection.clear();activeSelection.current={bookId:book.id,anchor:null};linePivot.current=null;rangeStart.current=null;setSelection(null);setResult(null);setAnalysisError('');setEditNote(null);setQuestion('');setNormalized(false);setSelectMode(false);}
+  function resetSelection(){setPencilMode(false);cancelAnalysis();nativeSelection.clear();activeSelection.current={bookId:book.id,anchor:null};linePivot.current=null;rangeStart.current=null;noteComposition.current=false;setNoteComposing(false);setSelection(null);setResult(null);setAnalysisError('');setEditNote(null);setQuestion('');setNormalized(false);setSelectMode(false);}
   function changeSelection(anchor:Anchor){if(tourStep!==null){setTourSelection(anchor);markTour('selection');return;}cancelAnalysis();activeSelection.current={bookId:book.id,anchor};setSelection(anchor);setResult(null);setAnalysisError('');setEditNote(null);setQuestion('');setNormalized(false);}
   function closePanel(){const saved=capturePosition();setPanelOpen(false);setPanelExpanded(false);restorePosition(saved);panelTrigger.current?.focus({preventScroll:true});}
   function visibleDetailsBlock(){
@@ -198,35 +200,51 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     pendingPanelFocus.current=moveFocus;
     setPanel(tab);setPanelOpen(true);setContentsOpen(false);setFocus(false);restorePosition(saved);
   }
-  function showView(next:View){resetSelection();setView(next);setPanelOpen(false);setContentsOpen(false);setFocus(false);updateURL(book,section,next);scrollToBlock();}
+  function cancelBookOpen(){bookRequest.current++;bookAbort.current?.abort();bookAbort.current=null;setBookBusy(false);}
+  function closeReaderDetails(){
+    contentsPosition.current=null;pendingPosition.current=null;pendingPanelFocus.current=false;cancelAnimationFrame(positionFrame.current);
+    setPanelOpen(false);setPanelExpanded(false);setAudioExpanded(false);setContentsOpen(false);setMenusKey(n=>n+1);setFocus(false);
+  }
+  function scrollToView(next:View,blockId?:string){
+    if(next==='notes')afterLayout(()=>window.scrollTo({top:notebookScroll.current,behavior:'instant'}));else scrollToBlock(blockId);
+  }
+  function showView(next:View){
+    cancelBookOpen();if(next===view)return;
+    if(view==='notes')notebookScroll.current=window.scrollY;
+    resetSelection();closeReaderDetails();if(next!=='reader')setAudioOpen(false);
+    setView(next);updateURL(book,section,next);scrollToView(next);
+  }
   function goToSection(id:string,blockId?:string,writeURL=true){
     const next=book.sections.find(s=>s.id===id);if(!next)return;
-    contentsPosition.current=null;resetSelection();setSectionId(id);setSelectedCharacters([]);setContentsOpen(false);setView('reader');setPanelOpen(false);setScrub(null);
+    if(writeURL){cancelBookOpen();closeReaderDetails();}else{contentsPosition.current=null;setPanelOpen(false);setContentsOpen(false);}
+    resetSelection();setSectionId(id);setSelectedCharacters([]);setView('reader');setScrub(null);
     setCurrentBlock(blockId??next.blocks.find(isText)?.id??'');
     if(writeURL)updateURL(book,next,'reader',blockId);
     scrollToBlock(blockId);
   }
   async function openBook(id:string,target?:{sectionId?:string;blockId?:string;anchor?:Anchor;note?:SavedNote},destination:View='reader',writeURL=true){
-    const seq=++bookRequest.current;setBookBusy(true);resetSelection();
+    const seq=++bookRequest.current;bookAbort.current?.abort();const controller=new AbortController();bookAbort.current=controller;setBookBusy(true);
+    if(view==='notes'&&destination!=='notes')notebookScroll.current=window.scrollY;
     try{
-      const next=bookCache.current.get(id)??(await request<{book:Book}>('/api/books/'+encodeURIComponent(id))).book;
+      const next=bookCache.current.get(id)??(await request<{book:Book}>('/api/books/'+encodeURIComponent(id),undefined,controller.signal)).book;
       if(!next)throw new Error('Das Werk ist nicht verfügbar.');if(seq!==bookRequest.current)return;
       bookCache.current.set(id,next);
       const remembered=prefs.autoBookmark?local.data.progress.find(p=>p.workId===id&&p.editionId===next.editionId):undefined;
       const nextSection=next.sections.find(s=>s.id===(target?.sectionId??remembered?.sectionId))??firstReadable(next);
       const blockId=target?.blockId??(target?.sectionId?undefined:remembered?.blockId);
-      setBook(next);setSectionId(nextSection.id);setView(destination);setSelectedCharacters([]);setPanelOpen(false);setContentsOpen(false);setFocus(false);setScrub(null);setCurrentBlock(blockId??nextSection.blocks.find(isText)?.id??'');
+      resetSelection();closeReaderDetails();if(destination!=='reader')setAudioOpen(false);
+      setBook(next);setSectionId(nextSection.id);setView(destination);setSelectedCharacters([]);setScrub(null);setCurrentBlock(blockId??nextSection.blocks.find(isText)?.id??'');
       if(writeURL)updateURL(next,nextSection,destination,blockId);
-      scrollToBlock(destination==='reader'?blockId:undefined);
+      scrollToView(destination,destination==='reader'?blockId:undefined);
       if(target?.anchor){setSelection(target.anchor);setEditNote(target.note??null);setResult(target.note?.analysis??null);setPanel(target.note?.analysis?'help':'notes');if(target.note)setPanelOpen(true);}
-    }catch(e){announce((e as Error).message);}finally{if(seq===bookRequest.current)setBookBusy(false);}
+    }catch(e){if(seq===bookRequest.current&&!controller.signal.aborted)announce((e as Error).message);}finally{if(seq===bookRequest.current){setBookBusy(false);bookAbort.current=null;}}
   }
   function openContents(event:MouseEvent<HTMLButtonElement>){contentsPosition.current=capturePosition();contentsTrigger.current=event.currentTarget;setContentsOpen(true);setPanelOpen(false);restorePosition(contentsPosition.current);}
   function openSettings(tab='reading'){position.current=capturePosition();setSettingsTab(tab);setDialog('settings');}
   function setPrefs(next:Prefs){void saveLocalPreferences(next).catch(e=>announce(e.message));}
   function toggleFocus(){const saved=capturePosition();setFocus(!focus);setPanelOpen(false);setContentsOpen(false);restorePosition(saved);}
   useEffect(()=>{document.documentElement.dataset.theme=prefs.theme;},[prefs.theme]);
-  useEffect(()=>()=>{analysisRequest.current?.abort();if(noticeTimer.current)clearTimeout(noticeTimer.current);},[]);
+  useEffect(()=>()=>{bookAbort.current?.abort();analysisRequest.current?.abort();if(noticeTimer.current)clearTimeout(noticeTimer.current);},[]);
   useEffect(()=>{
     if(!local.ready||restored.current)return;
     const frame=requestAnimationFrame(()=>{
@@ -409,7 +427,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
       {panel==='notes'&&displaySelection&&<div className="workspace-note-actions"><p className="small-note">{tourStep!==null?'Probenotiz · wird nicht gespeichert.':draftError|| (drafts[draftKey]!==undefined?'Entwurf auf diesem Gerät gesichert':'Wird auf diesem Gerät gespeichert.')}</p><button className="primary-button" onClick={()=>{if(tourStep!==null)markTour('notes');else void save('note');}} disabled={saving||noteComposing||!draftsReady||!displayDraft.trim()&&!currentNote}>{saving?<LoaderCircle className="spin" size={17}/>:<Check size={17}/>}{tourStep!==null?'Übungsnotiz merken':'Notiz speichern'}</button></div>}
     </aside>;
 
-  return <div className={'reader-app unified-tools '+(view==='reader'?'focus-reader':'')+(focus?' focus-mode':'')+(panelOpen?' has-panel':'')+(audioOpen?' has-audio':'')} style={{'--text-size':prefs.fontSize+'px','--text-leading':prefs.lineHeight,'--reading-font':prefs.font==='sans'?"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif":"Charter,'Bitstream Charter','Sitka Text',Cambria,serif"} as React.CSSProperties}>
+  return <div className={'reader-app unified-tools '+(view==='reader'?'focus-reader':'')+(focus?' focus-mode':'')+(panelOpen?' has-panel':'')+(audioOpen&&view==='reader'?' has-audio':'')} style={{'--text-size':prefs.fontSize+'px','--text-leading':prefs.lineHeight,'--reading-font':prefs.font==='sans'?"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif":"Charter,'Bitstream Charter','Sitka Text',Cambria,serif"} as React.CSSProperties}>
     <a className="skip-link" href="#main-content">Zum Inhalt springen</a>
     {view==='reader'?<header className="reader-header">
       <button aria-label="Zur Bibliothek" className="back-link" onClick={()=>showView('library')}><ChevronLeft size={22}/><span>Bibliothek</span></button>
@@ -418,7 +436,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     </header>:<header className="library-header"><button className="wordmark" aria-label="Buchtutor · Bibliothek" onClick={()=>showView('library')}><BrandMark/><span>{brand.name}</span></button><nav aria-label="Hauptnavigation"><button aria-current={view==='library'?'page':undefined} onClick={()=>showView('library')}>Bibliothek</button><button aria-current={view==='notes'?'page':undefined} onClick={()=>showView('notes')}>Meine Notizen</button></nav><button className="icon-button tour-launch" aria-label="Einführung starten" title="Einführung" onClick={startTour}><CircleHelp size={19}/></button><button className="icon-button" aria-label="Einstellungen und Geräteübertragung" onClick={()=>openSettings()}><Settings2 size={20}/></button></header>}
     {focus&&<button className="focus-exit" onClick={toggleFocus}><Minimize2 size={17}/>Fokus beenden</button>}
     {local.error&&<div className="storage-error" role="alert">{local.error}</div>}
-    {view==='library'?<ReaderLibrary catalog={catalog} progress={prefs.autoBookmark?local.data.progress:[]} onOpen={id=>void openBook(id)}/>:view==='notes'?<Notebook practice={tourStep!==null} notes={tourStep!==null&&tourExample?[tourExample]:notes} catalog={catalog} onOpen={note=>tourStep!==null?prepareTour(4):openNote(note)} onDelete={note=>{if(tourStep===null)void removeNote(note);}} onTransfer={()=>openSettings('transfer')}/>:<>
+    {view==='library'?<ReaderLibrary catalog={catalog} progress={prefs.autoBookmark?local.data.progress:[]} onOpen={id=>void openBook(id)}/>:view==='notes'?<Notebook filters={tourStep!==null?tourNotebookFilters:notebookFilters} onFiltersChange={tourStep!==null?setTourNotebookFilters:setNotebookFilters} practice={tourStep!==null} notes={tourStep!==null&&tourExample?[tourExample]:notes} catalog={catalog} onOpen={note=>tourStep!==null?prepareTour(4):openNote(note)} onDelete={note=>{if(tourStep===null)void removeNote(note);}} onTransfer={()=>openSettings('transfer')}/>:<>
       <main className="reading-main" id="main-content">
         <article ref={article} className="reading-page">
           <div className="section-heading"><p>{[...section.path,section.title].join(' · ')}</p><div><span data-tour="search-share" className="tour-search-share"><button className="icon-button" aria-label="Text durchsuchen oder zu einem Vers springen" onClick={()=>setDialog('search')}><Search size={17}/></button><button className="icon-button" aria-label="Stelle teilen" onClick={openShare}><Share2 size={17}/></button></span></div></div>
@@ -440,7 +458,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
 
     </>}
 
-    {(view==='reader'||audioOpen)&&<ReaderWorkspace visibility={prefs.annotationVisibility} onVisibilityChange={value=>{void updateLocal(data=>({...data,preferences:{value:{...data.preferences.value,annotationVisibility:value},updatedAt:new Date().toISOString()}})).catch(e=>announce(e.message));}} practice={tourOpen} inline={inlineDetails} detailHost={detailHost} audioHost={setAudioHost} onBeforeChange={()=>restorePosition(capturePosition())} onDismiss={()=>{restorePosition(capturePosition());setPanelOpen(false);setAudioExpanded(false);setMenusKey(n=>n+1);}} selection={selectionTools} panel={companionPanel}>
+    {view==='reader'&&<ReaderWorkspace contextKey={book.id+':'+section.id} visibility={prefs.annotationVisibility} onVisibilityChange={value=>{void updateLocal(data=>({...data,preferences:{value:{...data.preferences.value,annotationVisibility:value},updatedAt:new Date().toISOString()}})).catch(e=>announce(e.message));}} practice={tourOpen} inline={inlineDetails} detailHost={detailHost} audioHost={setAudioHost} onBeforeChange={()=>restorePosition(capturePosition())} onDismiss={()=>{restorePosition(capturePosition());setPanelOpen(false);setAudioExpanded(false);setMenusKey(n=>n+1);}} selection={selectionTools} panel={companionPanel}>
      {view==='reader'&&<>
       <div className="workspace-tool-group workspace-modes" role="group" aria-label="Lesen und Markieren">
       <button data-tour="selection" className="workspace-tool" aria-label="Bereich durch Antippen auswählen" aria-pressed={selectMode} title="Text auswählen" onClick={()=>{const next=!selectMode;resetSelection();setPanelOpen(false);setAudioExpanded(false);setMenusKey(n=>n+1);setSelectMode(next);}}><MousePointer2 size={19}/><span>Auswahl</span></button>
@@ -486,7 +504,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     </Dialog>
 
     <ReaderOnboarding open={tourOpen} bookTitle={book.title} colorLabel={pencilPalette[tourColor].name} exampleText={tourExample?.body??''} onBegin={()=>prepareTour(0)} done={tourDone} onTry={value=>{if(tourStep!==null&&(tourSteps[tourStep].id!=='notebook'||value===tourColor))markTour(tourSteps[tourStep].id);}} ready={local.ready&&!bookBusy&&!analysisBusy&&!dialog&&!contentsOpen} step={tourStep} onStart={startTour} onStep={prepareTour} onClose={closeTour}/>
-    {bookBusy&&<div className="loading-overlay" role="status"><LoaderCircle className="spin" size={22}/><span>Werk wird geöffnet …</span></div>}
+    {bookBusy&&<div className="loading-overlay" role="status"><LoaderCircle className="spin" size={22}/><span>Werk wird geöffnet …</span><button className="icon-button" aria-label="Öffnen des Werkes abbrechen" onClick={cancelBookOpen}><X size={18}/></button></div>}
     {(notice||deleted)&&<div className={'toast '+(view==='reader'&&(selection||selectMode)&&!panelOpen&&!pencilMode?'above-selection':'')} role="status"><span>{notice||'Eintrag gelöscht.'}</span>{deleted&&<button onClick={()=>void undo()}>Rückgängig</button>}<button className="icon-button" aria-label="Hinweis schließen" onClick={()=>{setNotice('');setDeleted(null);}}><X size={16}/></button></div>}
   </div>;
 }

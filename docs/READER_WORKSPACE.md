@@ -71,3 +71,12 @@ Preisbasis am 20.10.2026: [Gemini 3.1 Flash-Lite](https://openrouter.ai/google/g
 Entwürfe werden unmittelbar bei Texteingabe bzw. Strichende gesichert; ein Timer ist dafür nicht mehr erforderlich. Unlesbare Pencil-Entwürfe bleiben unverändert im Speicher. Native Komposition sperrt „Fertig“ bis zum Abschluss, und der finale DOM-Text wird zusätzlich vor dem Speichern übernommen. Normale Notizfelder sichern ihren Entwurf ebenfalls pro Textanker. Teilweise erfasste freie Schrift bleibt bei einer abgebrochenen Pointer-Geste erhalten; abgebrochene Radier- und Markiergesten werden weiterhin verworfen.
 
 `handwriting-reliability.spec.ts` prüft sofortiges Pagehide, Komposition, beschädigte Entwürfe, Speicherfehler, Wiederherstellung, Hintergrund-Erkennung, Suche, alle vier Sichtbarkeitszustände, erneute Versuche, verspätete Antworten, Radieren, Rückgängig und abgebrochene Schreibgesten. Die automatisierten WebKit-Tests prüfen die Browserintegration, nicht Apples native Handschrifterkennung auf physischer Pencil-Hardware.
+
+
+## Bibliothek, Notizbuch und verlässliche Navigation (20.10.2026)
+
+Die Leiste wird ausschließlich im Leser gerendert. Ein geöffneter Player hält sie nicht mehr in der Bibliothek oder im Notizbuch sichtbar. Beim bewussten Verlassen des Lesers wird er geschlossen und pausiert; sein bisheriger Speicherpfad erhält die Hörposition. Eine Rückkehr startet keine Wiedergabe von selbst. Details und Werkzeugmenüs öffnen sich nach einem Ansichts- oder manuellen Abschnittswechsel nicht unerwartet wieder. Automatische Hörbuch-Kapitelwechsel erhalten dagegen das geöffnete Audiofenster.
+
+Der Werkfilter im Notizbuch steht zuerst, trägt eine sichtbare Beschriftung und zeigt die Eintragszahlen je Werk. Er kombiniert sich mit Suche, Typ und Farbe. Die Suche findet zusätzlich Titel und Autor. Bedeutungen werden pro Werk angeboten und beim Werkwechsel zurückgesetzt. Eine Ergebniszeile nennt die Trefferzahl und bietet „Filter zurücksetzen“. Ein ausgewähltes Werk bleibt nach dem Löschen seines letzten Eintrags auswählbar. Auch Notizen zu nicht mehr katalogisierten Werken lassen sich filtern.
+
+Filter, Suchtext und Scrollstand liegen für die aktuelle Sitzung beim ReaderApp statt in der beim Öffnen einer Notiz entfernten Notizbuchkomponente. Die Einführung verwendet davon getrennte Übungsfilter. Die Buchlade-Anfrage ist abbrechbar; eine neuere Navigation verwirft auch verspätete Antworten und Fehlermeldungen. Ein fehlgeschlagenes Öffnen löscht die bisherige Textauswahl und den geöffneten Entwurf nicht.

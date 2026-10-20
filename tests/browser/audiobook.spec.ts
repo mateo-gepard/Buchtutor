@@ -41,6 +41,18 @@ test('chapter navigation preserves pause, carries text across sections, and chap
  await setup(page);await details(page);await page.getByRole('combobox',{name:'Audiokapitel wählen'}).selectOption('1');await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await at(page,2);await expect(page).toHaveURL(new RegExp('section='+second.id));await expect(page.locator('.audio-current')).toHaveCount(1);
  await page.getByRole('combobox',{name:'Schlaftimer'}).selectOption('chapter');await page.locator('audio').evaluate(el=>el.dispatchEvent(new Event('ended')));await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();await expect(page.getByRole('combobox',{name:'Schlaftimer'})).toHaveValue('off');await geometry(page);
 });
+test('leaving the reader removes floating tools, pauses playback and retains the listening position',async({page})=>{
+ await setup(page);await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await at(page,8);await expect(page.locator('.audio-current')).toHaveAttribute('id',lines[3].id);
+ const media=await page.locator('audio').elementHandle();await details(page);
+ await page.getByRole('button',{name:'Zur Bibliothek',exact:true}).click();await expect(page.getByRole('heading',{name:'Bibliothek',exact:true})).toBeVisible();
+ await expect(page.locator('.reader-workspace,.reader-audio,.workspace-popover')).toHaveCount(0);expect(await media!.evaluate(el=>(el as HTMLAudioElement).paused)).toBe(true);
+ await expect.poll(()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)??'null')?.time??0,audioProgressKey(book.editionId))).toBeGreaterThanOrEqual(8);
+ await page.getByRole('button',{name:/^Iphigenie auf Tauris –/}).click();await expect(page.locator('.reader-workspace')).toHaveCount(1);await expect(page.locator('.workspace-popover:visible')).toHaveCount(0);
+ await page.getByRole('button',{name:'Hören und mitlesen',exact:true}).click();await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeEnabled();expect(await page.locator('audio').evaluate(el=>(el as HTMLAudioElement).paused)).toBe(true);
+ await details(page);await expect(page.getByRole('slider',{name:'Hörposition im Audiokapitel'})).toHaveValue(/^8/);
+ const contents=page.getByRole('button',{name:'Inhalt',exact:true});await (await contents.isVisible()?contents:page.locator('.footer-section')).click();await page.getByRole('button',{name:'Meine Notizen',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Meine Notizen',exact:true})).toBeVisible();await expect(page.locator('.reader-workspace,.reader-audio')).toHaveCount(0);
+});
 test('unsupported edition falls back clearly and narrow layouts remain usable',async({page})=>{
  await setup(page,true);await details(page);await expect(page.locator('.audio-error')).toContainText('Textausgabe');await expect(page.getByRole('combobox',{name:'Audioquelle wählen'})).toHaveValue('device');await page.setViewportSize({width:320,height:680});await geometry(page);await page.getByRole('button',{name:'Player schließen und pausieren',exact:true}).click();await expect(page.getByRole('button',{name:'Hören und mitlesen',exact:true})).toBeFocused();
 });

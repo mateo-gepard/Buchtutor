@@ -1,5 +1,5 @@
 'use client';
-import {useState,type ReactNode} from 'react';
+import {useEffect,useState,type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {ArrowDown,ArrowLeft,ArrowRight,ArrowUp,Check,Eye,EyeOff,Highlighter,PenLine,GripVertical,Move,Settings2,X} from 'lucide-react';
 import type {Prefs} from '@/lib/preferences';
@@ -12,13 +12,15 @@ type Props={
  audioHost:(element:HTMLDivElement|null)=>void;
  onBeforeChange:()=>void;
  onDismiss:()=>void;
+ contextKey:string;
  visibility:Prefs['annotationVisibility'];
  onVisibilityChange:(value:Prefs['annotationVisibility'])=>void;
 };
 /** One persistent surface. Opening an accessory never remounts the audio player. */
-export function ReaderWorkspace({children,selection,panel,practice,inline,detailHost,audioHost,onBeforeChange,onDismiss,visibility,onVisibilityChange}:Props){
+export function ReaderWorkspace({children,selection,panel,practice,inline,detailHost,audioHost,onBeforeChange,onDismiss,visibility,onVisibilityChange,contextKey}:Props){
  const [settings,setSettings]=useState(false);
  const [layers,setLayers]=useState(false);
+ useEffect(()=>{const frame=requestAnimationFrame(()=>{setSettings(false);setLayers(false);});return()=>cancelAnimationFrame(frame);},[contextKey]);
  const layerOptions=[['all','Alles anzeigen',Eye],['marks','Nur Markierungen',Highlighter],['notes','Nur Notizen',PenLine],['none','Alles ausblenden',EyeOff]] as const;
  const ActiveLayer=layerOptions.find(option=>option[0]===visibility)?.[2]??Eye;
  const {element:workspaceRef,preview,dragging,dock,compact,grip,announcement,dockAt:placeAt}=usePencilPlacement(true,()=>{setSettings(false);setLayers(false);onDismiss();},practice,'top','Werkzeugleiste');
