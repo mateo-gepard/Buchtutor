@@ -1,4 +1,5 @@
 export const PENCIL_HANDWRITING_HINT_KEY='buchtutor-pencil-handwriting-hint-v1';
+export const PENCIL_CLOUD_HINT_KEY='buchtutor-pencil-cloud-hint-v1';
 // This identifies where we can offer Scribble, not whether it is enabled or a
 // Pencil is paired. Safari exposes neither of those as a web capability.
 export function offersAppleScribble(userAgent:string,maxTouchPoints=0){

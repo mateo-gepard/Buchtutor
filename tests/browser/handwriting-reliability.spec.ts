@@ -1,10 +1,12 @@
-import {test,expect,type Page} from './reader-test';
+import {test,expect,useLocalHandwriting,type Page} from './reader-test';
 
 const safari='Mozilla/5.0 (iPad; CPU OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
 const reader='/?work=iphigenie&section=s001&view=reader';
 test.use({userAgent:safari,hasTouch:true});
 test.beforeEach(async({context,page})=>{
+ await useLocalHandwriting(context);
  await context.addInitScript(()=>localStorage.setItem('buchtutor-pencil-handwriting-hint-v1','1'));
+ await context.addInitScript(()=>localStorage.setItem('buchtutor-pencil-cloud-hint-v1','1'));
  await page.route('**/api/handwriting',route=>route.fulfill({status:503,json:{error:'Test: Erkennung nicht verfügbar.'}}));
 });
 async function setup(page:Page){

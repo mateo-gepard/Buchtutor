@@ -1,4 +1,4 @@
-import {test,expect,type Page} from './reader-test';
+import {test,expect,useLocalHandwriting,type Page} from './reader-test';
 async function mark(page:Page,index=0,pointerType='pen'){
  await page.locator('[data-text]').nth(index).scrollIntoViewIfNeeded();
  await page.locator('[data-text]').nth(index).evaluate((el,pointerType)=>{
@@ -20,7 +20,8 @@ async function writeNear(page:Page,index=0){
 }
 async function chooseColor(page:Page,name:string){const button=page.getByRole('button',{name,exact:true});if(!await button.isVisible())await page.getByRole('button',{name:'Markierungsfarbe wählen',exact:true}).click();await button.click();}
 async function openNotebook(page:Page){await page.getByRole('button',{name:'Zur Bibliothek'}).click();await page.getByRole('button',{name:'Meine Notizen',exact:true}).click();}
-test.beforeEach(async({page})=>{
+test.beforeEach(async({page,context})=>{
+ await useLocalHandwriting(context);
  page.on('request',request=>{if(request.url().includes('/api/handwriting'))throw new Error('Paid handwriting request must never be sent');});
  await page.goto('/?work=iphigenie&section=s001&view=reader');await expect(page.locator('[data-text]').first()).toContainText('Heraus');await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();
  await expect(page.locator('.pencil-workspace')).toHaveCSS('transform','none');const toolbar=await page.locator('.pencil-workspace').boundingBox();expect(toolbar!.height).toBeLessThanOrEqual(70);await expect(page.locator('.pencil-detail')).toHaveCount(0);

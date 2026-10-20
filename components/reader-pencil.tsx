@@ -10,7 +10,7 @@ import {inkPath,pencilColors,pencilPalette,strokeAnchor,type InkStroke,type Penc
 import {addPageStroke,boxDistance,combineInk,croppedInk,inkBounds,linkInk,projectedInk,type InkLayout,type PageInkGroup} from '@/lib/page-handwriting';
 import {eraseHighlightedWords,erasePageLines} from '@/lib/pencil-eraser';
 import {inkTargets,wordBoxes} from '@/lib/pencil-dom';
-import {offersAppleScribble,PENCIL_HANDWRITING_HINT_KEY} from '@/lib/pencil-browser';
+import {offersAppleScribble,PENCIL_HANDWRITING_HINT_KEY,PENCIL_CLOUD_HINT_KEY} from '@/lib/pencil-browser';
 import {PencilHandwritingHint} from './pencil-handwriting-hint';
 import {usePencilDraft,type PencilEntry as Entry} from '@/hooks/use-pencil-draft';
 import {setHandwritingCloud} from '@/lib/handwriting-client';
@@ -26,7 +26,8 @@ export function ReaderPencil({contentAnchor,toolbarHost,dismissMenusKey,onPopove
  const composition=useRef(false),saving=useRef(false);
  const [scribble,setScribble]=useState(false),[hint,setHint]=useState(false);
  const [cloudChoice,setCloudChoice]=useState<boolean|null>(null);
- const [hintAcknowledged,setHintAcknowledged]=useState(false);
+ const [hintAcknowledged,setHintAcknowledged]=useState<string|null>(null);
+ const hintKey=prefs.handwritingCloud?PENCIL_CLOUD_HINT_KEY:PENCIL_HANDWRITING_HINT_KEY;
  const [history,setHistory]=useState<{entries:Entry[];groups:PageInkGroup[]}[]>([]);
  const [layout,setLayout]=useState<InkLayout>({width:640,fontSize:20,tops:{}});
  useEffect(()=>{const frame=requestAnimationFrame(()=>{setSettings(false);setPalette(false);setHint(false);});return()=>cancelAnimationFrame(frame);},[dismissMenusKey]);
@@ -75,9 +76,9 @@ export function ReaderPencil({contentAnchor,toolbarHost,dismissMenusKey,onPopove
   return()=>{el.removeEventListener('touchstart',stylus);el.removeEventListener('touchmove',stylus);};
  },[enabled]);
  function showHandwritingInfo(){
-  if(practice||hintAcknowledged||prefs.handwritingCloud)return;try{if(localStorage.getItem(PENCIL_HANDWRITING_HINT_KEY)==='1')return;}catch{/* The notice remains dismissible without storage. */}setSettings(false);setPalette(false);setHint(true);
+  if(practice||hintAcknowledged===hintKey)return;try{if(localStorage.getItem(hintKey)==='1')return;}catch{/* The notice remains dismissible without storage. */}setSettings(false);setPalette(false);setHint(true);
  }
- function dismissHandwritingInfo(){setHintAcknowledged(true);setHint(false);try{localStorage.setItem(PENCIL_HANDWRITING_HINT_KEY,'1');}catch{/* Optional device-only notice state. */}}
+ function dismissHandwritingInfo(){setHintAcknowledged(hintKey);setHint(false);try{localStorage.setItem(hintKey,'1');}catch{/* Optional device-only notice state. */}}
  function enableCloud(){void setHandwritingCloud(true).then(dismissHandwritingInfo).catch(e=>setError(e.message));}
  function remember(){setHistory(old=>[...old.slice(-29),{entries,groups}]);}
  function add(anchor:Anchor){continueWriting.current=false;
@@ -227,7 +228,7 @@ export function ReaderPencil({contentAnchor,toolbarHost,dismissMenusKey,onPopove
      <span className="pencil-divider"/>
      <button className="pencil-done" aria-label={busy?'Speichern …':'Fertig'} title={composing?'Texteingabe erst abschließen':'Markierungen, Notiztext und Originalhandschrift auf diesem Gerät speichern'} onClick={()=>void finish()} disabled={practice||busy||composing||!loaded||!entries.length&&!groups.length}>{busy?<LoaderCircle size={18} className="spin"/>:<Check size={19}/>}<span>{busy?'Speichern …':'Fertig'}</span></button>
     </div>
-    {hint&&!prefs.handwritingCloud&&<div className="pencil-handwriting-hint pencil-popover" role="status"><button className="icon-button" aria-label="Handschrift-Hinweis schließen" onClick={dismissHandwritingInfo}><X size={16}/></button><PencilHandwritingHint scribble={scribble} onEnableCloud={practice?undefined:enableCloud}/></div>}
+    {hint&&<div className="pencil-handwriting-hint pencil-popover" role="status"><button className="icon-button" aria-label="Handschrift-Hinweis schließen" onClick={dismissHandwritingInfo}><X size={16}/></button><PencilHandwritingHint scribble={scribble} cloud={prefs.handwritingCloud} onEnableCloud={practice?undefined:enableCloud}/></div>}
     {error&&!palette&&!settings&&!hint&&<p className="inline-error pencil-error" role="alert">{error}</p>}
    </section>,toolbarHost)}
  </>;

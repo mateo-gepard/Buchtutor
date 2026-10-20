@@ -10,7 +10,7 @@ export const maxDuration=35;
 export async function POST(request:Request){
  const started=Date.now(),usage:UsageDelta={requests:1};
  const response=await safe(async()=>{
-  // Explicit consent also prevents older clients from silently reviving paid OCR.
+  // Only recognition-enabled clients submit this flag; older clients remain rejected.
   const data=await body(request,z.object({consent:z.literal(true),image:z.string().max(1200022)}),1210000);
   validateInkImage(data.image);
   await reserveGeneration(request.headers.get('x-leseraum-device')??'');

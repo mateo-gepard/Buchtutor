@@ -4,7 +4,7 @@ import {pencilColors} from './pencil-model';
 export const preferencesSchema = z.object({
   pencilMeanings:z.record(z.enum(pencilColors),z.string().min(1).max(80)).optional(),
   annotationVisibility:z.enum(['all','marks','notes','none']).default('all'),
-  handwritingCloud:z.boolean().default(false),
+  handwritingCloud:z.boolean().default(true),
   fontSize: z.number().min(16).max(30),
   lineHeight: z.number().min(1.5).max(2.4),
   theme: z.enum(['paper', 'sepia', 'night']),
@@ -15,4 +15,4 @@ export const preferencesSchema = z.object({
   autoBookmark: z.boolean().default(true),
 });
 export type Prefs = z.infer<typeof preferencesSchema>;
-export const defaultPrefs: Prefs = {fontSize:20, lineHeight:1.85, theme:'paper', numbers:true, characters:true, font:'sans', autoBookmark:true,annotationVisibility:'all',handwritingCloud:false};
+export const defaultPrefs: Prefs = {fontSize:20, lineHeight:1.85, theme:'paper', numbers:true, characters:true, font:'sans', autoBookmark:true,annotationVisibility:'all',handwritingCloud:true};
