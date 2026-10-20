@@ -23,7 +23,7 @@ test('each accessory preserves reading space in portrait, landscape and narrow r
  await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();
  await fits(page,'.reader-workspace');
  const bar=await page.locator('.reader-workspace').boundingBox();
- expect(bar!.height).toBeLessThanOrEqual(page.viewportSize()!.width>=600?60:114);
+ expect(bar!.height).toBeLessThanOrEqual(page.viewportSize()!.width>=760?60:114);
  await page.getByRole('button',{name:'Markierungsfarbe wählen',exact:true}).click();
  await fits(page,'.pencil-mobile-palette');
  expect((await page.locator('.pencil-mobile-palette').boundingBox())!.width).toBeLessThanOrEqual(240);
@@ -44,6 +44,28 @@ test('each accessory preserves reading space in portrait, landscape and narrow r
  await page.screenshot({animations:'disabled',path:testInfo.outputPath('05-audio.png')});
  await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();
  await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Natur als Zuflucht – Iphigenie bleibt innerlich fremd.');
+});
+test('grouped tools fit without overlapping in narrow readers and at every dock edge',async({page},testInfo)=>{
+ await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();
+ await page.getByRole('button',{name:'Hören und mitlesen',exact:true}).click();
+ const grip=page.getByRole('button',{name:'Werkzeugleiste verschieben',exact:true});
+ for(const viewport of [{width:320,height:740},{width:680,height:759},{width:834,height:1194},{width:1194,height:834},{width:834,height:520}]){
+  await page.setViewportSize(viewport);
+  for(const edge of ['Up','Right','Down','Left']){
+   await grip.press(`Shift+Arrow${edge}`);
+   await fits(page,'.reader-workspace');
+   await expect.poll(()=>page.locator('.workspace-main').evaluate(el=>{
+    const bar=el.getBoundingClientRect(),buttons=[...el.querySelectorAll('button')].map(button=>button.getBoundingClientRect()).filter(r=>r.width&&r.height);
+    return buttons.every((r,i)=>r.left>=bar.left&&r.right<=bar.right+1&&r.top>=bar.top&&r.bottom<=bar.bottom+1&&buttons.slice(i+1).every(s=>Math.min(r.right,s.right)-Math.max(r.left,s.left)<=1||Math.min(r.bottom,s.bottom)-Math.max(r.top,s.top)<=1));
+   })).toBe(true);
+   if(edge==='Left'||edge==='Right')await expect.poll(()=>page.locator('.reader-workspace').evaluate((el,edge)=>{
+    const bar=el.getBoundingClientRect(),text=document.querySelector('.source-row [data-text]')!.getBoundingClientRect(),number=document.querySelector('.source-row .line-number')!.getBoundingClientRect();
+    return edge==='Left'?number.left-bar.right:bar.left-text.right;
+   },edge),{message:`Text stays clear at ${viewport.width} × ${viewport.height}, ${edge}`}).toBeGreaterThanOrEqual(4);
+   await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+  }
+  if(viewport.width===834&&viewport.height===1194)await page.screenshot({animations:'disabled',path:testInfo.outputPath('06-side-tools.png')});
+ }
 });
 test('iPad-sized keyboard space and split view keep the note input and controls reachable',async({page})=>{
  await page.setViewportSize({width:834,height:680});

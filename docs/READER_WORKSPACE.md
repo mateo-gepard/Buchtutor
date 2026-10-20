@@ -14,7 +14,7 @@ Buchtutor übernimmt diese Anordnung als Bedienprinzip und behält seine eigene 
 
 ## Verhalten
 
-- Eine gemeinsame Oberfläche enthält Textauswahl, Pencil, Notizen, KI-Hilfe und Audio. Ab 600 Pixeln passen auch die aktiven Pencil-Werkzeuge in dieselbe Zeile. Auf schmalen Telefonen steht die Zeichenwerkzeuggruppe in einer zweiten Zeile derselben Leiste.
+- Eine gemeinsame Oberfläche enthält Textauswahl, Pencil, Notizen, KI-Hilfe und Audio. Ab 760 Pixeln passen auch die aktiven Pencil-Werkzeuge in dieselbe Zeile. In schmaler Split-View und auf Telefonen steht die Zeichenwerkzeuggruppe in einer zweiten Zeile derselben Leiste.
 - Farbe, Schreiben, Radierer, Rückgängig und „Fertig“ sind direkt erreichbar. Ein kleines Farbmenü enthält die fünf Farben und den Zugang zu ihren Bedeutungen. Der Pencil-Schalter schließt den Zeichenmodus mit erhaltenem Entwurf.
 - Play/Pause bleibt erreichbar, während Notizen oder KI-Hilfe geöffnet sind. Kapitel, Tempo, Hörposition, Timer und Quellenangaben liegen in den Hörbuchdetails.
 - Notizen, KI-Hilfe, Hörbuchdetails und Werkzeugmenüs öffnen jeweils einen gemeinsamen Detailbereich. Ab 760 Pixeln Bildschirmbreite bleibt neben dem 320–360 Pixel breiten Seitenfenster ein eigener Textbereich frei, auch im iPad-Hochformat.
@@ -36,6 +36,10 @@ Folgeauftrag „UX smoother“ vom 20.10.2026:
 - „Bewegung reduzieren“ deaktiviert diese Animationen. CSS-Ein-/Ausblendungen verbessern das Verhalten in unterstützten Browsern; ältere Browser zeigen die Inhalte unmittelbar. Grundlage ist die dokumentierte Unterstützung für `@starting-style` und diskrete `display`-Übergänge in [WebKit/Safari 18](https://webkit.org/blog/15865/webkit-features-in-safari-18-0/).
 
 ## Prüfung
+
+Die Gestaltung der Leiste gruppiert Lesen/Markieren, Zeichenwerkzeuge, Notizen/KI und Wiedergabe auf abgesetzten Flächen. Auf iPad-Breiten ab 820 Pixeln stehen kurze Beschriftungen unter den Hauptsymbolen. Ein gefüllter Modusschalter unterscheidet den Pencil-Modus von einem geöffneten Detailfenster; das Markierwerkzeug zeigt seine aktuelle Farbe samt Stiftsymbol. Die Leiste bleibt horizontal höchstens 60 Pixel hoch, mit zweiter Zeichenzeile höchstens 114 Pixel. Seitlich bleiben die Gruppen zusammen: Bei knapper Höhe bilden Auswahl/Pencil und Notiz/KI jeweils eine Reihe; Farbe, Schreiben/Radieren und Rückgängig/Fertig bleiben als Zeichenwerkzeuge zusammen. Griff und Anordnung teilen sich dann eine Kopfzeile. Angedockte Seitenleisten erhalten auch ohne geöffnetes Detailfenster freien Platz neben Text und Versnummern. Der zusätzliche Layouttest prüft alle vier Ränder einschließlich 320-Pixel-Telefon, Split-View und kurzem Tastaturfenster auf Überlappungen und abgeschnittene Werkzeuge.
+
+Die kompakte Seitenleiste hat einen Spielraum zwischen Ein- und Ausklappen, damit mobile Viewport-Rundung beim Drehen keinen Layoutwechsel in Schleife auslöst. Die Schreibfläche beobachtet zusätzlich den Lesebereich: Verschiebt sich eine zentrierte Seite ohne Änderung ihrer Textbreite, werden ihre äußeren Schreibgrenzen ebenfalls neu berechnet. Auf schmalen Seiten dürfen Kapitelzeile, Abschnittsbuttons und lange Wörter umbrechen; sie erzeugen keine horizontale Überbreite.
 
 Der kombinierte Browsertest prüft echte Medienwiedergabe mit einer lokalen Testaufnahme, eine Pencil-Markierung, einen Textentwurf, Wechsel zwischen KI-/Audio-/Notizdetails, dieselbe weiterlaufende Audioinstanz und das Andocken. Die bestehenden Prüfungen decken zusätzlich Zeichnen, Radieren, Kritzeln, lokale Speicherung, Textauswahl und die vollständige Einführung ab.
 

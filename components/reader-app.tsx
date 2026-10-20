@@ -397,15 +397,19 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
 
     {(view==='reader'||audioOpen)&&<ReaderWorkspace practice={tourOpen} audioHost={setAudioHost} onBeforeChange={()=>restorePosition(capturePosition())} onDismiss={()=>{restorePosition(capturePosition());setPanelOpen(false);setAudioExpanded(false);setMenusKey(n=>n+1);}} selection={selectionTools} panel={companionPanel}>
      {view==='reader'&&<>
+      <div className="workspace-tool-group workspace-modes" role="group" aria-label="Lesen und Markieren">
       <button data-tour="selection" className="workspace-tool" aria-label="Bereich durch Antippen auswählen" aria-pressed={selectMode} title="Text auswählen" onClick={()=>{const next=!selectMode;resetSelection();setPanelOpen(false);setAudioExpanded(false);setMenusKey(n=>n+1);setSelectMode(next);}}><MousePointer2 size={19}/><span>Auswahl</span></button>
       <button className="workspace-tool" aria-label="Apple Pencil Modus" aria-pressed={pencilMode} title="Markieren und schreiben" onClick={()=>{nativeSelection.clear();setSelectMode(false);setPencilMode(!pencilMode);setMenusKey(n=>n+1);}}><ApplePencilIcon size={21}/><span>Pencil</span></button>
+      </div>
       <div ref={setPencilHost} className="workspace-pencil-slot"/>
-      <span className="workspace-divider"/>
+      <div className="workspace-tool-group workspace-study" role="group" aria-label="Notizen und Lesehilfe">
       <button className="workspace-tool" aria-label="Notiz schreiben" aria-pressed={panelOpen&&panel==='notes'} title="Notiz zur Textstelle" onClick={event=>panelOpen&&panel==='notes'?closePanel():openPanel('notes',event.detail===0)}><MessageSquare size={19}/><span>Notiz</span></button>
       <button className="workspace-tool" aria-label="Lesehilfe öffnen" aria-pressed={panelOpen&&panel!=='notes'} title="KI-Hilfe und Figuren" onClick={event=>panelOpen&&panel!=='notes'?closePanel():openPanel('help',event.detail===0)}><Lightbulb size={19}/><span>KI-Hilfe</span></button>
+      </div>
      </>}
-     <span className="workspace-divider"/>
+     <div className="workspace-tool-group workspace-listen">
      {audioOpen?<ReaderAudio key={book.editionId} detailsHost={audioHost} expanded={audioExpanded} onExpandedChange={value=>{restorePosition(capturePosition());setAudioExpanded(value);if(value){setPanelOpen(false);setMenusKey(n=>n+1);}}} book={book} sectionId={section.id} blockId={selection?.startId||currentBlock||section.blocks.find(isText)?.id||''} suspended={tourOpen} onPosition={followAudio} onClose={()=>{setAudioOpen(false);setAudioExpanded(false);afterLayout(()=>document.querySelector<HTMLButtonElement>('.audio-trigger')?.focus({preventScroll:true}));}}/>:<button className="workspace-tool audio-trigger" aria-label="Hören und mitlesen" title="Hörbuch öffnen" onClick={()=>setAudioOpen(true)}><Headphones size={19}/><span>Hören</span></button>}
+     </div>
     </ReaderWorkspace>}
 
     <Dialog open={contentsOpen} onOpenChange={setContentsOpen}><DialogContent placement="left" className="contents-dialog" onOpenAutoFocus={event=>event.preventDefault()} onCloseAutoFocus={event=>{event.preventDefault();contentsTrigger.current?.focus({preventScroll:true});restorePosition(contentsPosition.current);contentsPosition.current=null;}}><DialogHeader><DialogTitle>Inhaltsverzeichnis</DialogTitle><DialogDescription>{book.title}</DialogDescription></DialogHeader>

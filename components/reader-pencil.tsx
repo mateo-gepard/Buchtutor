@@ -56,7 +56,17 @@ export function ReaderPencil({toolbarHost,dismissMenusKey,onPopover,practice=fal
   });return()=>cancelAnimationFrame(frame);
  },[key,refresh,practice]);
  useLayoutEffect(()=>{const frame=requestAnimationFrame(refresh);return()=>cancelAnimationFrame(frame);},[entries,enabled,prefs.fontSize,prefs.lineHeight,prefs.font,refresh]);
- useEffect(()=>{let frame=0;const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(refresh);};const observer=new ResizeObserver(schedule);if(root.current)observer.observe(root.current);window.addEventListener('resize',schedule);return()=>{observer.disconnect();cancelAnimationFrame(frame);window.removeEventListener('resize',schedule);};},[refresh]);
+ useEffect(()=>{
+  let frame=0;const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(refresh);};const observer=new ResizeObserver(schedule);
+  if(root.current){
+   observer.observe(root.current);
+   // A docked rail can move a centered page without changing the text's width.
+   // Keep the full-page writing surface aligned with the new page position too.
+   const main=root.current.closest('.reading-main');if(main)observer.observe(main);
+  }
+  window.addEventListener('resize',schedule);
+  return()=>{observer.disconnect();cancelAnimationFrame(frame);window.removeEventListener('resize',schedule);};
+ },[refresh]);
  useEffect(()=>{if(!loaded||practice)return;const timer=setTimeout(()=>{try{if(entries.length||groups.length)localStorage.setItem(key,JSON.stringify({version:2,entries,groups}));else localStorage.removeItem(key);}catch{setError('Der Entwurfsspeicher ist voll. Bitte mit „Fertig“ sichern, bevor du die Seite verlässt.');}},0);return()=>clearTimeout(timer);},[entries,groups,key,loaded,practice]);
  useEffect(()=>{function unload(e:BeforeUnloadEvent){if(!practice&&(entries.length||groups.length))e.preventDefault();}window.addEventListener('beforeunload',unload);return()=>window.removeEventListener('beforeunload',unload);},[entries.length,groups.length,practice]);
  useEffect(()=>{
@@ -185,7 +195,7 @@ export function ReaderPencil({toolbarHost,dismissMenusKey,onPopover,practice=fal
     <div className="pencil-toolbar">
 
      <div className="pencil-colors" role="group" aria-label="Markierungsfarbe">{pencilColors.map(c=><button key={c} disabled={busy} style={{background:pencilPalette[c].fill}} aria-label={`${pencilPalette[c].name}: ${meaning(c)}`} aria-pressed={color===c&&!writing&&!erasing} title={meaning(c)} onClick={()=>{setColor(c);setWriting(false);setErasing(false);continueWriting.current=false;}}>{color===c&&!writing&&!erasing?<Check size={16}/>:<span className="sr-only">{pencilPalette[c].name}</span>}</button>)}</div>
-     <button className="pencil-color-menu icon-button" aria-label="Markierungsfarbe wählen" aria-expanded={palette} disabled={busy} onClick={()=>{onPopover();setPalette(!palette);setSettings(false);setHint(false);}}><i style={{background:pencilPalette[color].fill}}/></button>
+     <button className="pencil-color-menu icon-button" aria-label="Markierungsfarbe wählen" aria-expanded={palette} aria-pressed={!writing&&!erasing} title={`${pencilPalette[color].name} · ${meaning(color)}`} disabled={busy} onClick={()=>{onPopover();setPalette(!palette);setSettings(false);setHint(false);}}><i style={{background:pencilPalette[color].fill}}><Highlighter size={16}/></i></button>
      <span className="pencil-divider"/>
      <button className={'icon-button pencil-writing-toggle '+(writing?'pressed':'')} disabled={busy} aria-label="Auf der Seite schreiben" title="Direkt neben Markierungen schreiben. Hier aktivieren, um auch über dem Text zu schreiben." aria-pressed={writing} onClick={()=>{setWriting(!writing);setErasing(false);setPalette(false);setSettings(false);}}><PenLine size={19}/></button>
      <button className={'icon-button pencil-eraser '+(erasing?'pressed':'')} disabled={busy} aria-label="Radiergummi" title="Ganze Wortmarkierungen und getroffene Schriftstriche entfernen. Verknüpfte Notizen bleiben erhalten." aria-pressed={erasing} onClick={()=>{setErasing(!erasing);setWriting(false);continueWriting.current=false;setPalette(false);setSettings(false);}}><Eraser size={19}/></button>

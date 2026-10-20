@@ -34,7 +34,10 @@ export function usePencilPlacement(enabled:boolean,closePanels:()=>void,practice
  const layout=useCallback(()=>{
   const el=element.current;if(!el)return;
   el.dataset.ready='true';
-  const v=viewport(),r=el.getBoundingClientRect();setCompact(v.height<620);el.style.setProperty('--pencil-available-height',v.height+'px');
+  const v=viewport(),r=el.getBoundingClientRect();
+  // Mobile viewport rounding can cross a breakpoint as the rail changes shape.
+  // Leave room on either side so orientation changes cannot toggle it in a loop.
+  setCompact(current=>v.height<(current?700:660));el.style.setProperty('--pencil-available-height',v.height+'px');
   const bar=palettePosition(placement.current,{width:r.width,height:r.height},v);
   el.style.setProperty('--workspace-sidebar-space',bar.width+10+'px');
   el.style.left=bar.x+'px';el.style.top=bar.y+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform='none';
