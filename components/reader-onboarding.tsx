@@ -22,7 +22,7 @@ function mergeSpots(spots:Box[]){
 }
 type Props={ready:boolean;open:boolean;bookTitle:string;colorLabel:string;exampleText:string;step:number|null;done:Record<string,boolean>;onTry:(value?:string)=>void;onStart:()=>void;onBegin:()=>void;onStep:(index:number)=>void;onClose:()=>void};
 const icons={book:BookOpen,eraser:Eraser,note:MessageSquare,selection:Highlighter,pencil:Highlighter,pen:PenLine,bulb:Lightbulb,users:Users,bookmark:Bookmark,filter:Filter,lock:LockKeyhole};
-function visible(el:HTMLElement){const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(el).visibility!=='hidden';}
+function visible(el:HTMLElement){const r=el.getBoundingClientRect();return !el.closest('[hidden],[aria-hidden=true]')&&r.width>0&&r.height>0&&getComputedStyle(el).visibility!=='hidden';}
 function firstOfEach(selector:string){return selector?selector.split(',').flatMap(part=>{const el=[...document.querySelectorAll<HTMLElement>(part.trim())].find(visible);return el?[el]:[];}):[];}
 function TourAutoAdvance({complete,changing,onAdvance}:{complete:boolean;changing:boolean;onAdvance:()=>void}){
  const [alreadyComplete]=useState(complete),[held,setHeld]=useState(false);
@@ -68,7 +68,11 @@ export function ReaderOnboarding({ready,open,bookTitle,colorLabel,exampleText,st
   const current=step===null?{id:'welcome',target:'',extra:'',allow:''}:tourSteps[step],app=document.querySelector<HTMLElement>('.reader-app')!,inertBefore=new Map<HTMLElement,boolean>();
   function primary(){return current.target?[...document.querySelectorAll<HTMLElement>(current.target)].find(visible):undefined;}
   function parts(){const first=primary();return [...(first?[first]:[]),...firstOfEach(current.extra)];}
-  function restoreAccess(){for(const [el,inert] of inertBefore)el.inert=inert;inertBefore.clear();}
+  function restoreAccess(){
+   // Tool panels can open while a tour step changes. Their current visibility owns inertness.
+   for(const [el,inert] of inertBefore)el.inert=el.matches('.workspace-popover[aria-hidden]')?el.getAttribute('aria-hidden')==='true':inert;
+   inertBefore.clear();
+  }
   function access(){
    restoreAccess();const allowed=firstOfEach(current.allow);
    function walk(el:HTMLElement){if(allowed.some(node=>node===el||node.contains(el)))return;if(allowed.some(node=>el.contains(node))){for(const child of el.children)if(child instanceof HTMLElement)walk(child);}else{inertBefore.set(el,el.inert);el.inert=true;}}

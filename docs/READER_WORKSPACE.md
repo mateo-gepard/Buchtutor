@@ -24,8 +24,21 @@ Buchtutor übernimmt diese Anordnung als Bedienprinzip und behält seine eigene 
 - Wechsel zwischen Details erhält die Audioinstanz, die Wiedergabe, Pencil-Entwürfe und angefangene Textnotizen. Die bisherigen Speicher- und Editionsanker bleiben unverändert.
 - Die Einführung hebt die tatsächlichen Werkzeuge hervor. Überlappende Ausschnitte werden vereinigt, damit ihre Schnittfläche anklickbar bleibt.
 
+## Ruhigere Übergänge
+
+Folgeauftrag „UX smoother“ vom 20.10.2026:
+
+- Audio-, KI- und Notizdetails verwenden dieselbe Fenstergröße und dieselben Textabstände. Ein Wechsel innerhalb der Leiste schließt das Audiofenster erst mit der gewählten Aktion; der vorherige Pointer-Down erzeugt keinen zusätzlichen Layoutwechsel mehr.
+- Die kanonische Lesestelle wird bei Werkzeugaktionen vor dem nächsten Bild wiederhergestellt. Dabei wird die Textbreite nicht über viele Zwischenstufen animiert, damit Textauswahl und Pencil-Anker verlässlich bleiben.
+- Detailfenster blenden kurz ein und aus; geschlossene Inhalte sind sofort inaktiv und für assistive Technik verborgen. Eigene Scrollpositionen bleiben beim Wechsel zwischen Verstehen, Figuren und Notizen erhalten. Ein Antippen bewegt den Fokus nicht zur Fensterüberschrift; Tastaturbedienung führt weiterhin dorthin und mit Escape zurück.
+- Der Griff beginnt erst nach sechs Pixeln Bewegung zu ziehen. Antippen und kleine Handbewegungen lassen die Details offen. Beim Loslassen bzw. bewussten Andocken gleitet die Leiste kurz an ihre Position; während des Ziehens folgt sie direkt.
+- Gespeicherte Andockpositionen werden vor der ersten Werkzeugdarstellung wiederhergestellt. Eingaben bleiben direkt, die Notizschrift verwendet 16 Pixel, und Scrollen innerhalb der Details wird nicht an die Buchseite weitergereicht.
+- „Bewegung reduzieren“ deaktiviert diese Animationen. CSS-Ein-/Ausblendungen verbessern das Verhalten in unterstützten Browsern; ältere Browser zeigen die Inhalte unmittelbar. Grundlage ist die dokumentierte Unterstützung für `@starting-style` und diskrete `display`-Übergänge in [WebKit/Safari 18](https://webkit.org/blog/15865/webkit-features-in-safari-18-0/).
+
 ## Prüfung
 
 Der kombinierte Browsertest prüft echte Medienwiedergabe mit einer lokalen Testaufnahme, eine Pencil-Markierung, einen Textentwurf, Wechsel zwischen KI-/Audio-/Notizdetails, dieselbe weiterlaufende Audioinstanz und das Andocken. Die bestehenden Prüfungen decken zusätzlich Zeichnen, Radieren, Kritzeln, lokale Speicherung, Textauswahl und die vollständige Einführung ab.
 
 Playwright-Projekte: Desktop-Chromium, mobiles Chromium und iPad-WebKit in Hoch- und Querformat. Zusätzliche Layoutprüfungen öffnen Farbmenü, Notizen, KI-Hilfe, Figuren und Audio einzeln, messen den verbleibenden Textbereich und erstellen Screenshots. Verkleinerte Ansichten prüfen Split-View und den Platzbedarf einer Tastatur. Native Apple-Pencil-Hardware und die iPad-Systemtastatur können durch diese Emulation nicht vollständig geprüft werden.
+
+Die ergänzten Interaktionsprüfungen messen die Leseposition vor/nach Werkzeugwechseln, kontrollieren den Zustand zwischen Pointer-Down und Klick, erhalten Notizentwürfe bei Griffbewegungen und prüfen Tastaturfokus, separate Scrollpositionen und reduzierte Bewegung.

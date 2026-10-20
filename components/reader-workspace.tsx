@@ -7,16 +7,17 @@ import type {Dock} from '@/lib/pencil-placement';
 type Props={
  children:ReactNode;selection:ReactNode;panel:ReactNode;practice:boolean;
  audioHost:(element:HTMLDivElement|null)=>void;
+ onBeforeChange:()=>void;
  onDismiss:()=>void;
 };
 /** One persistent surface. Opening an accessory never remounts the audio player. */
-export function ReaderWorkspace({children,selection,panel,practice,audioHost,onDismiss}:Props){
+export function ReaderWorkspace({children,selection,panel,practice,audioHost,onBeforeChange,onDismiss}:Props){
  const [settings,setSettings]=useState(false);
- const {element:workspaceRef,preview,dragging,dock,compact,style,grip,announcement,dockAt:placeAt}=usePencilPlacement(true,()=>{setSettings(false);onDismiss();},practice,'top','Werkzeugleiste');
+ const {element:workspaceRef,preview,dragging,dock,compact,grip,announcement,dockAt:placeAt}=usePencilPlacement(true,()=>{setSettings(false);onDismiss();},practice,'top','Werkzeugleiste');
  function dockAt(dock:Dock){placeAt(dock);}
  return <>
   {preview!=='floating'&&<div className={'pencil-dock-preview dock-'+preview} aria-hidden="true"/>}
-  <section ref={workspaceRef} className={'reader-workspace '+(dragging?'is-dragging':'')} data-dock={dock} data-compact={compact} style={style} aria-label="Lesewerkzeuge" onClickCapture={e=>{if(!(e.target as Element).closest('.workspace-settings,.workspace-placement'))setSettings(false);}} onKeyDown={e=>{if(e.key==='Escape'&&settings){e.stopPropagation();setSettings(false);}}}>
+  <section ref={workspaceRef} className={'reader-workspace '+(dragging?'is-dragging':'')} data-dock={dock} data-compact={compact} aria-label="Lesewerkzeuge" onClickCapture={e=>{if((e.target as Element).closest('button'))onBeforeChange();if(!(e.target as Element).closest('.workspace-settings,.workspace-placement'))setSettings(false);}} onKeyDown={e=>{if(e.key==='Escape'&&settings){e.stopPropagation();setSettings(false);}}}>
    <div className="workspace-main" role="group" aria-label="Werkzeug auswählen">
     <button className="workspace-grip" aria-label="Werkzeugleiste verschieben" title="Ziehen zum Verschieben · Umschalt + Pfeiltaste zum Andocken" {...grip}><GripVertical size={16}/></button>
     {children}

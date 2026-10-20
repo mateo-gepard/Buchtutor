@@ -60,3 +60,78 @@ test('iPad-sized keyboard space and split view keep the note input and controls 
  await fits(page,'.assistant-panel');
  await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Ein Gedanke mit geöffneter Tastatur.');
 });
+
+test('switching tools preserves the reading anchor and never closes audio on pointer-down',async({page})=>{
+ await page.getByRole('button',{name:'Hören und mitlesen',exact:true}).click();
+ await page.locator('[data-block]').nth(22).evaluate(el=>window.scrollBy({top:el.getBoundingClientRect().top-220,behavior:'instant'}));
+ const anchor=await page.locator('[data-block]').evaluateAll(rows=>{
+  const row=rows.find(el=>el.getBoundingClientRect().bottom>95)!;
+  return {id:row.id,top:row.getBoundingClientRect().top};
+ });
+ const footer=await page.locator('.reading-progress').boundingBox();
+ await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();
+ if(footer){
+  expect(await page.locator('.reading-progress').boundingBox()).toEqual(footer);
+  await expect(page.locator('.reading-progress .icon-button').last()).toBeVisible();
+ }
+ await expect.poll(()=>page.locator(`[id="${anchor.id}"]`).evaluate((el,top)=>Math.abs(el.getBoundingClientRect().top-top),anchor.top)).toBeLessThan(2);
+ await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Ein Gedanke bleibt beim Werkzeugwechsel erhalten.');
+ const shape=await page.locator(`[id="${anchor.id}"]`).boundingBox();
+ await page.getByRole('button',{name:'Hörbuch-Details öffnen',exact:true}).click();
+ const noteButton=page.getByRole('button',{name:'Notiz schreiben',exact:true});
+ await noteButton.dispatchEvent('pointerdown',{pointerType:'touch',pointerId:41});
+ await expect(page.locator('.audio-details')).not.toHaveAttribute('hidden');
+ await expect(page.locator('.assistant-panel')).toHaveAttribute('hidden');
+ const inAudio=await page.locator(`[id="${anchor.id}"]`).boundingBox();
+ expect(Math.abs(inAudio!.x-shape!.x)).toBeLessThan(2);
+ expect(Math.abs(inAudio!.y-shape!.y)).toBeLessThan(2);
+ expect(Math.abs(inAudio!.width-shape!.width)).toBeLessThan(2);
+ await noteButton.click();
+ await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Ein Gedanke bleibt beim Werkzeugwechsel erhalten.');
+ await expect(page.locator('#assistant-title')).not.toBeFocused();
+ await expect.poll(()=>page.locator(`[id="${anchor.id}"]`).evaluate((el,top)=>Math.abs(el.getBoundingClientRect().top-top),shape!.y)).toBeLessThan(2);
+ await page.getByRole('button',{name:'Lesehilfe schließen',exact:true}).click();
+ await expect(page.locator('.assistant-panel')).toBeHidden();
+ await expect.poll(()=>page.locator(`[id="${anchor.id}"]`).evaluate((el,top)=>Math.abs(el.getBoundingClientRect().top-top),anchor.top)).toBeLessThan(2);
+});
+
+test('a tap or small grip movement keeps the note open; deliberate dragging closes it',async({page})=>{
+ await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();
+ await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Entwurf bleibt erhalten.');
+ const grip=page.getByRole('button',{name:'Werkzeugleiste verschieben',exact:true});
+ await grip.evaluate(el=>{
+  const r=el.getBoundingClientRect();
+  for(const [type,delta] of [['pointerdown',0],['pointermove',3],['pointerup',3]] as const)el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerType:'touch',pointerId:42,clientX:r.x+10+delta,clientY:r.y+10,buttons:type==='pointerup'?0:1}));
+ });
+ await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toBeVisible();
+ await expect(page.locator('.reader-workspace')).not.toHaveClass(/is-dragging/);
+ await grip.evaluate(el=>{
+  const r=el.getBoundingClientRect();
+  for(const [type,delta] of [['pointerdown',0],['pointermove',90],['pointerup',90]] as const)el.dispatchEvent(new PointerEvent(type,{bubbles:true,cancelable:true,pointerType:'touch',pointerId:43,clientX:r.x+10,clientY:r.y+10+delta,buttons:type==='pointerup'?0:1}));
+ });
+ await expect(page.locator('.assistant-panel')).toBeHidden();
+ await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();
+ await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Entwurf bleibt erhalten.');
+});
+
+test('keyboard focus, individual panel scroll positions and reduced motion remain predictable',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ // A short viewport creates real overflowing content, also on wide displays.
+ await page.setViewportSize({...page.viewportSize()!,height:520});
+ const help=page.getByRole('button',{name:'Lesehilfe öffnen',exact:true});
+ await help.press('Enter');
+ await expect(page.locator('#assistant-title')).toBeFocused();
+ await page.locator('.panel-scroll').evaluate(el=>{el.scrollTop=el.scrollHeight;});
+ await expect.poll(()=>page.locator('.panel-scroll').evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
+ const position=await page.locator('.panel-scroll').evaluate(el=>el.scrollTop);
+ await page.getByRole('button',{name:'Figuren',exact:true}).click();
+ await expect(page.locator('.panel-scroll')).toHaveJSProperty('scrollTop',0);
+ await page.getByRole('button',{name:'Verstehen',exact:true}).click();
+ await expect.poll(()=>page.locator('.panel-scroll').evaluate(el=>el.scrollTop)).toBeCloseTo(position,0);
+ await page.keyboard.press('Escape');
+ await expect(help).toBeFocused();
+ await expect(page.locator('.assistant-panel')).toBeHidden();
+ await page.getByRole('button',{name:'Werkzeugleiste verschieben',exact:true}).press('Shift+ArrowRight');
+ await fits(page,'.reader-workspace');
+ expect(await page.locator('.reader-workspace').evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length)).toBe(0);
+});

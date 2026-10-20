@@ -7,6 +7,7 @@
  font:13px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;transition:box-shadow .15s;
 }
 .reader-workspace.is-dragging{box-shadow:0 10px 35px #142b2433;user-select:none}
+.reader-workspace:not([data-ready]){visibility:hidden}
 .workspace-main{display:flex;align-items:center;gap:2px;padding:5px}
 .workspace-tool{display:flex;align-items:center;justify-content:center;gap:6px;min-width:44px;height:44px;padding:0 9px;white-space:nowrap;border-radius:10px;font-size:12px;color:var(--muted-foreground)}
 .workspace-tool svg{flex-shrink:0}.workspace-tool:hover,.workspace-tool[aria-pressed=true]{background:var(--secondary);color:var(--primary)}
@@ -28,8 +29,8 @@
 .reader-workspace .pencil-mobile-palette>button:not(.pencil-meanings-trigger)>span{display:none}.reader-workspace .pencil-mobile-palette>button:not(.pencil-meanings-trigger)>svg{position:absolute;inset:0;margin:auto}
 .pencil-palette-meaning{grid-column:1/-1;margin:1px 4px 5px;text-align:center;font-size:11px;color:var(--muted-foreground)}
 .reader-workspace .pencil-mobile-palette .pencil-meanings-trigger{grid-column:1/-1;border-top:1px solid var(--border);border-radius:0;color:var(--muted-foreground)}
-.workspace-popover{position:absolute;z-index:2;left:0;top:calc(100% + 10px);width:var(--workspace-panel-width);max-width:calc(100vw - 24px);max-height:min(520px,calc(var(--pencil-available-height,75dvh) - 68px));overflow:auto;border:1px solid var(--border);border-radius:16px;background:var(--paper);box-shadow:0 6px 24px #142b2417;animation:workspace-in .14s ease-out}
-.workspace-popover[hidden]{display:none!important}.workspace-popover:not([data-positioned]),.reader-workspace .pencil-popover:not([data-positioned]){visibility:hidden}
+.workspace-popover{position:absolute;z-index:2;left:0;top:calc(100% + 10px);width:var(--workspace-panel-width);max-width:calc(100vw - 24px);max-height:min(520px,calc(var(--pencil-available-height,75dvh) - 68px));overflow:auto;border:1px solid var(--border);border-radius:16px;background:var(--paper);box-shadow:0 6px 24px #142b2417;opacity:1;translate:0 0;transition:opacity .16s ease,translate .2s cubic-bezier(.2,.8,.2,1),display .2s allow-discrete}
+.workspace-popover[hidden]{display:none!important;opacity:0;translate:0 6px;pointer-events:none}.workspace-popover:not([data-positioned]),.reader-workspace .pencil-popover:not([data-positioned]){visibility:hidden}
 .workspace-placement{width:300px;padding:12px 16px}.workspace-placement p{font-size:12px;color:var(--muted-foreground);margin:6px 0 12px}.workspace-placement .pencil-dock-options{margin:0;border:0;padding-bottom:0}.workspace-placement button[aria-pressed=true]{background:var(--secondary)}
 .reader-workspace .assistant-panel{inset:auto;position:absolute;width:var(--workspace-panel-width);height:min(520px,calc(var(--pencil-available-height,75dvh) - 68px));min-height:0;padding:0;border:1px solid var(--border);border-radius:16px;background:var(--paper);box-shadow:0 6px 24px #142b2417}
 .reader-workspace .assistant-panel.expanded{height:calc(var(--pencil-available-height,75dvh) - 68px);max-height:calc(var(--pencil-available-height,75dvh) - 68px)}
@@ -38,7 +39,7 @@
 .reader-workspace .companion-tabs{padding:0 8px;flex-shrink:0;gap:0}.reader-workspace .companion-tabs button{font-size:11px;min-height:40px;gap:5px}.reader-workspace .companion-tabs svg{width:15px}
 .reader-workspace .help-panel,.reader-workspace .figure-view,.reader-workspace .panel-notes{padding:14px 16px 20px}.reader-workspace .panel-scroll{scrollbar-gutter:auto}
 .reader-workspace .selection-excerpt{margin-bottom:14px}.reader-workspace .selection-excerpt blockquote{max-height:52px;overflow:auto;font-size:13px}
-.reader-workspace .note-editor textarea{min-height:92px;max-height:180px;font-size:14px;padding:10px}.reader-workspace .note-editor>span{font-size:12px}.reader-workspace .panel-notes>.small-note{margin:7px 0 12px}
+.reader-workspace .note-editor textarea{min-height:92px;max-height:180px;font-size:16px;padding:10px}.reader-workspace .note-editor>span{font-size:12px}.reader-workspace .panel-notes>.small-note{margin:7px 0 12px}
 .workspace-note-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-top:1px solid var(--border);flex-shrink:0;background:var(--paper);border-radius:0 0 16px 16px}
 .workspace-note-actions .small-note{font-size:10px;line-height:1.5;margin:0;max-width:115px}.workspace-note-actions .primary-button{min-height:44px;padding:8px 10px;font-size:12px;flex-shrink:0}
 .reader-workspace .analysis-actions{gap:6px}.reader-workspace .analysis-actions button{font-size:12px;padding:6px 9px}
@@ -46,16 +47,16 @@
 .reader-workspace .audio-main{gap:2px}.reader-workspace .audio-play{width:38px;height:38px;min-width:38px}
 .audio-details-trigger{height:44px;display:flex;align-items:center;gap:6px;padding:0 7px;border-radius:10px;color:var(--primary);font-size:11px;font-variant-numeric:tabular-nums}
 .audio-details-trigger[aria-expanded=true],.audio-details-trigger:hover{background:var(--secondary)}.audio-details-trigger>svg:last-child{display:none}
-.reader-workspace .audio-details{margin:0;padding:12px 14px;border:1px solid var(--border);max-height:min(520px,calc(var(--pencil-available-height,75dvh) - 68px))}
+.reader-workspace .audio-details{height:min(520px,calc(var(--pencil-available-height,75dvh) - 68px));margin:0;padding:12px 14px;border:1px solid var(--border);max-height:min(520px,calc(var(--pencil-available-height,75dvh) - 68px))}
 .audio-detail-heading{display:flex;align-items:center;gap:4px;margin-bottom:7px}.audio-detail-heading .icon-button{width:32px;min-width:32px;height:40px}
 .reader-workspace .audio-title strong{font-size:13px}.reader-workspace .audio-title span{font-size:11px}
 .reader-workspace .audio-seek{margin:6px 0 12px}.reader-workspace .audio-controls{gap:4px}.reader-workspace .audio-controls>.icon-button{width:32px;min-width:32px}.reader-workspace .audio-controls .secondary-button{padding:7px;font-size:11px;gap:4px}
 .reader-workspace .audio-options{grid-template-columns:1fr 1fr;gap:8px}.reader-workspace .audio-options>label:first-child{grid-column:1/-1}
-.audio-error-indicator{position:absolute;width:7px;height:7px;right:4px;top:4px;border-radius:50%;background:#a95435;overflow:hidden;font-size:0}.reader-workspace .audio-details .audio-error{margin:0 0 12px}.unified-tools:has(.assistant-panel.expanded) .reader-audio{visibility:visible}
+.audio-error-indicator{position:absolute;width:7px;height:7px;right:4px;top:4px;border-radius:50%;background:#a95435;overflow:hidden;font-size:0}.reader-workspace .audio-details .audio-error{margin:0 0 12px}.unified-tools:has(.assistant-panel.expanded:not([hidden])) .reader-audio{visibility:visible}
 .unified-tools .selection-dock{position:static;inset:auto;transform:none;border:0;border-top:1px solid var(--border);border-radius:0 0 15px 15px;box-shadow:none;background:none;max-width:100%;width:auto;justify-content:center;gap:2px;padding:4px 8px}
 .unified-tools .selection-dock>span{font-size:11px;max-width:100px;margin-right:5px}.unified-tools .selection-dock>button{min-width:44px;min-height:44px;flex-shrink:0}.unified-tools .selection-dock>button:not(.icon-button){font-size:12px;padding:0 8px}.unified-tools .selection-dock .icon-button{width:44px;min-width:44px}.unified-tools .range-selection-dock>span{max-width:250px}
 .unified-tools.has-panel .reading-main,.unified-tools.has-panel .reading-footer{margin-right:0}
-.unified-tools .reading-page,.unified-tools.has-panel .reading-page{padding-top:82px}.unified-tools.has-audio .reading-page{padding-bottom:120px}
+.unified-tools .reading-page,.unified-tools.has-panel .reading-page{padding-top:82px;max-width:790px}.unified-tools.has-audio .reading-page{padding-bottom:120px}
 .unified-tools .section-heading{flex-wrap:nowrap}.unified-tools .section-heading>p{flex-basis:auto}.unified-tools .section-heading>div{margin-left:auto}.unified-tools .source-row{scroll-margin-top:160px}
 .unified-tools:has(.selection-dock) .reading-page{padding-top:134px}.unified-tools:has(.selection-dock) .source-row{scroll-margin-top:210px}
 /* A single column at the edge; short viewports use two columns rather than hiding tools. */
@@ -72,20 +73,22 @@
 .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-divider{display:none}
 .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .reader-audio{grid-column:1/-1}.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .audio-main{flex-direction:row;justify-content:center}
 @media(min-width:760px){
- .unified-tools:has(.reader-workspace :is(.assistant-panel,.audio-details:not([hidden]))) .reading-main{margin-right:calc(var(--workspace-panel-width) + 24px)}
- .unified-tools:has(.reader-workspace[data-dock=right] :is(.assistant-panel,.audio-details:not([hidden]))) .reading-main{margin-right:calc(var(--workspace-panel-width) + 90px)}
- .unified-tools:has(.reader-workspace[data-dock=left] :is(.assistant-panel,.audio-details:not([hidden]))) .reading-main{margin-left:calc(var(--workspace-panel-width) + 90px);margin-right:0}
- .unified-tools:has(.reader-workspace[data-compact=true][data-dock=right] :is(.assistant-panel,.audio-details:not([hidden]))) .reading-main{margin-right:calc(var(--workspace-panel-width) + 136px)}
- .unified-tools:has(.reader-workspace[data-compact=true][data-dock=left] :is(.assistant-panel,.audio-details:not([hidden]))) .reading-main{margin-left:calc(var(--workspace-panel-width) + 136px)}
- .unified-tools:has(.reader-workspace :is(.assistant-panel,.audio-details:not([hidden]))) .reading-page{padding-left:44px;padding-right:24px}
+ .unified-tools .reading-footer{gap:12px;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+ .unified-tools .footer-section{max-width:210px}.unified-tools .reading-progress .icon-button{display:inline-flex}
+ .unified-tools:has(.reader-workspace :is(.assistant-panel:not([hidden]),.audio-details:not([hidden]))) .reading-main{margin-right:calc(var(--workspace-panel-width) + 24px)}
+ .unified-tools:has(.reader-workspace[data-dock=right] :is(.assistant-panel:not([hidden]),.audio-details:not([hidden]))) .reading-main{margin-right:calc(var(--workspace-panel-width) + 90px)}
+ .unified-tools:has(.reader-workspace[data-dock=left] :is(.assistant-panel:not([hidden]),.audio-details:not([hidden]))) .reading-main{margin-left:calc(var(--workspace-panel-width) + 90px);margin-right:0}
+ .unified-tools:has(.reader-workspace[data-compact=true][data-dock=right] :is(.assistant-panel:not([hidden]),.audio-details:not([hidden]))) .reading-main{margin-right:calc(var(--workspace-panel-width) + 136px)}
+ .unified-tools:has(.reader-workspace[data-compact=true][data-dock=left] :is(.assistant-panel:not([hidden]),.audio-details:not([hidden]))) .reading-main{margin-left:calc(var(--workspace-panel-width) + 136px)}
+ .unified-tools:has(.reader-workspace :is(.assistant-panel:not([hidden]),.audio-details:not([hidden]))) .reading-page{padding-left:44px;padding-right:24px;max-width:740px}
 }
 @media(max-width:999px){.workspace-tool{width:44px;padding:0}.workspace-tool>span{display:none}.audio-details-trigger>span{display:none}}
 @media(max-width:759px){
  .reader-workspace .assistant-panel,.reader-workspace .audio-details{width:min(460px,calc(100vw - 24px));height:min(320px,42dvh,calc(var(--pencil-available-height,75dvh) - 68px));max-height:min(320px,42dvh,calc(var(--pencil-available-height,75dvh) - 68px))}
  .reader-workspace .assistant-panel.expanded{height:calc(var(--pencil-available-height,75dvh) - 68px);max-height:calc(var(--pencil-available-height,75dvh) - 68px)}
  .reader-workspace:is([data-dock=left],[data-dock=right]) :is(.assistant-panel,.audio-details){width:min(460px,calc(100vw - var(--workspace-sidebar-space,112px) - 24px))}
- .unified-tools:has(.reader-workspace :is(.assistant-panel,.audio-details:not([hidden]))) .reading-page{padding-bottom:calc(min(320px,42dvh) + 100px)}
- .unified-tools.has-panel .reading-page{padding-left:44px;padding-right:24px}
+ .unified-tools:has(.reader-workspace :is(.assistant-panel:not([hidden]),.audio-details:not([hidden]))) .reading-page{padding-bottom:calc(min(320px,42dvh) + 100px)}
+ .unified-tools:has(.reader-workspace :is(.assistant-panel:not([hidden]),.audio-details:not([hidden]))) .reading-page{padding-left:44px;padding-right:24px;max-width:740px}
  .reader-workspace .panel-notes{padding:10px 14px 14px}.reader-workspace .panel-notes .selection-excerpt{margin-bottom:8px}.reader-workspace .panel-notes .selection-excerpt blockquote{max-height:26px;font-size:12px}.reader-workspace .note-editor textarea{min-height:70px;height:76px}
  .workspace-note-actions{padding:7px 12px}.workspace-note-actions .small-note{max-width:130px}
  .unified-tools:has(.reader-workspace[data-dock=left]) .reading-page{padding-left:126px}.unified-tools:has(.reader-workspace[data-dock=right]) .reading-page{padding-right:126px}
@@ -97,5 +100,14 @@
  .unified-tools .selection-dock>button:not(.icon-button){padding:0 6px}
 }
 @media(max-width:359px){.workspace-tool{width:36px;min-width:36px}.workspace-settings{width:32px;min-width:32px}.workspace-grip{width:16px}.workspace-divider{margin:0 1px}.reader-workspace .audio-play{width:34px;min-width:34px}.audio-details-trigger{padding:0 3px}}
-@keyframes workspace-in{from{opacity:0;translate:0 3px}to{opacity:1;translate:0 0}}
-@media(prefers-reduced-motion:reduce){.reader-workspace,.workspace-popover{transition:none;animation:none}}
+/* One motion language; input and ink remain immediate. Unsupported browsers open instantly. */
+@starting-style{.workspace-popover:not([hidden]){opacity:0;translate:0 6px}}
+.reader-workspace :is(.workspace-tool,.icon-button,.audio-play,.audio-details-trigger,.pencil-done,.companion-tabs button){transition:background-color .14s,color .14s,scale .12s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.reader-workspace :is(.workspace-tool,.icon-button,.audio-play,.audio-details-trigger,.pencil-done):active:not(:disabled){scale:.95}
+.reader-workspace :is(.panel-scroll,.audio-details,.pencil-popover){overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.reader-workspace .panel-scroll{scroll-behavior:auto;animation:workspace-content-in .16s ease-out}
+@keyframes workspace-content-in{from{opacity:.4;translate:0 2px}to{opacity:1;translate:0 0}}
+.reader-workspace.is-dragging .workspace-popover[hidden]{transition:none}
+@media(hover:none){.workspace-tool:hover:not([aria-pressed=true]),.audio-details-trigger:hover:not([aria-expanded=true]){background:transparent}}
+
+@media(prefers-reduced-motion:reduce){.reader-workspace,.reader-workspace *{transition:none!important;animation:none!important}.reader-workspace :active{scale:1!important}}

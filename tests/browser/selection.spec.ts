@@ -137,7 +137,7 @@ test('two-tap range starts fresh, works backwards, and treats figure names as te
   const selectedBlock=await mention.evaluate(el=>el.closest('[data-block]')!.getAttribute('data-block'));
   await tap(mention);
   await expect.poll(async()=>(await state(page)).selection?.startId).toBe(selectedBlock);
-  await expect(page.locator('.assistant-panel')).toHaveCount(0);
+  await expect(page.locator('.assistant-panel')).toBeHidden();
   await tap(page.getByRole('button',{name:'Abbrechen',exact:true}));
 });
 
@@ -150,7 +150,7 @@ test('selection handles and cancelled scroll gestures do not activate inline fig
     el.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:5,pointerType:'touch'}));
     el.dispatchEvent(new MouseEvent('click',{bubbles:true,detail:1}));
   });
-  await expect(page.locator('.assistant-panel')).toHaveCount(0);
+  await expect(page.locator('.assistant-panel')).toBeHidden();
   await mention.focus();await page.keyboard.press('Enter');
   await expect(page.locator('.assistant-panel')).toBeVisible();
   await expect(page.getByRole('button',{name:'Figuren',exact:true})).toHaveAttribute('aria-pressed','true');
@@ -195,7 +195,7 @@ test('native handle updates after pointer cancellation can cross inline figures 
   await select(page,index,target.offset+1,index+1,9,{release:false});
   const expected=initial.blocks[index].text.slice(target.offset+1)+'\n'+initial.blocks[index+1].text.slice(0,9);
   await expect.poll(async()=>(await state(page)).selection?.quote).toBe(expected);
-  await expect(page.locator('.assistant-panel')).toHaveCount(0);
+  await expect(page.locator('.assistant-panel')).toBeHidden();
   const nativeBefore=await page.evaluate(()=>window.getSelection()!.toString());
   await page.evaluate(()=>window.scrollBy(0,100));
   expect(await page.evaluate(()=>window.getSelection()!.toString())).toBe(nativeBefore);

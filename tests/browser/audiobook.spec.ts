@@ -101,7 +101,7 @@ test('one shared toolbar preserves audio, Pencil drafts and typed notes while sw
  await expect.poll(()=>page.locator('.reader-workspace').evaluate(el=>{const r=el.getBoundingClientRect(),header=document.querySelector('.reader-header')!.getBoundingClientRect();return r.top>=header.bottom+8;})).toBe(true);
  await expect(page.getByRole('button',{name:'Radiergummi',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();
  expect(await media!.evaluate(el=>el.isConnected&&!(el as HTMLAudioElement).paused)).toBe(true);
- await details(page);await expect(page.locator('.assistant-panel')).toHaveCount(0);await expect(page.locator('.audio-details')).toBeVisible();
+ await details(page);await expect(page.locator('.assistant-panel')).toBeHidden();await expect(page.locator('.audio-details')).toBeVisible();
  await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();await expect(page.locator('.audio-details')).toBeHidden();await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Natur als Zuflucht');
  await expect(page.locator('.saved-highlight')).toHaveCount(1);expect(await media!.evaluate(el=>el.isConnected&&!(el as HTMLAudioElement).paused)).toBe(true);
  await page.getByRole('button',{name:'Lesehilfe schließen',exact:true}).click();
