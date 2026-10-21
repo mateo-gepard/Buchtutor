@@ -32,7 +32,7 @@ export function useTextSelection({root,section,enabled,onSelect,onError}:Props){
       const selected=document.getSelection();
       if(selected?.rangeCount&&(element.contains(selected.anchorNode)||element.contains(selected.focusNode)))selected.removeAllRanges();
     };
-    const clear=()=>{stop();tracking=false;last=null;gesture=null;clearNative();};
+    const clear=()=>{stop();tracking=false;last=null;gesture=null;suppressUntil=0;clearNative();};
     const schedule=()=>{stop();if(tracking&&!gesture)timer=setTimeout(commit,160);};
     const inside=(target:EventTarget|null)=>target instanceof Node&&element.contains(target);
     function down(event:PointerEvent){

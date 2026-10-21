@@ -179,3 +179,10 @@
  .workspace-inline-details .audio-options{grid-template-columns:1fr}
  .unified-tools:has(.reader-workspace:is([data-dock=left],[data-dock=right])) .workspace-inline-details .companion-tabs button{flex-direction:column;gap:1px;padding:3px 2px;min-width:0}
 }
+.unified-tools .selection-dock>.selection-hint{display:block;white-space:normal;max-width:128px;line-height:1.3}.selection-hint small{display:block;font-size:9px;margin-top:3px;color:var(--muted-foreground)}
+@media(max-width:600px){.unified-tools .selection-dock>.selection-hint{max-width:82px;font-size:10px}.selection-hint small{font-size:8px}}
+.workspace-tool:disabled{opacity:.5;cursor:default}
+.workspace-details .audio-options>label:first-child{grid-column:auto}
+.reader-workspace .audio-return{width:36px;min-width:36px;color:var(--primary);background:var(--secondary)}
+
+.workspace-tool:disabled>span{white-space:normal;text-align:center;line-height:1.1}

@@ -1,5 +1,5 @@
 'use client';
-import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,useSyncExternalStore,type MouseEvent} from 'react';
+import {useCallback,useEffect,useEffectEvent,useLayoutEffect,useMemo,useRef,useState,useSyncExternalStore,type MouseEvent} from 'react';
 import {ArrowRight,Bookmark,Check,ChevronDown,ChevronLeft,ChevronRight,Copy,ExternalLink,MousePointer2,Info,List,LoaderCircle,Maximize2,MessageSquare,Search,Settings2,Share2,Users,X,Lightbulb,Minimize2,MonitorSmartphone,CircleHelp,Headphones} from 'lucide-react';
 import {ApplePencilIcon} from './apple-pencil-icon';
 import {BrandMark} from './brand-mark';
@@ -9,7 +9,7 @@ import {Switch} from '@/components/ui/switch';
 import {ReaderOnboarding} from './reader-onboarding';
 import {ReaderAudio} from './reader-audio';
 import {ReaderWorkspace} from './reader-workspace';
-import type {AudioPosition} from '@/lib/audiobook';
+import {hasAudiobook,type AudioPosition} from '@/lib/audiobook';
 import {pencilPalette,type PencilColor} from '@/lib/pencil-model';
 import {ONBOARDING_KEY,tourSteps} from '@/lib/onboarding';
 import {ReaderPencil} from './reader-pencil';
@@ -30,7 +30,8 @@ import {matchesBookmark} from '@/lib/bookmarks';
 import {readerShareUrl} from '@/lib/share-links';
 import {useReaderTools} from '@/hooks/use-reader-tools';
 import {useTextSelection} from '@/hooks/use-text-selection';
-import {sameAnchor} from '@/lib/dom-selection';
+import {sameAnchor,domTextRange} from '@/lib/dom-selection';
+import {annotationGroups} from '@/lib/annotation-groups';
 import type {Analysis,AnalysisMode,Anchor,Book,ReadingProgress,SavedNote,Section,WorkMeta} from '@/lib/reader-model';
 import {firstReadable,makeAnchor,referenceLabel,unitLabel} from '@/lib/reader-model';
 
@@ -60,7 +61,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const notebookScroll=useRef(0);
   const [selection,setSelection]=useState<Anchor|null>(null),[result,setResult]=useState<Analysis|null>(null),[question,setQuestion]=useState('');
   const [analysisBusy,setAnalysisBusy]=useState(false),[analysisError,setAnalysisError]=useState(''),[remaining,setRemaining]=useState<number>(),[normalized,setNormalized]=useState(false);
-  const [saving,setSaving]=useState(false),[editNote,setEditNote]=useState<SavedNote|null>(null);
+  const [saving,setSaving]=useState(false),[editNote,setEditNote]=useState<SavedNote|null>(null),[attachedIds,setAttachedIds]=useState<string[]>([]);
   const {drafts,ready:draftsReady,error:draftError,change:changeDraft,clear:clearDraft}=useNoteDrafts();
   const [noteComposing,setNoteComposing]=useState(false);
   const noteInput=useRef<HTMLTextAreaElement>(null),noteComposition=useRef(false);
@@ -71,6 +72,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const [selectedCharacters,setSelectedCharacters]=useState<string[]>([]),[selectMode,setSelectMode]=useState(false),[bookBusy,setBookBusy]=useState(false),[notice,setNotice]=useState(''),[deleted,setDeleted]=useState<SavedNote|null>(null);
   const [pencilMode,setPencilMode]=useState(false);
   const [pencilHost,setPencilHost]=useState<HTMLDivElement|null>(null),[audioHost,setAudioHost]=useState<HTMLDivElement|null>(null),[audioExpanded,setAudioExpanded]=useState(false),[menusKey,setMenusKey]=useState(0);
+  const audioScrollRequest=useRef(0);
   const [audioOpen,setAudioOpen]=useState(false),[audioPosition,setAudioPosition]=useState<AudioPosition|null>(null);
   const narrowReader=useSyncExternalStore(subscribeInlineTools,inlineToolsSnapshot,serverInlineToolsSnapshot);
   const [detailHost,setDetailHost]=useState<HTMLDivElement|null>(null),[detailsAnchorId,setDetailsAnchorId]=useState('');
@@ -88,7 +90,8 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const panelScroll=useRef<HTMLDivElement>(null),panelScrollPositions=useRef<Record<string,number>>({});
   const dialogTrigger=useRef<HTMLElement|null>(null);
   const activeSelection=useRef({bookId:book.id,anchor:selection});
-  const linePivot=useRef<string|null>(null),rangeStart=useRef<string|null>(null);
+  const linePivot=useRef<string|null>(null);
+  const [rangeOrigin,setRangeOrigin]=useState<string|null>(null);
   useEffect(()=>{activeSelection.current={bookId:book.id,anchor:selection};},[book.id,selection]);
   const draftKey=selection?book.editionId+':'+JSON.stringify(selection)+':'+(editNote?.id??'new'):'none';
   const currentNote=editNote?(notes.find(n=>n.id===editNote.id)??editNote):null;
@@ -105,7 +108,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const nativeSelection=useTextSelection({root:article,section,enabled:view==='reader'&&!dialog&&!contentsOpen&&!pencilMode&&(!tourOpen||tourStep!==null&&tourSteps[tourStep].id==='selection'),onSelect:anchor=>{
     if(tourStep!==null){changeSelection(anchor);return;}
     if(sameAnchor(activeSelection.current.anchor,anchor))return;
-    linePivot.current=anchor.startId;rangeStart.current=null;setSelectMode(false);changeSelection(anchor);
+    linePivot.current=anchor.startId;setRangeOrigin(null);setSelectMode(false);changeSelection(anchor);
   },onError:announce});
 
   function prepareTour(index:number){
@@ -126,11 +129,11 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   }
   function markTour(id:string){if(tourStep!==null&&tourSteps[tourStep].id===id)setTourDone(old=>old[id]?old:{...old,[id]:true});}
   function followAudio(next:AudioPosition|null,follow:boolean,requestReader=false){
-    setAudioPosition(next);if(!next||!follow||tourOpen||bookBusy||pencilMode||view!=='reader'&&!requestReader)return;
+    const sequence=++audioScrollRequest.current;setAudioPosition(next);if(!next||!follow||tourOpen||bookBusy||pencilMode||view!=='reader'&&!requestReader)return;
     if(requestReader)setView('reader');
     const target=book.sections.find(s=>s.id===next.sectionId);if(!target)return;
     if(target.id!==section.id){goToSection(target.id,next.blockId,false);updateURL(book,target,'reader',next.blockId,true);}
-    afterLayout(()=>{const el=document.getElementById(next.blockId);if(!el)return;const highlight='highlights' in CSS?CSS.highlights.get('reader-audio'):null,range=highlight?[...highlight][0]:null,box=range instanceof Range?range.getBoundingClientRect():el.getBoundingClientRect(),obstacles=[...document.querySelectorAll<HTMLElement>('.reader-workspace,.workspace-popover:not([hidden])')].filter(e=>e.getClientRects().length&&!e.closest('.workspace-inline-details')).map(e=>e.getBoundingClientRect());let top=100,bottom=window.innerHeight-80;for(const r of obstacles){if(r.right<box.left||r.left>box.right)continue;if(r.top<window.innerHeight/2)top=Math.max(top,r.bottom+20);else bottom=Math.min(bottom,r.top-20);}if(bottom-top<100){top=100;bottom=window.innerHeight-80;}if(box.top<top||box.bottom>bottom)window.scrollBy({top:box.top-(top+bottom)/2+Math.min(box.height,80)/2,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});});
+    afterLayout(()=>{if(sequence!==audioScrollRequest.current)return;const el=document.getElementById(next.blockId);if(!el)return;const text=el.querySelector('[data-text]'),range=text?domTextRange(text,next.startOffset,next.endOffset):null,box=range?range.getBoundingClientRect():el.getBoundingClientRect(),obstacles=[...document.querySelectorAll<HTMLElement>('.reader-workspace,.workspace-popover:not([hidden])')].filter(e=>e.getClientRects().length&&!e.closest('.workspace-inline-details')).map(e=>e.getBoundingClientRect());let top=100,bottom=window.innerHeight-80;for(const r of obstacles){if(r.right<box.left||r.left>box.right)continue;if(r.top<window.innerHeight/2)top=Math.max(top,r.bottom+20);else bottom=Math.min(bottom,r.top-20);}if(bottom-top<100){top=100;bottom=window.innerHeight-80;}if(box.top<top||box.bottom>bottom)window.scrollBy({top:box.top-(top+bottom)/2+Math.min(box.height,80)/2,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});});
   }
   const pencilPractice=tourStep!==null;
   const firstTourBlock=section.blocks.find(isText);
@@ -182,8 +185,8 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     if(url.href!==window.location.href)window.history[replace?'replaceState':'pushState']({},'',url);
   }
   function cancelAnalysis(){analysisRequest.current?.abort();setAnalysisBusy(false);}
-  function resetSelection(){setPencilMode(false);cancelAnalysis();nativeSelection.clear();activeSelection.current={bookId:book.id,anchor:null};linePivot.current=null;rangeStart.current=null;noteComposition.current=false;setNoteComposing(false);setSelection(null);setResult(null);setAnalysisError('');setEditNote(null);setQuestion('');setNormalized(false);setSelectMode(false);}
-  function changeSelection(anchor:Anchor){if(tourStep!==null){setTourSelection(anchor);markTour('selection');return;}cancelAnalysis();activeSelection.current={bookId:book.id,anchor};setSelection(anchor);setResult(null);setAnalysisError('');setEditNote(null);setQuestion('');setNormalized(false);}
+  function resetSelection(){setPencilMode(false);cancelAnalysis();nativeSelection.clear();activeSelection.current={bookId:book.id,anchor:null};linePivot.current=null;setRangeOrigin(null);noteComposition.current=false;setNoteComposing(false);setSelection(null);setAttachedIds([]);setResult(null);setAnalysisError('');setEditNote(null);setQuestion('');setNormalized(false);setSelectMode(false);}
+  function changeSelection(anchor:Anchor){if(tourStep!==null){setTourSelection(anchor);markTour('selection');return;}cancelAnalysis();activeSelection.current={bookId:book.id,anchor};setSelection(anchor);setAttachedIds([]);setResult(null);setAnalysisError('');setEditNote(null);setQuestion('');setNormalized(false);}
   function closePanel(){const saved=capturePosition();setPanelOpen(false);setPanelExpanded(false);restorePosition(saved);panelTrigger.current?.focus({preventScroll:true});}
   function visibleDetailsBlock(){
     const bar=document.querySelector('.reader-workspace')?.getBoundingClientRect();
@@ -192,7 +195,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     return section.blocks.find(b=>b.id===(row?.dataset.block??currentBlock)&&isText(b))??section.blocks.find(isText);
   }
   function openPanel(tab='help',moveFocus=true){
-    const chosen=nativeSelection.freeze()??activeSelection.current.anchor;setSelectMode(false);rangeStart.current=null;
+    const chosen=nativeSelection.freeze()??activeSelection.current.anchor;setSelectMode(false);setRangeOrigin(null);
     const saved=capturePosition();panelTrigger.current=document.activeElement instanceof HTMLElement?document.activeElement:null;
     setAudioExpanded(false);setMenusKey(n=>n+1);
     const block=visibleDetailsBlock();setDetailsAnchorId(chosen?.endId??block?.id??'');
@@ -232,7 +235,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
       const remembered=prefs.autoBookmark?local.data.progress.find(p=>p.workId===id&&p.editionId===next.editionId):undefined;
       const nextSection=next.sections.find(s=>s.id===(target?.sectionId??remembered?.sectionId))??firstReadable(next);
       const blockId=target?.blockId??(target?.sectionId?undefined:remembered?.blockId);
-      resetSelection();closeReaderDetails();if(destination!=='reader')setAudioOpen(false);
+      resetSelection();closeReaderDetails();if(destination!=='reader'||!hasAudiobook(next.id))setAudioOpen(false);
       setBook(next);setSectionId(nextSection.id);setView(destination);setSelectedCharacters([]);setScrub(null);setCurrentBlock(blockId??nextSection.blocks.find(isText)?.id??'');
       if(writeURL)updateURL(next,nextSection,destination,blockId);
       scrollToView(destination,destination==='reader'?blockId:undefined);
@@ -266,14 +269,16 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     }
     window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop);
   });
+  const clearSelectionOnEscape=useEffectEvent(resetSelection);
   useEffect(()=>{
     function keyboard(event:KeyboardEvent){
-      if(event.key!=='Escape'||dialog||contentsOpen||tourOpen)return;
+      if(event.defaultPrevented||event.key!=='Escape'||dialog||contentsOpen||tourOpen||document.querySelector('[data-slot="dialog-content"][data-state="open"]'))return;
       if(panelOpen){event.preventDefault();restorePosition(capturePosition());setPanelOpen(false);setPanelExpanded(false);panelTrigger.current?.focus({preventScroll:true});}
+      else if(selection||selectMode){event.preventDefault();clearSelectionOnEscape();}
       else if(focus)setFocus(false);
     }
     window.addEventListener('keydown',keyboard);return()=>window.removeEventListener('keydown',keyboard);
-  },[dialog,contentsOpen,panelOpen,focus,tourOpen,capturePosition,restorePosition]);
+  },[dialog,contentsOpen,panelOpen,focus,tourOpen,selection,selectMode,capturePosition,restorePosition]);
   useEffect(()=>{
     function unload(event:BeforeUnloadEvent){if(Object.entries(drafts).some(([key,value])=>value.trim()&&(!editNote||!key.endsWith(editNote.id)||value!==editNote.body)))event.preventDefault();}
     window.addEventListener('beforeunload',unload);return()=>window.removeEventListener('beforeunload',unload);
@@ -310,20 +315,18 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     return()=>{clearTimeout(timer);window.removeEventListener('resize',resized);};
   },[view,tourOpen,restorePosition]);
 
-  function selectLine(id:string,extend=false){
+  function selectRange(start:string,end:string,complete:boolean){
     try{
-      if(tourStep!==null){changeSelection(makeAnchor(section,id));return;}
-      nativeSelection.clear();
-      if(selectMode){
-        const start=rangeStart.current;
-        changeSelection(makeAnchor(section,start??id,id));linePivot.current=start??id;
-        if(start){rangeStart.current=null;setSelectMode(false);}else rangeStart.current=id;
-      }else{
-        if(!extend)linePivot.current=id;
-        changeSelection(makeAnchor(section,extend?(linePivot.current??selection?.startId??id):id,id));
-      }
-    }
-    catch(e){announce((e as Error).message);}
+      const row=article.current?.querySelector<HTMLElement>('[data-block]');
+      const saved=capturePosition()??(row?{id:row.dataset.block!,top:row.getBoundingClientRect().top}:null);
+      const anchor=makeAnchor(section,start,end);nativeSelection.clear();
+      if(tourStep!==null){changeSelection(anchor);return;}
+      setPencilMode(false);linePivot.current=start;setRangeOrigin(complete?null:start);setSelectMode(!complete);changeSelection(anchor);restorePosition(saved);
+    }catch(e){announce((e as Error).message);}
+  }
+  function selectLine(id:string,extend=false){
+    const origin=extend?(linePivot.current??selection?.startId??id):rangeOrigin??id;
+    selectRange(origin,id,extend||!!rangeOrigin);
   }
   function selectCharacter(id:string){if(tourStep!==null){setTourCharacters(old=>old.includes(id)?old.filter(x=>x!==id):[...old.slice(-1),id]);markTour('figures');return;}setSelectedCharacters(old=>old.includes(id)?old.filter(x=>x!==id):[...old.slice(-1),id]);openPanel('figures');}
   async function analyze(mode:AnalysisMode){
@@ -349,8 +352,9 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     const anchor=analysis?.anchor??selection;if(!anchor)return;setSaving(true);const key=draftKey;
     const text=kind==='note'?(noteInput.current?.value??draft):'';
     if(kind==='note')changeDraft(key,text);
-    const id=editNote&&editNote.kind===kind?editNote.id:crypto.randomUUID(),now=new Date().toISOString();
-    const note:SavedNote={id,workId:book.id,editionId:book.editionId,anchor,kind,body:text,analysis,...(currentNote?.id===id&&currentNote.pencil?{pencil:{...currentNote.pencil,transcript:undefined,transcriptionError:undefined,transcription:'manual' as const,uncertain:false}}:{}),createdAt:editNote?.id===id?editNote.createdAt:now,updatedAt:now};
+    const existing=analysis?notes.find(note=>note.analysis?.id===analysis.id):null;
+    const id=existing?.id??(editNote&&editNote.kind===kind?editNote.id:crypto.randomUUID()),now=new Date().toISOString();
+    const note:SavedNote={id,workId:book.id,editionId:book.editionId,anchor,kind,body:text,analysis,...(currentNote?.id===id&&currentNote.pencil?{pencil:{...currentNote.pencil,transcript:undefined,transcriptionError:undefined,transcription:'manual' as const,uncertain:false}}:{}),createdAt:existing?.createdAt??(editNote?.id===id?editNote.createdAt:now),updatedAt:now};
     try{
       await saveLocalNote(note);
       if(kind==='note')clearDraft(key,text);
@@ -367,7 +371,8 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   function openAttached(items:SavedNote[]){
     if(items.length===1){openNote(items[0]);return;}
     nativeSelection.clear();
-    changeSelection(items[0].anchor);openPanel('notes');
+    const groups=annotationGroups(section,items),first=groups[0],last=groups.at(-1);if(!first||!last)return;
+    changeSelection(makeAnchor(section,first.anchor.startId,last.anchor.endId,first.anchor.startOffset,last.anchor.endOffset));openPanel('notes');setAttachedIds(items.map(note=>note.id));
   }
   async function bookmark(){
     if(tourStep!==null){setTourBookmark(!tourBookmark);markTour('bookmark');return;}
@@ -411,20 +416,22 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     },
   });
 
+  const attachedEntries=sectionNotes.filter(note=>attachedIds.includes(note.id));
   const selectionTools=(selection||selectMode)&&!panelOpen&&!audioExpanded&&!pencilMode&&<div className={'selection-dock '+(selectMode?'range-selection-dock':'')} role="group" aria-label="Aktionen zur Textauswahl">
-        {selectMode?<><span role="status">{selection?'Tippe auf das Ende der Passage.':'Tippe auf den Anfang der Passage.'}</span><button onClick={resetSelection}>Abbrechen</button></>:selection&&<><span>{referenceLabel(section,selection)}</span><button onClick={()=>void analyze('summary')}><Lightbulb size={17}/>Verstehen</button><button onClick={()=>openPanel('notes')}><MessageSquare size={17}/>Notiz</button><button className={'icon-button '+(bookmarked?'is-bookmarked':'')} aria-label={bookmarked?'Lesezeichen der Auswahl entfernen':'Auswahl als Lesezeichen speichern'} aria-pressed={bookmarked} disabled={bookmarkBusy||!local.ready} onClick={()=>void bookmark()}><Bookmark size={17} fill={bookmarked?'currentColor':'none'}/></button><button className="icon-button" aria-label="Weitere Analysearten" onClick={()=>openPanel('help')}><ChevronDown size={18}/></button><button className="icon-button" aria-label="Auswahl aufheben" onClick={resetSelection}><X size={18}/></button></>}
+        {selection?<><span className={selectMode?'selection-hint':''} role={selectMode?'status':undefined}>{referenceLabel(section,selection)}{selectMode&&<small>Endvers antippen oder am Rand ziehen</small>}</span><button onClick={()=>void analyze('summary')}><Lightbulb size={17}/>Verstehen</button><button onClick={()=>openPanel('notes')}><MessageSquare size={17}/>Notiz</button><button className={'icon-button '+(bookmarked?'is-bookmarked':'')} aria-label={bookmarked?'Lesezeichen der Auswahl entfernen':'Auswahl als Lesezeichen speichern'} aria-pressed={bookmarked} disabled={bookmarkBusy||!local.ready} onClick={()=>void bookmark()}><Bookmark size={17} fill={bookmarked?'currentColor':'none'}/></button><button className="icon-button" aria-label="Weitere Analysearten" onClick={()=>openPanel('help')}><ChevronDown size={18}/></button><button className="icon-button" aria-label={selectMode?'Abbrechen':'Auswahl aufheben'} onClick={resetSelection}><X size={18}/></button></>:<><span role="status">Anfang und Ende antippen oder an den Versnummern entlangziehen.</span><button onClick={resetSelection}>Abbrechen</button></>}
+
       </div>;
   const companionPanel=view==='reader'&&<aside data-panel={panel} className={'workspace-popover assistant-panel '+(panelExpanded?'expanded':'')} hidden={!panelOpen||focus} inert={!panelOpen||focus} aria-hidden={!panelOpen||focus} aria-labelledby="assistant-title">
       <div className="panel-handle" aria-hidden="true"/><div className="assistant-heading"><h2 id="assistant-title" ref={panelHeading} tabIndex={-1}>{panel==='notes'?'Notiz':panel==='figures'?'Figuren':'KI-Hilfe'}{panel==='notes'&&displaySelection&&<span className="workspace-note-reference">{referenceLabel(section,displaySelection)}</span>}</h2><div><button className="icon-button expand-panel" aria-label={panelExpanded?'Lesehilfe verkleinern':'Lesehilfe vergrößern'} onClick={()=>setPanelExpanded(!panelExpanded)}>{panelExpanded?<Minimize2 size={17}/>:<Maximize2 size={17}/>}</button><button className="icon-button" aria-label="Lesehilfe schließen" onClick={closePanel}><X size={19}/></button></div></div>
       <div className="companion-tabs" role="group" aria-label="Lesehilfe auswählen">{[['help','Verstehen',Lightbulb],['figures','Figuren',Users],['notes','Notizen',MessageSquare]].map(([value,label,Icon])=>{const TabIcon=Icon as typeof Lightbulb;return <button key={value as string} aria-pressed={panel===value} onClick={()=>setPanel(value as string)}><TabIcon size={18}/>{label as string}</button>;})}</div>
       <div className="panel-scroll" key={panel} ref={panelScroll} onScroll={event=>{if(panelOpen)panelScrollPositions.current[panel]=event.currentTarget.scrollTop;}}>
         {panel==='help'?<ReaderAssistant book={book} section={section} selection={displaySelection} practiceMode={tourStep!==null?tourMode:undefined} analysis={tourStep!==null?null:result} status={aiStatus} busy={analysisBusy} error={analysisError} question={question} setQuestion={setQuestion} onAnalyze={mode=>void analyze(mode)} onExample={example} onFigures={()=>setPanel('figures')} onNote={()=>setPanel('notes')} onSave={()=>result&&void save(result.mode,result)} onQuote={id=>{closePanel();scrollToBlock(id);}} saving={saving} saved={!!result&&notes.some(n=>n.analysis?.id===result.id)} remaining={remaining} normalized={normalized} onCancel={cancelAnalysis}/>:panel==='figures'?<ReaderFigures key={book.id} book={book} section={section} selected={tourStep!==null?tourCharacters:selectedCharacters} onSelect={selectCharacter}/>:<div className="panel-notes">
-          {displaySelection?<><div className="selection-excerpt"><span>{referenceLabel(section,displaySelection)}</span><blockquote>{displaySelection.quote.slice(0,220)}{displaySelection.quote.length>220?' …':''}</blockquote></div><label className="note-editor"><span>Deine Notiz</span><textarea ref={noteInput} value={displayDraft} readOnly={saving||!draftsReady} onChange={e=>changeNoteInput(e.currentTarget.value)} onCompositionStart={()=>{noteComposition.current=true;setNoteComposing(true);}} onCompositionEnd={e=>{changeNoteInput(e.currentTarget.value);noteComposition.current=false;setNoteComposing(false);}} onBlur={e=>{changeNoteInput(e.currentTarget.value);noteComposition.current=false;setNoteComposing(false);}} maxLength={12000} placeholder="Was möchtest du festhalten?" rows={4}/></label></>:<p>Wähle eine Stelle im Text aus, um eine Notiz anzulegen.</p>}
+          {attachedIds.length>0?<section className="attached-annotations"><h3>{attachedEntries.length?`${attachedEntries.length} ${attachedEntries.length===1?'Eintrag':'Einträge'} zu dieser Stelle`:'Keine Einträge mehr an dieser Stelle'}</h3><p className="small-note">Deine Markierung und die gespeicherten Erklärungen gehören zur selben Textstelle.</p><NotesList notes={attachedEntries} catalog={catalog} onOpen={openNote} onDelete={removeNote} compact/><button className="secondary-button" onClick={()=>setAttachedIds([])}><MessageSquare size={16}/>Notiz hinzufügen</button></section>:displaySelection?<><div className="selection-excerpt"><span>{referenceLabel(section,displaySelection)}</span><blockquote>{displaySelection.quote.slice(0,220)}{displaySelection.quote.length>220?' …':''}</blockquote></div><label className="note-editor"><span>Deine Notiz</span><textarea ref={noteInput} value={displayDraft} readOnly={saving||!draftsReady} onChange={e=>changeNoteInput(e.currentTarget.value)} onCompositionStart={()=>{noteComposition.current=true;setNoteComposing(true);}} onCompositionEnd={e=>{changeNoteInput(e.currentTarget.value);noteComposition.current=false;setNoteComposing(false);}} onBlur={e=>{changeNoteInput(e.currentTarget.value);noteComposition.current=false;setNoteComposing(false);}} maxLength={12000} placeholder="Was möchtest du festhalten?" rows={4}/></label></>:<p>Wähle eine Stelle im Text aus, um eine Notiz anzulegen.</p>}
           {editNote?.pencil&&<div className="note-recognition-status" role="status">{(()=>{const current=notes.find(n=>n.id===editNote.id)??editNote;return current.pencil?.transcription==='pending'?'Original gespeichert · Suchtext wird erkannt …':current.pencil?.transcription==='failed'?<><span>{current.pencil.transcriptionError??'Erkennung nicht verfügbar. Das Original bleibt gespeichert.'}</span>{prefs.handwritingCloud&&<button className="text-button" onClick={()=>void retryHandwriting(current.id).catch(e=>announce(e.message))}>Erneut erkennen</button>}</>:current.pencil?.transcription==='recognized'?'Suchtext gespeichert · Originalhandschrift unverändert':null;})()}</div>}
           {sectionNotes.length>0&&<details className="workspace-saved-notes"><summary>{sectionNotes.length} {sectionNotes.length===1?'Eintrag':'Einträge'} in diesem Abschnitt</summary><NotesList notes={sectionNotes} catalog={catalog} onOpen={openNote} onDelete={removeNote} compact/></details>}
         </div>}
       </div>
-      {panel==='notes'&&displaySelection&&<div className="workspace-note-actions"><p className="small-note">{tourStep!==null?'Probenotiz · wird nicht gespeichert.':draftError|| (drafts[draftKey]!==undefined?'Entwurf auf diesem Gerät gesichert':'Wird auf diesem Gerät gespeichert.')}</p><button className="primary-button" onClick={()=>{if(tourStep!==null)markTour('notes');else void save('note');}} disabled={saving||noteComposing||!draftsReady||!displayDraft.trim()&&!currentNote}>{saving?<LoaderCircle className="spin" size={17}/>:<Check size={17}/>}{tourStep!==null?'Übungsnotiz merken':'Notiz speichern'}</button></div>}
+      {panel==='notes'&&displaySelection&&!attachedIds.length&&<div className="workspace-note-actions"><p className="small-note">{tourStep!==null?'Probenotiz · wird nicht gespeichert.':draftError|| (drafts[draftKey]!==undefined?'Entwurf auf diesem Gerät gesichert':'Wird auf diesem Gerät gespeichert.')}</p><button className="primary-button" onClick={()=>{if(tourStep!==null)markTour('notes');else void save('note');}} disabled={saving||noteComposing||!draftsReady||!displayDraft.trim()&&!currentNote}>{saving?<LoaderCircle className="spin" size={17}/>:<Check size={17}/>}{tourStep!==null?'Übungsnotiz merken':'Notiz speichern'}</button></div>}
     </aside>;
 
   return <div className={'reader-app unified-tools '+(view==='reader'?'focus-reader':'')+(focus?' focus-mode':'')+(panelOpen?' has-panel':'')+(audioOpen&&view==='reader'?' has-audio':'')} style={{'--text-size':prefs.fontSize+'px','--text-leading':prefs.lineHeight,'--reading-font':prefs.font==='sans'?"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif":"Charter,'Bitstream Charter','Sitka Text',Cambria,serif"} as React.CSSProperties}>
@@ -441,7 +448,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
         <article ref={article} className="reading-page">
           <div className="section-heading"><p>{[...section.path,section.title].join(' · ')}</p><div><span data-tour="search-share" className="tour-search-share"><button className="icon-button" aria-label="Text durchsuchen oder zu einem Vers springen" onClick={()=>setDialog('search')}><Search size={17}/></button><button className="icon-button" aria-label="Stelle teilen" onClick={openShare}><Share2 size={17}/></button></span></div></div>
           <h1 className="sr-only">{book.title} · {section.title}</h1>
-          <ReaderPencil contentAnchor={inlineDetails?inlineAnchorId:undefined} toolbarHost={pencilHost} dismissMenusKey={menusKey} onPopover={()=>{setPanelOpen(false);setAudioExpanded(false);}} key={book.id+book.editionId+section.id+(pencilPractice?':tour':':reader')} practice={pencilPractice} onPractice={(kind,data)=>{markTour(kind==='mark'?'pencil':kind==='erase'?'eraser':'handwriting');if(data?.color)setTourColor(data.color);if(data?.anchor)setTourSelection(data.anchor);if(data?.body!==undefined)setTourNote(data.body);}} book={book} section={section} prefs={prefs} selection={selection} savedNotes={pencilPractice?[]:sectionNotes} enabled={pencilMode} onToggle={()=>setPencilMode(false)} onSaved={announce}>{(drafts,afterBlock)=><ReaderText showHighlights={tourOpen||prefs.annotationVisibility!=='notes'&&prefs.annotationVisibility!=='none'} showNotes={tourOpen||prefs.annotationVisibility!=='marks'&&prefs.annotationVisibility!=='none'} listening={tourOpen?null:audioPosition} afterBlock={inlineDetails&&inlineAnchorId?{...afterBlock,[inlineAnchorId]:<>{afterBlock[inlineAnchorId]}<div ref={setDetailHost} className="workspace-inline-host" data-pencil-input data-inline-after={inlineAnchorId}/></>}:afterBlock} book={book} section={section} selection={displaySelection} notes={[...notes.filter(n=>!drafts.some(d=>d.id===n.id)),...drafts]} showNumbers={prefs.numbers} showCharacters={prefs.characters&&!pencilMode} selectMode={selectMode} canActivate={nativeSelection.canActivate} onSelect={selectLine} onCharacter={selectCharacter} onNote={openNote} onNotes={openAttached}/>}</ReaderPencil>
+          <ReaderPencil contentAnchor={inlineDetails?inlineAnchorId:undefined} toolbarHost={pencilHost} dismissMenusKey={menusKey} onPopover={()=>{setPanelOpen(false);setAudioExpanded(false);}} key={book.id+book.editionId+section.id+(pencilPractice?':tour':':reader')} practice={pencilPractice} onPractice={(kind,data)=>{markTour(kind==='mark'?'pencil':kind==='erase'?'eraser':'handwriting');if(data?.color)setTourColor(data.color);if(data?.anchor)setTourSelection(data.anchor);if(data?.body!==undefined)setTourNote(data.body);}} book={book} section={section} prefs={prefs} selection={selection} savedNotes={pencilPractice?[]:sectionNotes} enabled={pencilMode} onToggle={()=>setPencilMode(false)} onSaved={announce}>{(drafts,afterBlock)=><ReaderText showHighlights={tourOpen||prefs.annotationVisibility!=='notes'&&prefs.annotationVisibility!=='none'} showNotes={tourOpen||prefs.annotationVisibility!=='marks'&&prefs.annotationVisibility!=='none'} listening={tourOpen?null:audioPosition} afterBlock={inlineDetails&&inlineAnchorId?{...afterBlock,[inlineAnchorId]:<>{afterBlock[inlineAnchorId]}<div ref={setDetailHost} className="workspace-inline-host" data-pencil-input data-inline-after={inlineAnchorId}/></>}:afterBlock} book={book} section={section} selection={displaySelection} notes={[...notes.filter(n=>!drafts.some(d=>d.id===n.id)),...drafts]} showNumbers={prefs.numbers} showCharacters={prefs.characters&&!pencilMode} selectMode={selectMode} rangeOrigin={rangeOrigin} onCancelRange={resetSelection} onRange={selectRange} canActivate={nativeSelection.canActivate} onSelect={selectLine} onCharacter={selectCharacter} onNote={openNote} onNotes={openAttached}/>}</ReaderPencil>
           {inlineDetails&&!inlineAnchorId&&<div ref={setDetailHost} className="workspace-inline-host" data-pencil-input/>}
           <nav className="section-pagination" aria-label="Weiterlesen"><button disabled={sectionIndex===0} onClick={()=>goToSection(book.sections[sectionIndex-1].id)}><ChevronLeft size={18}/>Voriger Abschnitt</button><button disabled={sectionIndex===book.sections.length-1} onClick={()=>goToSection(book.sections[sectionIndex+1].id)}>Nächster Abschnitt<ChevronRight size={18}/></button></nav>
           <button className="reading-source-link" onClick={()=>setDialog('source')}>Quelle und Zitierweise<ExternalLink size={13}/></button>
@@ -471,7 +478,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
       </div>
      </>}
      <div className="workspace-tool-group workspace-listen">
-     {audioOpen?<ReaderAudio key={book.editionId} detailsHost={audioHost} expanded={audioExpanded} onExpandedChange={value=>{restorePosition(capturePosition());setAudioExpanded(value);if(value){if(!panelOpen)setDetailsAnchorId(selection?.endId??visibleDetailsBlock()?.id??'');setPanelOpen(false);setMenusKey(n=>n+1);}}} book={book} sectionId={section.id} blockId={selection?.startId||currentBlock||section.blocks.find(isText)?.id||''} suspended={tourOpen} onPosition={followAudio} onClose={()=>{setAudioOpen(false);setAudioExpanded(false);afterLayout(()=>document.querySelector<HTMLButtonElement>('.audio-trigger')?.focus({preventScroll:true}));}}/>:<button className="workspace-tool audio-trigger" aria-label="Hören und mitlesen" title="Hörbuch öffnen" onClick={()=>setAudioOpen(true)}><Headphones size={19}/><span>Hören</span></button>}
+     {hasAudiobook(book.id)?audioOpen?<ReaderAudio key={book.editionId} detailsHost={audioHost} expanded={audioExpanded} onExpandedChange={value=>{restorePosition(capturePosition());setAudioExpanded(value);if(value){if(!panelOpen)setDetailsAnchorId(selection?.endId??visibleDetailsBlock()?.id??'');setPanelOpen(false);setMenusKey(n=>n+1);}}} book={book} sectionId={section.id} blockId={selection?.startId||currentBlock||section.blocks.find(isText)?.id||''} suspended={tourOpen} onPosition={followAudio} onClose={()=>{setAudioOpen(false);setAudioExpanded(false);afterLayout(()=>document.querySelector<HTMLButtonElement>('.audio-trigger')?.focus({preventScroll:true}));}}/>:<button className="workspace-tool audio-trigger" aria-label="Hören und mitlesen" title="Hörbuch öffnen" onClick={()=>setAudioOpen(true)}><Headphones size={19}/><span>Hören</span></button>:<button className="workspace-tool" aria-label="Hörbuch nicht verfügbar" title="Für dieses Werk ist derzeit keine geprüfte Sprecheraufnahme eingebunden." disabled><Headphones size={19}/><span>Nicht verfügbar</span></button>}
      </div>
     </ReaderWorkspace>}
 

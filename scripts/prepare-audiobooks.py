@@ -141,9 +141,49 @@ def align(transcript, tokens, positions, blocks, autojunk=True):
     return sorted(cues, key=lambda c: c['start'])
 
 
-def prepare(work):
+def transcribe_cached(path, track_duration):
+    """Bound memory and preserve progress across interrupted hour-long acts.
+
+    Eight-minute cores have five seconds of context at each boundary. A word
+    belongs to the core containing its midpoint; context is never duplicated.
+    """
     import mlx_whisper
+    model = 'mlx-community/whisper-large-v3-turbo'
+    source_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+    folder = path.parent / (path.stem + '.asr-chunks')
+    folder.mkdir(exist_ok=True)
+    segments = []
+    for core in range(0, int(track_duration) + 1, 480):
+        if core >= track_duration:
+            break
+        begin, end = max(0, core - 5), min(track_duration, core + 485)
+        cache = folder / f'{core}.json'
+        cached = json.loads(cache.read_text()) if cache.exists() else None
+        if not cached or cached.get('source_sha256') != source_hash or cached.get('model') != model:
+            clip = folder / 'current.wav'
+            try:
+                subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(begin), '-i', str(path), '-t', str(end - begin), '-ac', '1', '-ar', '16000', str(clip)], check=True)
+                result = mlx_whisper.transcribe(str(clip), path_or_hf_repo=model, language='de', word_timestamps=True, verbose=None)
+                cached = {'source_sha256': source_hash, 'model': model, 'result': result}
+                temporary = cache.with_suffix('.tmp.json')
+                temporary.write_text(json.dumps(cached, ensure_ascii=False))
+                temporary.replace(cache)
+                print(f'  Cached ASR {path.name}: {min(core + 480, track_duration):.0f}/{track_duration:.0f}s', flush=True)
+            finally:
+                clip.unlink(missing_ok=True)
+        for segment in cached['result']['segments']:
+            words = [{**word, 'start': word['start'] + begin, 'end': word['end'] + begin}
+                     for word in segment.get('words', [])
+                     if core <= (word['start'] + word['end']) / 2 + begin < min(core + 480, track_duration)]
+            if words:
+                segments.append({'start': words[0]['start'], 'end': words[-1]['end'], 'words': words})
+    return {'segments': segments}
+
+
+def prepare(work):
     source = SOURCES[work]
+    if source.get('kind') != 'human' or not source.get('archiveId'):
+        raise ValueError(f'No approved human recording for {work}')
     folder = CACHE / work
     folder.mkdir(parents=True, exist_ok=True)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -157,17 +197,22 @@ def prepare(work):
         raise ValueError(f'No MP3 tracks for {work}')
     if source.get('trackSections') and len(source['trackSections']) != len(files):
         raise ValueError('Reviewed scene mapping does not match the source track list')
+    if source.get('trackTitles') and len(source['trackTitles']) != len(files):
+        raise ValueError('Reviewed titles do not match the source track list')
     tracks = []
     for index, file in enumerate(files):
         url = f"https://archive.org/download/{source['archiveId']}/{quote(file['name'])}"
         path = folder / file['name']
         download(url, path, file.get('md5'))
+        track_duration = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', str(path)]))
         transcript_path = path.with_suffix('.transcript.json')
         if not transcript_path.exists():
             started = time.time()
             print(f'Transcribing {work} {index + 1}/{len(files)}: {file["name"]}', flush=True)
-            transcript = mlx_whisper.transcribe(str(path), path_or_hf_repo='mlx-community/whisper-large-v3-turbo', language='de', word_timestamps=True, verbose=None)
-            transcript_path.write_text(json.dumps(transcript, ensure_ascii=False))
+            transcript = transcribe_cached(path, track_duration)
+            temporary = transcript_path.with_suffix('.tmp.json')
+            temporary.write_text(json.dumps(transcript, ensure_ascii=False))
+            temporary.replace(transcript_path)
             print(f'Finished ASR in {time.time() - started:.1f}s', flush=True)
         else:
             transcript = json.loads(transcript_path.read_text())
@@ -181,8 +226,7 @@ def prepare(work):
             cues = align(transcript, track_tokens, track_positions, track_blocks, autojunk=False)
         else:
             cues = align(transcript, tokens, positions, blocks)
-        track_duration = float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', str(path)]))
-        title = file.get('title')
+        title = source['trackTitles'][index] if source.get('trackTitles') else file.get('title')
         if isinstance(title, list):
             title = title[0]
         title = title or f'Teil {index + 1}'
@@ -191,8 +235,8 @@ def prepare(work):
     readable = [b for b in blocks.values() if b['kind'] in ('verse', 'prose')]
     matched = {cue['blockId'] for track in tracks for cue in track['cues']}
     manifest = {'version': 1, 'workId': work, 'editionId': book['editionId'], 'revision': book['revision'],
-                'recordingId': source['archiveId'], 'sourceLabel': 'LibriVox · Internet Archive', 'sourceUrl': source['sourceUrl'],
-                'licenseUrl': 'https://librivox.org/pages/public-domain/', 'narrator': source['narrator'], 'note': source.get('note', ''),
+                'recordingId': source['archiveId'], 'sourceLabel': source.get('sourceLabel', 'LibriVox · Internet Archive'), 'sourceUrl': source['sourceUrl'],
+                'licenseUrl': source.get('licenseUrl', 'https://librivox.org/pages/public-domain/'), 'narrator': source['narrator'], 'note': source.get('note', ''),
                 'alignment': {'method': 'mlx-whisper-large-v3-turbo / canonical word matching', 'matchedBlocks': len(matched), 'totalBlocks': len(readable)}, 'tracks': tracks}
     temporary = OUT / (work + '.tmp.json')
     temporary.write_text(json.dumps(manifest, ensure_ascii=False, separators=(',', ':')))

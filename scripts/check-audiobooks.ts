@@ -7,7 +7,7 @@ import type {Book} from '../lib/reader-model';
 import sources from '../corpus/audiobook-sources.json';
 const ids=process.argv.slice(2).length?process.argv.slice(2):Object.keys(sources).filter(hasAudiobook);
 for(const id of ids){
- if(!Object.hasOwn(sources,id))throw new Error('Unregistered recording');
+ if((sources as Record<string,{kind?:string}>)[id]?.kind!=='human')throw new Error('Only registered human recordings may be released');
  const book=JSON.parse(readFileSync(`corpus/books/${id}.json`,'utf8')) as Book;
  const audio=validateAudiobook(JSON.parse(readFileSync(`public/audiobooks/${id}.json`,'utf8')),book);
  const seen=new Set<string>();let duration=0,cues=0;
@@ -22,6 +22,5 @@ for(const id of ids){
  }
  const readable=book.sections.flatMap(section=>section.blocks).filter(block=>block.kind==='verse'||block.kind==='prose');
  if(seen.size!==audio.alignment.matchedBlocks||readable.length!==audio.alignment.totalBlocks)throw new Error(`Coverage counts differ: ${id}`);
- if(audio.synthetic&&seen.size!==readable.length)throw new Error(`Incomplete generated reading: ${id}`);
- console.log(JSON.stringify({work:id,synthetic:!!audio.synthetic,tracks:audio.tracks.length,hours:Math.round(duration/36)/100,cues,matchedBlocks:seen.size,totalBlocks:readable.length}));
+ console.log(JSON.stringify({work:id,kind:'human',tracks:audio.tracks.length,hours:Math.round(duration/36)/100,cues,matchedBlocks:seen.size,totalBlocks:readable.length}));
 }

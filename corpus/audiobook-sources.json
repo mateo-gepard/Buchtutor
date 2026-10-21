@@ -2,12 +2,14 @@
   "iphigenie": {
     "archiveId": "Iphigenie_Goethe_1010_librivox",
     "narrator": "redaer",
-    "sourceUrl": "https://librivox.org/iphigenie-auf-tauris-ein-schauspiel-by-johann-wolfgang-von-goethe/"
+    "sourceUrl": "https://librivox.org/iphigenie-auf-tauris-ein-schauspiel-by-johann-wolfgang-von-goethe/",
+    "kind": "human"
   },
   "faust": {
     "archiveId": "faust1_1012_librivox",
     "narrator": "redaer",
-    "sourceUrl": "https://librivox.org/faust-der-tragodie-erster-teil-by-johann-wolfgang-von-goethe/"
+    "sourceUrl": "https://librivox.org/faust-der-tragodie-erster-teil-by-johann-wolfgang-von-goethe/",
+    "kind": "human"
   },
   "woyzeck": {
     "archiveId": "woyzeck_librivox",
@@ -92,39 +94,51 @@
         "s020",
         "s021"
       ]
-    ]
+    ],
+    "kind": "human"
   },
   "kabale": {
     "archiveId": "kabaleundliebe_1009_librivox",
     "narrator": "redaer",
     "sourceUrl": "https://librivox.org/kabale-und-liebe-ein-burgerliches-trauerspiel-by-friedrich-schiller/",
-    "status": "preparing"
+    "status": "preparing",
+    "kind": "human"
   },
   "maria": {
     "archiveId": "maria_stuart_1009_librivox",
     "narrator": "redaer",
     "sourceUrl": "https://librivox.org/maria-stuart-by-friedrich-von-schiller/",
-    "status": "preparing"
+    "status": "preparing",
+    "kind": "human"
   },
   "verwandlung": {
     "archiveId": "verwandlung_mw_0811_librivox",
     "narrator": "Markus Wachenheim",
-    "sourceUrl": "https://librivox.org/die-verwandlung-von-franz-kafka/"
+    "sourceUrl": "https://librivox.org/die-verwandlung-von-franz-kafka/",
+    "kind": "human"
   },
   "krug": {
-    "kind": "synthetic",
-    "narrator": "Thorsten-Voice (synthetisch)",
-    "sourceUrl": "https://thorsten-voice.de/en/guides/piper/"
+    "status": "unavailable",
+    "note": "Keine passende deutsche Sprecherlesung mit geklärten Nutzungsrechten verfügbar."
   },
   "emilia": {
-    "kind": "synthetic",
-    "narrator": "Thorsten-Voice (synthetisch)",
-    "sourceUrl": "https://thorsten-voice.de/en/guides/piper/"
+    "status": "unavailable",
+    "note": "Keine passende deutsche Sprecherlesung mit geklärten Nutzungsrechten verfügbar."
   },
   "nathan": {
-    "kind": "synthetic",
-    "narrator": "Thorsten-Voice (synthetisch)",
-    "sourceUrl": "https://thorsten-voice.de/en/guides/piper/",
-    "status": "preparing"
+    "kind": "human",
+    "archiveId": "Nathan_0811_redaer",
+    "narrator": "redaer",
+    "sourceLabel": "Internet Archive",
+    "sourceUrl": "https://archive.org/details/Nathan_0811_redaer",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "note": "Deutsche Lesung von redaer (2011). Vom Anbieter mit CC0 gekennzeichnet.",
+    "trackTitles": [
+      "Erster Aufzug",
+      "Zweiter Aufzug",
+      "Dritter Aufzug",
+      "Vierter Aufzug",
+      "Fünfter Aufzug"
+    ]
   }
 }

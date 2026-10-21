@@ -1,5 +1,18 @@
 import {makeAnchor,type Anchor,type Section} from './reader-model';
 
+/** Canonical UTF-16 offsets also span nested saved marks and character mentions. */
+export function domTextRange(element:Element,start:number,end:number):Range|null{
+  const walker=element.ownerDocument.createTreeWalker(element,NodeFilter.SHOW_TEXT),range=element.ownerDocument.createRange();
+  let node:Node|null,total=0,started=false;
+  while((node=walker.nextNode())){
+    const length=node.textContent?.length??0;
+    if(!started&&start<total+length){range.setStart(node,Math.max(0,start-total));started=true;}
+    if(started&&end<=total+length){range.setEnd(node,Math.max(0,end-total));return range;}
+    total+=length;
+  }
+  return null;
+}
+
 /** Compare DOM boundary points, including element (rather than text) endpoints. */
 function comparePoints(document:Document,a:Node,ao:number,b:Node,bo:number){
   const left=document.createRange(),right=document.createRange();

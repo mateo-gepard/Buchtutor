@@ -46,8 +46,9 @@ test('inline notes leave the selected passage readable and keep their draft acro
  await expect(page.locator('.workspace-saved-notes summary')).toContainText('1 Eintrag');
  await page.getByRole('button',{name:'Lesehilfe schließen',exact:true}).click();
  await expect(page.locator('.workspace-inline-host')).toHaveJSProperty('offsetHeight',0);
- const next=await page.locator('.source-row').nth(1).boundingBox(),first=await line.boundingBox();
- expect(next!.y-first!.y-first!.height).toBeLessThan(10);
+ // Measure relative geometry in one frame; scroll restoration can occur between round trips.
+ const gap=await page.evaluate(()=>{const rows=document.querySelectorAll('.source-row'),first=rows[0].getBoundingClientRect(),next=rows[1].getBoundingClientRect();return next.top-first.bottom;});
+ expect(gap).toBeLessThan(10);
 });
 test('each accessory preserves reading space in portrait, landscape and narrow readers',async({page},testInfo)=>{
  await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();

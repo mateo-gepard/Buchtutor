@@ -80,3 +80,16 @@ Die Leiste wird ausschließlich im Leser gerendert. Ein geöffneter Player hält
 Der Werkfilter im Notizbuch steht zuerst, trägt eine sichtbare Beschriftung und zeigt die Eintragszahlen je Werk. Er kombiniert sich mit Suche, Typ und Farbe. Die Suche findet zusätzlich Titel und Autor. Bedeutungen werden pro Werk angeboten und beim Werkwechsel zurückgesetzt. Eine Ergebniszeile nennt die Trefferzahl und bietet „Filter zurücksetzen“. Ein ausgewähltes Werk bleibt nach dem Löschen seines letzten Eintrags auswählbar. Auch Notizen zu nicht mehr katalogisierten Werken lassen sich filtern.
 
 Filter, Suchtext und Scrollstand liegen für die aktuelle Sitzung beim ReaderApp statt in der beim Öffnen einer Notiz entfernten Notizbuchkomponente. Die Einführung verwendet davon getrennte Übungsfilter. Die Buchlade-Anfrage ist abbrechbar; eine neuere Navigation verwirft auch verspätete Antworten und Fehlermeldungen. Ein fehlgeschlagenes Öffnen löscht die bisherige Textauswahl und den geöffneten Entwurf nicht.
+
+## Überlappende Einträge, Versauswahl und Hörstelle (21.10.2026)
+
+Überlappende Anker bilden eine gemeinsame Darstellung mit einem Randindikator und gemeinsam erreichbaren Einträgen. Eigene Pencil-Farben haben Vorrang vor Analysefarben; ein späteres Speichern einer Erklärung ändert die eigene Farbe nicht. Einzelne Einträge, Originalschrift, Suche und Löschung bleiben unabhängig. In der gemeinsamen Übersicht lässt sich jede Notiz oder Erklärung einzeln öffnen und entfernen. Erneutes Speichern derselben Analyse verwendet ihre vorhandene Identität.
+
+An den Versnummern beginnt direkt eine Bereichsauswahl: Nummer antippen und Endvers antippen oder am Nummernrand entlangziehen. Die Leiste bietet schon nach dem ersten Vers Notiz und Analyse an. Ziehen funktioniert auch rückwärts, hält den Text beim Öffnen der Auswahlaktionen an seiner Position und scrollt am Rand weiter. Nur die Nummern übernehmen diese Geste; Text behält native Wortauswahl, Zoom und Scrollen. Im Bereichsmodus dienen auch bereits markierte Textstellen als Endpunkt. Anfang und Ende sind am Nummernrand erkennbar. Tastatur, Umschalt-Erweiterung und Abbruch bleiben erhalten.
+
+Die Hörstelle verwendet eine eigene Lesecursor-Markierung und eine weiche Passagefläche statt einer orangefarbenen Unterstreichung. Passage, ganze Zeile oder keine Hervorhebung sind wählbar. Das Mitführen bleibt davon unabhängig. Nach eigenem Scrollen steht die Rückkehr zur Hörstelle direkt in derselben Leiste. Der Cursor folgt der tatsächlichen Medienzeit zwischen den normalen Audioereignissen; die Ansicht wird nur bei einem Passagenwechsel neu gesetzt.
+
+
+## Dialoge und Ebenen (21.10.2026)
+
+Einstellungen, Inhaltsverzeichnis, Suche, Teilen, Quellen und die vergrößerte Figurenkonstellation verwenden dieselbe modale Ebene: Hintergrund 100, Inhalt 101. Werkzeuge bleiben auf 65, Hinweise auf 70 und die abbrechbare Ladeanzeige auf 80. Damit können weder Leiste noch Farben-/Audio-/Notizdetails über einem geöffneten Dialog liegen. Radix übernimmt Eingabesperre und Fokusbegrenzung des modalen Fensters; Escape wird von der Leseransicht nicht zusätzlich abgefangen, solange ein Dialog geöffnet ist. Onboarding bleibt mit seiner bewussten Spotlight-Ebene darüber.

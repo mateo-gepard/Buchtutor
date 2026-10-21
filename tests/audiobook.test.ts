@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {readFileSync,readdirSync} from 'node:fs';
-import {audioTime,cueAt,speechUnits,validateAudiobook,audioProgressSchema,type Audiobook} from '../lib/audiobook';
+import {readFileSync,readdirSync,existsSync} from 'node:fs';
+import {audioTime,cueAt,hasAudiobook,validateAudiobook,audioProgressSchema,type Audiobook} from '../lib/audiobook';
+import sources from '../corpus/audiobook-sources.json';
 import type {Book} from '../lib/reader-model';
 const book=JSON.parse(readFileSync(new URL('../corpus/books/iphigenie.json',import.meta.url),'utf8')) as Book;
 const section=book.sections[0],block=section.blocks.find(b=>b.kind==='verse')!;
@@ -13,21 +14,24 @@ test('audio manifests bind timestamps to the exact canonical edition and valid t
  for(const change of [{blockId:'missing'},{sectionId:'foreign'},{endOffset:block.text.length+1},{end:11.1},{end:1},{startOffset:cue.endOffset}])assert.throws(()=>validateAudiobook({...fixture,tracks:[{...fixture.tracks[0],cues:[{...cue,...change}]}]},book));
  assert.throws(()=>validateAudiobook({...fixture,tracks:[{...fixture.tracks[0],url:'https://example.com/audio.mp3'}]},book));
  assert.throws(()=>validateAudiobook({...fixture,tracks:[{...fixture.tracks[0],cues:[{...cue,start:4,end:5},cue]}]},book));
- assert.equal(validateAudiobook({...fixture,synthetic:true,tracks:[{...fixture.tracks[0],url:'/audio/krug/s002.mp3'}]},book).tracks[0].url,'/audio/krug/s002.mp3');
+ assert.throws(()=>validateAudiobook({...fixture,synthetic:true},book));
+ assert.equal(validateAudiobook({...fixture,tracks:[{...fixture.tracks[0],url:'/audio/iphigenie/s002.mp3'}]},book).tracks[0].url,'/audio/iphigenie/s002.mp3');
  for(const url of ['/audio/../private.mp3','//example.com/file.mp3','http://archive.org/file.mp3'])assert.throws(()=>validateAudiobook({...fixture,tracks:[{...fixture.tracks[0],url}]},book));
 });
 test('audio lookup clears highlights in gaps and handles exact boundaries',()=>{
  const cues=[cue,{...cue,start:8,end:9}];assert.equal(cueAt(cues,0),null);assert.equal(cueAt(cues,1),cue);assert.equal(cueAt(cues,4),null);assert.equal(cueAt(cues,8),cues[1]);assert.equal(cueAt([],9),null);
  assert.equal(audioTime(3661.9),'1:01:01');assert.equal(audioTime(-1),'0:00');assert.equal(audioTime(NaN),'0:00');assert.equal(audioProgressSchema.safeParse({time:Infinity}).success,false);
 });
-test('device narration covers every readable canonical block without changing text or offsets',()=>{
- for(const file of readdirSync(new URL('../corpus/books',import.meta.url)).filter(n=>n.endsWith('.json'))){
-  const book=JSON.parse(readFileSync(new URL('../corpus/books/'+file,import.meta.url),'utf8')) as Book,units=speechUnits(book);
-  for(const section of book.sections)for(const block of section.blocks){
-   if(!['verse','prose'].includes(block.kind)||!block.text.trim())continue;
-   const parts=units.filter(u=>u.blockId===block.id&&u.sectionId===section.id);
-   assert.equal(parts.map(u=>u.text).join(''),block.text,`${file}: ${block.id}`);
-   for(const part of parts)assert.equal(block.text.slice(part.startOffset,part.endOffset),part.text);
-  }
+test('released recordings are human readings with valid canonical manifests; removed synthetic files cannot be served',()=>{
+ for(const id of ['krug','emilia','heimsuchung','unknown'])assert.equal(hasAudiobook(id),false,id);
+ for(const id of ['krug','emilia']){
+  assert.equal(existsSync(new URL(`../public/audiobooks/${id}.json`,import.meta.url)),false);
+  assert.equal(existsSync(new URL(`../public/audio/${id}`,import.meta.url)),false);
+ }
+ for(const file of readdirSync(new URL('../public/audiobooks',import.meta.url)).filter(n=>n.endsWith('.json'))){
+  const id=file.slice(0,-5),book=JSON.parse(readFileSync(new URL(`../corpus/books/${file}`,import.meta.url),'utf8')) as Book;
+  const manifest=validateAudiobook(JSON.parse(readFileSync(new URL(`../public/audiobooks/${file}`,import.meta.url),'utf8')),book);
+  assert.notEqual(manifest.synthetic,true);
+  assert.equal((sources as Record<string,{kind?:string}>)[id]?.kind,'human',id);
  }
 });
