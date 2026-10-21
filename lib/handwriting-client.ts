@@ -32,8 +32,8 @@ async function drain(){
   while(queue.size){
    const [id,snapshot]=queue.entries().next().value!;queue.delete(id);activeId=id;
    const pencil=snapshot.pencil;if(!pencil?.ink.length)continue;
-   const signature=JSON.stringify(pencil.ink);
-   const unchanged=(note:SavedNote)=>note.id===id&&!note.deletedAt&&note.pencil?.transcription==='pending'&&JSON.stringify(note.pencil.ink)===signature;
+   const signature=JSON.stringify([snapshot.updatedAt,snapshot.workId,snapshot.editionId,snapshot.anchor,snapshot.body,pencil]);
+   const unchanged=(note:SavedNote)=>note.id===id&&!note.deletedAt&&note.pencil?.transcription==='pending'&&JSON.stringify([note.updatedAt,note.workId,note.editionId,note.anchor,note.body,note.pencil])===signature;
    if(!getLocalState().data.preferences.value.handwritingCloud||!getLocalState().data.notes.some(unchanged))continue;
    attempted.add(id+':'+snapshot.updatedAt);
    let text='',uncertain=false,error='';
@@ -49,7 +49,7 @@ async function drain(){
    finally{clearTimeout(timeout);}
    try{
     await updateLocal(data=>({...data,notes:data.notes.map(note=>{
-     if(!unchanged(note))return note;
+     if(!data.preferences.value.handwritingCloud||!unchanged(note))return note;
      const previous=note.pencil?.transcript,manual=previous&&note.body.endsWith(previous)?note.body.slice(0,-previous.length).trimEnd():note.body;
      return {...note,body:error?note.body:[manual,text].filter(Boolean).join('\n'),updatedAt:new Date().toISOString(),pencil:{...note.pencil!,transcription:error?'failed':'recognized',transcript:error?previous:text,uncertain,transcriptionError:error?error.slice(0,300):undefined}};
     })}));

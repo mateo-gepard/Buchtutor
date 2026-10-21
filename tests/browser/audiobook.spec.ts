@@ -160,8 +160,8 @@ test('a seek made while metadata is delayed wins over the original start positio
  await page.getByRole('button',{name:'Wiedergabe pausieren',exact:true}).click();expect(await page.locator('audio').evaluate(el=>(el as HTMLAudioElement).currentTime)).toBeGreaterThanOrEqual(7.9);
 });
 test('pausing near the end resumes that position instead of restarting the chapter',async({page})=>{
- await setup(page);await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await at(page,19.7);
- await page.getByRole('button',{name:'Wiedergabe pausieren',exact:true}).click();await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect.poll(()=>page.locator('audio').evaluate(el=>(el as HTMLAudioElement).currentTime),{intervals:[10,20,50]}).toBeGreaterThan(19);
+ await setup(page);await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await page.getByRole('button',{name:'Wiedergabe pausieren',exact:true}).click();await at(page,19.7);
+ await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect.poll(()=>page.locator('audio').evaluate(el=>(el as HTMLAudioElement).currentTime),{intervals:[10,20,50]}).toBeGreaterThan(19);
 });
 
 test('following long prose uses the spoken phrase even with visual emphasis switched off',async({page})=>{

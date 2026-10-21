@@ -1,0 +1,36 @@
+/* One continuous page, with a stable layout under magnification and native vertical scrolling. */
+.document-zoom-stage{position:relative;min-width:0;overflow-x:clip;overflow-anchor:none;touch-action:pan-y}
+.document-zoom-stage .reading-page{will-change:auto}
+.document-zoom-stage[data-zoomed=true] .reading-page{max-width:none}
+.document-zoom-stage [data-pencil-input]{touch-action:auto}
+.document-zoom-controls{flex-shrink:0}
+.document-zoom-trigger>strong{font-size:12px;font-weight:650;line-height:18px;font-variant-numeric:tabular-nums}
+.document-zoom-trigger>strong>small{font-size:9px;font-weight:500}
+.document-zoom-popover{width:250px;padding:12px}
+.document-zoom-popover .pencil-sheet-heading>strong{font-size:13px}
+.document-zoom-buttons{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 12px}
+.document-zoom-buttons>.icon-button{border:1px solid var(--border);border-radius:10px;width:44px;height:44px}
+.document-zoom-buttons>output{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.document-zoom-reset{width:100%;min-height:44px;justify-content:center;font-size:12px}
+.document-zoom-popover>p{font-size:12px;line-height:1.55;color:var(--muted-foreground);margin:12px 0 2px}
+.document-zoom-popover button:disabled{opacity:.4}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .document-zoom-controls{grid-column:1/-1;justify-self:center}
+@media(max-width:759px){
+ .reader-workspace:not([data-dock=left]):not([data-dock=right]) .document-zoom-controls{flex-shrink:0}
+}
+/* Reuse the Pencil row's free space on narrow screens and short edge rails. */
+@media(max-width:759px){
+ .reader-workspace:has(.pencil-workspace):not([data-dock=left]):not([data-dock=right]) .document-zoom-controls{display:contents}
+ .reader-workspace:has(.pencil-workspace):not([data-dock=left]):not([data-dock=right]) .document-zoom-trigger{position:absolute;right:7px;bottom:7px}
+ .reader-workspace:has(.pencil-workspace):not([data-dock=left]):not([data-dock=right]) .workspace-pencil-slot{padding-right:48px}
+}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .workspace-pencil-slot{grid-row:3}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .document-zoom-controls{display:contents}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .document-zoom-trigger{grid-column:1/-1;grid-row:3;align-self:start;justify-self:end;margin:2px;z-index:1}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-color-menu{grid-column:1;width:44px}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-writing-toggle{grid-row:2;grid-column:1}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-eraser{grid-row:2;grid-column:2}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-undo{grid-row:3;grid-column:1}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-done{grid-row:3;grid-column:2}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .audio-main:has(.audio-return){display:flex;gap:2px}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .audio-main:has(.audio-return)>:is(.audio-play,.audio-details-trigger,.audio-return){width:30px;min-width:30px;padding:0}

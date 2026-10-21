@@ -1,5 +1,6 @@
 'use client';
-import {Bookmark,Download,MessageSquare,Search,Trash2,ArrowUpRight} from 'lucide-react';
+import {useState} from 'react';
+import {Bookmark,Download,MessageSquare,Search,Trash2,ArrowUpRight,RotateCcw} from 'lucide-react';
 import type {SavedNote,WorkMeta} from '@/lib/reader-model';
 import {MODE_COLORS,MODE_LABELS,noteText} from '@/lib/reader-model';
 import {inkPath,pencilColors,pencilPalette} from '@/lib/pencil-model';
@@ -14,13 +15,13 @@ export function NotesList({notes,catalog,onOpen,onDelete,compact=false}:{notes:S
 }
 export type NotebookFilters={query:string;work:string;kind:string;color:string;meaning:string};
 export const defaultNotebookFilters:NotebookFilters={query:'',work:'all',kind:'all',color:'all',meaning:'all'};
-export function Notebook({notes,catalog,onOpen,onDelete,onTransfer,filters,onFiltersChange,practice=false}:{notes:SavedNote[];catalog:WorkMeta[];onOpen:(note:SavedNote)=>void;onDelete:(note:SavedNote)=>void;onTransfer:()=>void;filters:NotebookFilters;onFiltersChange:(filters:NotebookFilters)=>void;practice?:boolean}){
+export function Notebook({notes,catalog,onOpen,onDelete,onTransfer,filters,onFiltersChange,practice=false,deletedNotes=[],onRestore}:{notes:SavedNote[];deletedNotes?:SavedNote[];onRestore?:(note:SavedNote)=>Promise<void>;catalog:WorkMeta[];onOpen:(note:SavedNote)=>void;onDelete:(note:SavedNote)=>void;onTransfer:()=>void;filters:NotebookFilters;onFiltersChange:(filters:NotebookFilters)=>void;practice?:boolean}){
   const {query,work,kind,color,meaning}=filters;
   const change=(value:Partial<NotebookFilters>)=>onFiltersChange({...filters,...value});
   const works=new Map(catalog.map(item=>[item.id,item]));
   const counts=new Map<string,number>();for(const note of notes)counts.set(note.workId,(counts.get(note.workId)??0)+1);
   // Keep a selected work available even after its last entry is removed.
-  const workIds=[...new Set([...counts.keys(),...(work==='all'?[]:[work])])].sort((a,b)=>(works.get(a)?.title??a).localeCompare(works.get(b)?.title??b,'de'));
+  const workIds=[...new Set([...counts.keys(),...deletedNotes.map(note=>note.workId),...(work==='all'?[]:[work])])].sort((a,b)=>(works.get(a)?.title??a).localeCompare(works.get(b)?.title??b,'de'));
   const workNotes=work==='all'?notes:notes.filter(n=>n.workId===work);
   const meanings=[...new Set(workNotes.flatMap(n=>n.pencil?[n.pencil.meaning]:[]))].sort();
   const search=query.trim().toLocaleLowerCase('de');
@@ -37,6 +38,14 @@ export function Notebook({notes,catalog,onOpen,onDelete,onTransfer,filters,onFil
     <div className="notebook-results"><p role="status">{filtered.length} {filtered.length===1?'Eintrag':'Einträge'}{work!=='all'?` in ${works.get(work)?.title??work}`:''}</p>{active&&<button className="text-button" onClick={()=>onFiltersChange(defaultNotebookFilters)}>Filter zurücksetzen</button>}</div>
     <NotesList notes={filtered} catalog={catalog} onOpen={onOpen} onDelete={onDelete}/>
     {!filtered.length&&<div className="empty-state"><Bookmark size={26}/><h2>{notes.length?'Keine passenden Notizen':'Noch keine Notizen'}</h2><p>{notes.length?'Ändere die Suche oder setze die Filter zurück, um deine Einträge wieder anzuzeigen.':'Wähle beim Lesen eine Textstelle und speichere eine Notiz, ein Lesezeichen oder eine Analyse.'}</p></div>}
+    {!practice&&onRestore&&<DeletedNotes notes={work==='all'?deletedNotes:deletedNotes.filter(note=>note.workId===work)} catalog={catalog} onRestore={onRestore}/>}
   </main>;
 }
 function ArrowRightIcon(){return <ArrowUpRight size={17}/>;}
+
+function DeletedNotes({notes,catalog,onRestore}:{notes:SavedNote[];catalog:WorkMeta[];onRestore:(note:SavedNote)=>Promise<void>}){
+ const [pending,setPending]=useState(''),[error,setError]=useState('');
+ async function restore(note:SavedNote){if(pending)return;setPending(note.id);setError('');try{await onRestore(note);}catch(error){setError(error instanceof Error?error.message:'Der Eintrag konnte nicht wiederhergestellt werden.');}finally{setPending('');}}
+ if(!notes.length)return null;
+ return <details className="notebook-trash"><summary><Trash2 size={15}/>Gelöschte Einträge ({notes.length})</summary><p>Auf diesem Gerät aufbewahrt. Notizen, Markierungen und Originalhandschrift lassen sich wiederherstellen.</p>{error&&<p className="inline-error" role="alert">{error}</p>}{notes.map(note=><article className="deleted-note" key={note.id}><div><strong>{catalog.find(work=>work.id===note.workId)?.title??note.workId}</strong><blockquote>{note.anchor.quote.slice(0,150)}</blockquote>{noteText(note)&&<p>{noteText(note).slice(0,160)}</p>}{!!note.pencil?.ink.length&&<small>Originalhandschrift vorhanden</small>}</div><button className="secondary-button" disabled={!!pending} onClick={()=>void restore(note)}><RotateCcw size={15}/>{pending===note.id?'Wiederherstellen …':'Eintrag wiederherstellen'}</button></article>)}</details>;
+}

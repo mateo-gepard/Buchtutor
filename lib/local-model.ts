@@ -36,8 +36,15 @@ export const snapshotSchema=z.object({
 export type LocalSnapshot=z.infer<typeof snapshotSchema>;
 export const EMPTY_SNAPSHOT:LocalSnapshot={schemaVersion:2,preferences:{value:defaultPrefs,updatedAt:'1970-01-01T00:00:00.000Z'},notes:[],progress:[]};
 
-function noteContent(n:SavedNote) {
-  return JSON.stringify([n.workId,n.editionId,n.anchor,n.kind,n.body,n.analysis??null,n.pencil??null]);
+export function noteContent(n:SavedNote|undefined) {
+  if(!n)return null;
+  const pencil=n.pencil?.pageInk?{...n.pencil,pageInk:n.pencil.pageInk.map(group=>({...group,id:'',targetId:group.targetId===n.id?'self':group.targetId}))}:n.pencil;
+  return JSON.stringify([n.workId,n.editionId,n.anchor,n.kind,n.body,n.analysis??null,pencil??null,n.deletedAt??null],(_key,value)=>value&&typeof value==='object'&&!Array.isArray(value)?Object.fromEntries(Object.keys(value).sort().map(key=>[key,value[key]])):value);
+}
+/** A conflict is an independent note, including its original page ink. */
+export function conflictCopy(note:SavedNote,conflictOf=note.id):SavedNote{
+  const id=crypto.randomUUID();
+  return {...note,id,conflictOf,...(note.pencil?.pageInk?{pencil:{...note.pencil,pageInk:note.pencil.pageInk.map(group=>({...group,id:crypto.randomUUID(),targetId:group.targetId===note.id?id:group.targetId}))}}:{})};
 }
 export function mergeSnapshots(local:LocalSnapshot,incoming:LocalSnapshot,importPreferences=true):{snapshot:LocalSnapshot;conflicts:number} {
   const notes=new Map(local.notes.map(note=>[note.id,note]));
@@ -57,7 +64,7 @@ export function mergeSnapshots(local:LocalSnapshot,incoming:LocalSnapshot,import
     const other=latest===note?previous:note;
     const alreadyKept=[...notes.values()].some(n=>n.conflictOf===note.id&&noteContent(n)===noteContent(other));
     notes.set(note.id,latest);
-    if(!alreadyKept){const id=crypto.randomUUID();notes.set(id,{...other,id,conflictOf:note.id});conflicts++;}
+    if(!alreadyKept){const copy=conflictCopy(other,note.id);notes.set(copy.id,copy);conflicts++;}
   }
   const progress=new Map<string,ReadingProgress>(local.progress.map(p=>[p.workId+':'+p.editionId,p]));
   for(const p of incoming.progress){const key=p.workId+':'+p.editionId;const prior=progress.get(key);if(!prior||p.updatedAt>prior.updatedAt)progress.set(key,p);}

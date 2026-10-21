@@ -14,7 +14,7 @@ function gestureDock(bar:Rect,viewport:Rect,dx:number,dy:number):Dock{
 }
 export function usePencilPlacement(enabled:boolean,closePanels:()=>void,practice=false,defaultDock:Dock='floating',label='Pencil-Leiste'){
  const element=useRef<HTMLElement>(null),placement=useRef<Placement>({dock:defaultDock,x:.5,y:.9}),restored=useRef(false);
- const motion=useRef<Animation|null>(null),settle=useRef(false);
+ const motion=useRef<Animation|null>(null),settle=useRef(false),expandedHeight=useRef(0);
  const drag=useRef<{id:number;clientX:number;clientY:number;bar:Rect;original:Placement;moved:boolean}|null>(null);
  const close=useRef(closePanels);useLayoutEffect(()=>{close.current=closePanels},[closePanels]);
  const [dock,setDock]=useState<Dock>(defaultDock),[preview,setPreview]=useState<Dock>('floating'),[dragging,setDragging]=useState(false),[compact,setCompact]=useState(false),[announcement,setAnnouncement]=useState('');
@@ -37,7 +37,9 @@ export function usePencilPlacement(enabled:boolean,closePanels:()=>void,practice
   const v=viewport(),r=el.getBoundingClientRect();
   // Mobile viewport rounding can cross a breakpoint as the rail changes shape.
   // Leave room on either side so orientation changes cannot toggle it in a loop.
-  setCompact(current=>v.height<(current?700:660));el.style.setProperty('--pencil-available-height',v.height+'px');
+  const side=placement.current.dock==='left'||placement.current.dock==='right';
+  if(side&&el.dataset.compact!=='true')expandedHeight.current=r.height;
+  setCompact(current=>v.height<(current?700:660)||side&&(current?v.height<expandedHeight.current+24:r.height>v.height));el.style.setProperty('--pencil-available-height',v.height+'px');
   const bar=palettePosition(placement.current,{width:r.width,height:r.height},v);
   el.style.setProperty('--workspace-sidebar-space',bar.width+10+'px');
   el.style.left=bar.x+'px';el.style.top=bar.y+'px';el.style.right='auto';el.style.bottom='auto';el.style.transform='none';

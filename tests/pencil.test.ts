@@ -17,6 +17,19 @@ test('fast, reverse, slanted and slightly imprecise Pencil sweeps snap to full c
  assert.equal(strokeAnchor(section,[{x:400,y:400}],boxes),null);
  assert.deepEqual(strokeAnchor(section,[{x:5,y:10},{x:5,y:55}],boxes),makeAnchor(section,'a','b',0,3));
 });
+test('invalid geometry and foreign or whitespace offsets cannot manufacture a canonical selection',()=>{
+ assert.equal(strokeAnchor(section,[{x:NaN,y:10}],boxes),null);
+ assert.equal(segmentHitsBox({x:0,y:10},{x:50,y:10},{...boxes[0],left:NaN}),false);
+ assert.equal(segmentHitsBox({x:0,y:10},{x:50,y:10},boxes[0],-1),false);
+ const invalid=[{...boxes[0],blockId:'missing'},{...boxes[0],start:-1},{...boxes[0],end:1000},{...boxes[0],start:6,end:7},{...boxes[0],start:.5},{...boxes[0],right:-1}];
+ assert.equal(strokeAnchor(section,[{x:10,y:10}],invalid),null);
+ assert.deepEqual(strokeAnchor(section,[{x:10,y:10}],[...invalid,boxes[0]]),makeAnchor(section,'a','a',0,6));
+});
+test('padding between two equally near text lines stays unselected while a close underline retains its words',()=>{
+ const close=[boxes[0],{...boxes[3],top:24,bottom:44}];
+ assert.equal(strokeAnchor(section,[{x:5,y:22},{x:25,y:22}],close),null);
+ assert.deepEqual(strokeAnchor(section,[{x:5,y:21},{x:25,y:21}],close),makeAnchor(section,'a','a',0,6));
+});
 test('Pencil colors, custom meanings and original handwriting survive encrypted transfer and conflict merging',async()=>{
  const now='2026-10-19T18:00:00.000Z';
  const note:SavedNote={id:'pencil',workId:'book',editionId:'edition',anchor:makeAnchor(section,'a'),kind:'note',body:'Natur als Zuflucht',pencil:{color:'green',meaning:'Eigene Stilmittel',ink:[[{x:10,y:20,pressure:0.7},{x:20,y:30,pressure:0.9}]],transcription:'recognized',transcript:'Natur als Zuflucht',pageInk:[{id:'ink',targetId:'pencil',referenceId:'a',width:640,fontSize:20,strokes:[{id:'stroke',order:1,points:[{x:-30,y:5,pressure:.5},{x:-20,y:18,pressure:.7}]}]}]},createdAt:now,updatedAt:now};

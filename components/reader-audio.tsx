@@ -67,11 +67,17 @@ export function ReaderAudio({detailsHost,expanded,onExpandedChange:setExpanded,b
   const hidden=()=>persistEvent();window.addEventListener('pagehide',hidden);document.addEventListener('visibilitychange',hidden);
   return()=>{clearInterval(timer);persistEvent(media);media?.pause();window.removeEventListener('pagehide',hidden);document.removeEventListener('visibilitychange',hidden);clearPosition();};
  },[]);
- const stopFollowingEvent=useEffectEvent(()=>{setFollow(false);onPosition(position,false);});
+ const stopFollowingEvent=useEffectEvent(()=>{if(follow)window.scrollTo({left:window.scrollX,top:window.scrollY,behavior:'instant'});setFollow(false);onPosition(position,false);});
  useEffect(()=>{
-  function stopFollowing(event:Event){const target=event.target;if(target instanceof Element&&!target.closest('.reader-audio,.audio-details')&&(event.type!=='keydown'||['ArrowDown','ArrowUp','ArrowLeft','ArrowRight','PageDown','PageUp','Home','End',' '].includes((event as KeyboardEvent).key))){stopFollowingEvent();if((event.type==='pointerdown'||event.type==='touchstart')&&!target.closest('.reader-workspace'))collapseDetails();}}
-  document.addEventListener('input',stopFollowing);document.addEventListener('wheel',stopFollowing,{passive:true});document.addEventListener('touchstart',stopFollowing,{passive:true});document.addEventListener('pointerdown',stopFollowing);document.addEventListener('keydown',stopFollowing);
-  return()=>{document.removeEventListener('input',stopFollowing);document.removeEventListener('wheel',stopFollowing);document.removeEventListener('touchstart',stopFollowing);document.removeEventListener('pointerdown',stopFollowing);document.removeEventListener('keydown',stopFollowing);};
+  function stopFollowing(event:Event){
+   const target=event.target,path=event.composedPath(),within=(selector:string)=>path.some(node=>node instanceof Element&&node.matches(selector)),toolbar=within('.reader-workspace');
+   // Toolbar targets stay still until their click completes. The composed path
+   // also survives a Play icon being replaced by Pause during that click.
+   if((event.type==='pointerdown'||event.type==='touchstart')&&toolbar)return;
+   if(target instanceof Element&&!within('.reader-audio,.audio-details')&&(event.type!=='keydown'||['ArrowDown','ArrowUp','ArrowLeft','ArrowRight','PageDown','PageUp','Home','End',' '].includes((event as KeyboardEvent).key))){stopFollowingEvent();if((event.type==='pointerdown'||event.type==='touchstart')&&!toolbar&&!within('.pencil-text.active'))collapseDetails();}
+  }
+  document.addEventListener('click',stopFollowing);document.addEventListener('input',stopFollowing);document.addEventListener('wheel',stopFollowing,{passive:true});document.addEventListener('touchstart',stopFollowing,{passive:true,capture:true});document.addEventListener('pointerdown',stopFollowing,true);document.addEventListener('keydown',stopFollowing);
+  return()=>{document.removeEventListener('click',stopFollowing);document.removeEventListener('input',stopFollowing);document.removeEventListener('wheel',stopFollowing);document.removeEventListener('touchstart',stopFollowing,true);document.removeEventListener('pointerdown',stopFollowing,true);document.removeEventListener('keydown',stopFollowing);};
  },[]);
  function playTrack(index:number,at=0,startPlayback=true){
   const media=audio.current,next=manifest?.tracks[index];if(!media||!next||suspended)return;at=Math.max(0,Math.min(next.duration,at));

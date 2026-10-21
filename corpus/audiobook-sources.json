@@ -101,14 +101,12 @@
     "archiveId": "kabaleundliebe_1009_librivox",
     "narrator": "redaer",
     "sourceUrl": "https://librivox.org/kabale-und-liebe-ein-burgerliches-trauerspiel-by-friedrich-schiller/",
-    "status": "preparing",
     "kind": "human"
   },
   "maria": {
     "archiveId": "maria_stuart_1009_librivox",
     "narrator": "redaer",
     "sourceUrl": "https://librivox.org/maria-stuart-by-friedrich-von-schiller/",
-    "status": "preparing",
     "kind": "human"
   },
   "verwandlung": {
