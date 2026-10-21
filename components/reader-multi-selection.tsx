@@ -20,7 +20,7 @@ export function ReaderMultiSelection({passages,active,section,adding,choosing,on
  function remove(anchor:Anchor){
   onRemove(anchor);
   // Removing the penultimate passage restores the ordinary selection controls.
-  if(passages.length===2)requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>('.selection-dock [aria-label="Weitere Stelle auswählen"]')?.focus({preventScroll:true}));
+  if(passages.length===2)requestAnimationFrame(()=>document.querySelector<HTMLButtonElement>('.selection-actions-trigger')?.focus({preventScroll:true}));
  }
  const reference=referenceLabel(section,active);
  return <div className="selection-workflow multi-selection-workflow">

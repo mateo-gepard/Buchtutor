@@ -78,9 +78,9 @@ test('legacy device-voice preferences cannot start synthetic speech; onboarding 
 });
 
 test('audio controls stay clear of text selection and the note panel',async({page})=>{
- await setup(page);await page.locator('.source-row .line-number').first().click();await expect(page.locator('.selection-dock')).toBeVisible();
- expect(await page.evaluate(()=>{const a=document.querySelector('.reader-audio')!.getBoundingClientRect(),b=document.querySelector('.selection-dock')!.getBoundingClientRect();return b.bottom<=a.top||a.bottom<=b.top||b.right<=a.left||b.left>=a.right;})).toBe(true);
- await page.getByRole('button',{name:'Notiz',exact:true}).click();await expect(page.getByRole('textbox',{name:'Deine Notiz'})).toBeVisible();
+ await setup(page);await page.locator('.source-row .line-number').first().click();await expect(page.locator('.workspace-study')).toBeVisible();
+ expect(await page.evaluate(()=>{const a=document.querySelector('.reader-audio')!.getBoundingClientRect(),b=document.querySelector('.workspace-study')!.getBoundingClientRect();return b.bottom<=a.top||a.bottom<=b.top||b.right<=a.left||b.left>=a.right;})).toBe(true);
+ await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();await expect(page.getByRole('textbox',{name:'Deine Notiz'})).toBeVisible();
  expect(await page.evaluate(()=>{const a=document.querySelector('.reader-audio')!.getBoundingClientRect(),b=document.querySelector('.assistant-panel')!.getBoundingClientRect();return a.bottom<=b.top+1||a.right<=b.left+1||a.left>=b.right-1;})).toBe(true);
  await geometry(page);
 });

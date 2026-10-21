@@ -6,7 +6,7 @@ const reader='/?work=iphigenie&section=s001&view=reader';
 const book=JSON.parse(readFileSync('corpus/books/iphigenie.json','utf8')) as Book,section=book.sections[0];
 const lines=section.blocks.filter(block=>block.kind==='verse');
 const button=(page:Page,name:string)=>page.getByRole('button',{name,exact:true});
-async function range(page:Page,start:number,end:number){await button(page,`Vers ${start} auswählen`).click();await button(page,`Vers ${end} auswählen`).click();}
+async function range(page:Page,start:number,end:number){await button(page,'Bereich durch Antippen auswählen').click();await button(page,`Vers ${start} auswählen`).click();await button(page,`Vers ${end} auswählen`).click();}
 async function notebook(page:Page){await button(page,'Zur Bibliothek').click();await button(page,'Meine Notizen').click();}
 async function seed(page:Page){
  const now='2026-10-21T00:00:00.000Z';
@@ -24,7 +24,7 @@ test('reading, selection and Pencil preserve passage, note draft and question ac
 });
 
 test('disjoint passages keep separate drafts and marking never includes the gap',async({page},testInfo)=>{
- await range(page,1,2);await button(page,'Notiz schreiben').click();await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Erste Stelle');await button(page,'Lesehilfe schließen').click();await button(page,'Weitere Stelle auswählen').click();await range(page,6,7);await expect(page.locator('.row-selected')).toHaveCount(4);
+ await range(page,1,2);await button(page,'Notiz schreiben').click();await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Erste Stelle');await button(page,'Lesehilfe schließen').click();await button(page,'Auswahloptionen').click();await button(page,'Weitere Stelle auswählen').click();await range(page,6,7);await expect(page.locator('.row-selected')).toHaveCount(4);
  await expect(page.getByRole('button',{name:'2 Stellen ausgewählt – Textstelle wechseln',exact:true})).toBeVisible();await page.screenshot({animations:'disabled',path:testInfo.outputPath('multi-passages.png')});await button(page,'Notiz schreiben').click();await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Zweite Stelle');await page.screenshot({animations:'disabled',path:testInfo.outputPath('multi-passage-note.png')});await page.getByRole('button',{name:/Textstelle 1:/}).click();await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Erste Stelle');await page.getByRole('button',{name:/Textstelle 2:/}).click();await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Zweite Stelle');await button(page,'Lesehilfe schließen').click();
  await button(page,'Ausgewählte Stellen markieren').click();await expect(page.locator('.saved-highlight')).toHaveCount(4);await button(page,'Lesemodus').click();await expect(page.locator('.saved-highlight')).toHaveCount(4);await expect(page.locator('.row-selected')).toHaveCount(4);await button(page,'Apple Pencil Modus').click();await button(page,'Fertig').click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);await page.reload();await expect(page.locator('.saved-highlight')).toHaveCount(4);expect(await page.locator('.saved-highlight').allTextContents()).toEqual([lines[0].text,lines[1].text,lines[5].text,lines[6].text]);
 });

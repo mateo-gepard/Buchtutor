@@ -5,6 +5,13 @@ import type {Analysis,AnalysisMode,Anchor,Book,Section} from '@/lib/reader-model
 import {MODE_LABELS,referenceLabel} from '@/lib/reader-model';
 export type AIStatus={live:boolean;provider:string;reasoning?:string;dailyLimit?:number;examples:{workId:string;anchor:Anchor;modes:AnalysisMode[]}[]};
 type Props={book:Book;section:Section;selection:Anchor|null;analysis:Analysis|null;status:AIStatus;busy:boolean;error:string;question:string;setQuestion:(value:string)=>void;onAnalyze:(mode:AnalysisMode)=>void;onExample:()=>void;onFigures:()=>void;onNote:()=>void;onSave:()=>void;onQuote:(id:string)=>void;saving:boolean;saved:boolean;remaining?:number;normalized:boolean;onCancel:()=>void;practiceMode?:AnalysisMode};
+export function AnalysisContent({analysis,onQuote}:{analysis:Analysis;onQuote:(id:string)=>void}){
+ return <><h3>{analysis.title}</h3><p>{analysis.summary}</p>
+  {analysis.question&&<p className="interpretation-note"><strong>Deine Frage:</strong> {analysis.question}</p>}
+  {analysis.observations.map((observation,i)=><div className="observation" key={i}><h4>{observation.label}</h4><p>{observation.text}</p>{observation.quotes.map((quote,j)=><button className="evidence-quote" key={j} onClick={()=>onQuote(quote.blockId)}>„{quote.quote}“<ArrowRight size={14}/></button>)}</div>)}
+  {analysis.uncertainty&&<p className="interpretation-note">{analysis.uncertainty}</p>}
+ </>;
+}
 export function ReaderAssistant(p:Props){
   const id=useId();
   const modes:AnalysisMode[]=['summary','style',...(p.book.referenceMode==='verse'?['meter' as const]:[]),'context','conflict'];
@@ -22,10 +29,7 @@ export function ReaderAssistant(p:Props){
     {p.error&&<p className="inline-error" role="alert">{p.error}</p>}
     {p.analysis&&!p.busy&&<section className="analysis-result" aria-label="Analyseergebnis">
       <div className="result-kicker">{MODE_LABELS[p.analysis.mode]}<span>{p.analysis.source==='prepared'?'Vorbereitet':p.analysis.source==='cache'?'Aus dem gemeinsamen Cache':'Neu erstellt'}</span></div>
-      <h3>{p.analysis.title}</h3><p>{p.analysis.summary}</p>
-      {p.analysis.question&&<p className="interpretation-note"><strong>Deine Frage:</strong> {p.analysis.question}</p>}
-      {p.analysis.observations.map((observation,i)=><div className="observation" key={i}><h4>{observation.label}</h4><p>{observation.text}</p>{observation.quotes.map((quote,j)=><button className="evidence-quote" key={j} onClick={()=>p.onQuote(quote.blockId)}>„{quote.quote}“<ArrowRight size={14}/></button>)}</div>)}
-      {p.analysis.uncertainty&&<p className="interpretation-note">{p.analysis.uncertainty}</p>}
+      <AnalysisContent analysis={p.analysis} onQuote={p.onQuote}/>
       <p className="small-note">KI-Lesehilfe · Belege am Original prüfen.</p>
       <button className="primary-button" onClick={p.onSave} disabled={p.saving||p.saved}>{p.saved?<Check size={17}/>:<Save size={17}/>} {p.saved?'Gespeichert':'Mit Textstelle speichern'}</button>
     </section>}

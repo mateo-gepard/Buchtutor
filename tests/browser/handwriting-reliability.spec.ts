@@ -118,14 +118,14 @@ test('failed recognition keeps ink, exposes a retry and never retries by itself'
  await expect(page.locator('[data-ink-saved=true] path')).toHaveCount(1);
  await page.locator('.annotation-marker').click();await expect(page.getByText('Erkennung dauert zu lange. Original gespeichert.',{exact:true})).toBeVisible();expect(calls).toBe(1);
  await page.getByRole('button',{name:'Erneut erkennen',exact:true}).click();await expect(page.locator('.annotation-marker')).toHaveAttribute('aria-label',/Suchtext gespeichert/);
- await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Würde und Freiheit');expect(calls).toBe(2);
+ await expect(page.locator('.annotation-body')).toHaveText('Würde und Freiheit');expect(calls).toBe(2);
 });
 test('a late recognition result cannot overwrite a manual correction',async({page})=>{
  await setup(page);await online(page);await handwriting(page);
  let release!:()=>void;const gate=new Promise<void>(resolve=>{release=resolve});
  await page.route('**/api/handwriting',async route=>{await gate;await route.fulfill({json:{text:'Veraltete automatische Antwort',uncertain:false}});});
  await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.annotation-marker')).toHaveAttribute('aria-label',/wird erkannt/);
- await page.locator('.annotation-marker').click();await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Meine eigene korrigierte Zuordnung');await page.getByRole('button',{name:'Notiz speichern',exact:true}).click();
+ await page.locator('.annotation-marker').click();await page.getByRole('button',{name:'Notiz bearbeiten',exact:true}).click();await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Meine eigene korrigierte Zuordnung');await page.getByRole('button',{name:'Notiz speichern',exact:true}).click();
  await expect.poll(async()=>(await localNotes(page))[0].pencil.transcription).toBe('manual');
  const response=page.waitForResponse('**/api/handwriting');release();await response;
  await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Meine eigene korrigierte Zuordnung');

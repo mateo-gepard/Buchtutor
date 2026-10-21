@@ -1,8 +1,8 @@
 import {test,expect,type Page} from './reader-test';
 
 const button=(page:Page,name:string)=>page.getByRole('button',{name,exact:true});
-async function range(page:Page,start:number,end:number){await button(page,`Vers ${start} auswählen`).click();await button(page,`Vers ${end} auswählen`).click();}
-async function multiple(page:Page){await range(page,1,2);await button(page,'Weitere Stelle auswählen').click();await range(page,6,7);}
+async function range(page:Page,start:number,end:number){await button(page,'Bereich durch Antippen auswählen').click();await button(page,`Vers ${start} auswählen`).click();await button(page,`Vers ${end} auswählen`).click();}
+async function multiple(page:Page){await range(page,1,2);await button(page,'Auswahloptionen').click();await button(page,'Weitere Stelle auswählen').click();await range(page,6,7);}
 async function fits(page:Page){
  await expect.poll(()=>page.locator('.reader-workspace').evaluate(el=>{
   const bar=el.getBoundingClientRect(),header=document.querySelector('.reader-header')!.getBoundingClientRect(),footer=document.querySelector('.reading-footer')!.getBoundingClientRect();
@@ -41,7 +41,7 @@ test('passage picker closes consistently, switches the active note and supports 
  await button(page,'Notiz schreiben').click();await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Erster Entwurf bleibt');await button(page,'Lesehilfe schließen').click();
  await trigger.click();await page.getByRole('button',{name:/Textstelle 2:/}).click();await button(page,'Notiz schreiben').click();await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Zweiter Entwurf bleibt');await button(page,'Lesehilfe schließen').click();
  await trigger.click();await page.getByRole('button',{name:/Textstelle 1:/}).click();await button(page,'Notiz schreiben').click();await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Erster Entwurf bleibt');await button(page,'Lesehilfe schließen').click();
- await trigger.click();await button(page,'Textstelle 2 abwählen').click();await expect(page.locator('.row-selected')).toHaveCount(2);await expect(page.locator('.multi-selection-dock')).toHaveCount(0);await expect(button(page,'Weitere Stelle auswählen')).toBeFocused();
+ await trigger.click();await button(page,'Textstelle 2 abwählen').click();await expect(page.locator('.row-selected')).toHaveCount(2);await expect(page.locator('.multi-selection-dock')).toHaveCount(0);await expect(button(page,'Auswahloptionen')).toBeFocused();await button(page,'Auswahloptionen').click();
  await button(page,'Auswahl aufheben').click();await expect(page.locator('.row-selected')).toHaveCount(0);
 });
 

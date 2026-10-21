@@ -1,10 +1,10 @@
 'use client';
 import {useEffect,useLayoutEffect,useRef,type PointerEvent as ReactPointerEvent} from 'react';
 
-type Props={origin:string|null;onRange:(start:string,end:string,complete:boolean)=>void;onCancel:()=>void};
+type Props={origin:string|null;twoTap:boolean;onRange:(start:string,end:string,complete:boolean)=>void;onCancel:()=>void};
 /** Only the verse-number gutter owns this gesture. Reading text keeps native selection and scrolling. */
-export function useVerseSelection({origin,onRange,onCancel}:Props){
- const latest=useRef({origin,onRange,onCancel});useLayoutEffect(()=>{latest.current={origin,onRange,onCancel};},[origin,onRange,onCancel]);
+export function useVerseSelection({origin,twoTap,onRange,onCancel}:Props){
+ const latest=useRef({origin,twoTap,onRange,onCancel});useLayoutEffect(()=>{latest.current={origin,twoTap,onRange,onCancel};},[origin,twoTap,onRange,onCancel]);
  const drag=useRef<{pointer:number;start:string;end:string;y:number;initialY:number;moved:boolean;finishTap:boolean;button:HTMLButtonElement}|null>(null);
  const stop=useRef<()=>void>(()=>{});
  useEffect(()=>()=>stop.current(),[]);
@@ -12,7 +12,7 @@ export function useVerseSelection({origin,onRange,onCancel}:Props){
   if(event.button!==0||!event.isPrimary)return;
   event.preventDefault();stop.current();
   const button=event.currentTarget,start=latest.current.origin??id;
-  drag.current={pointer:event.pointerId,start,end:id,y:event.clientY,initialY:event.clientY,moved:false,finishTap:!!latest.current.origin,button};
+  drag.current={pointer:event.pointerId,start,end:id,y:event.clientY,initialY:event.clientY,moved:false,finishTap:!!latest.current.origin||!latest.current.twoTap,button};
   button.setPointerCapture(event.pointerId);latest.current.onRange(start,id,false);
   let frame=0;
   const update=()=>{

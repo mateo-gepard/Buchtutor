@@ -61,14 +61,14 @@ test('forward/backward boundaries exclude an untouched adjacent verse and copy o
 test('a fast tool tap freezes the latest handles before focus, then survives editing and reload',async({page})=>{
   const initial=await state(page);
   await select(page,0,0,0,6);
-  await expect(page.getByRole('button',{name:'Notiz',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Notiz schreiben',exact:true})).toBeVisible();
   // Deliberately click before the 160 ms selection debounce can settle.
   await page.evaluate(()=>{
     const element=document.querySelector('[data-text]')!;
     const node=document.createTreeWalker(element,NodeFilter.SHOW_TEXT).nextNode()!;
     window.getSelection()!.setBaseAndExtent(node,7,node,16);
     document.dispatchEvent(new Event('selectionchange'));
-    const button=[...document.querySelectorAll<HTMLButtonElement>('.selection-dock button')].find(b=>b.textContent==='Notiz')!;
+    const button=document.querySelector<HTMLButtonElement>('[aria-label="Notiz schreiben"]')!;
     button.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerType:'touch'}));
     window.getSelection()!.removeAllRanges();button.click();
   });
@@ -80,10 +80,13 @@ test('a fast tool tap freezes the latest handles before focus, then survives edi
   await page.getByRole('button',{name:'Lesehilfe schließen'}).click();
   expect((await state(page)).selection?.quote).toBe(expected);
   // A save notice must not cover the controls while it remains visible.
+  await page.getByRole('button',{name:'Auswahloptionen',exact:true}).click();
   await page.getByRole('button',{name:'Auswahl aufheben'}).click({timeout:2000});
   expect((await state(page)).selection).toBeNull();
   await page.reload();await page.waitForFunction(()=>!!(window as unknown as TestWindow).readerTools.get_reading_state);
   await page.getByRole('button',{name:/1 gespeicherte Einträge/}).click();
+  await expect(page.locator('.annotation-body')).toHaveText('Test: exakte Auswahl bleibt erhalten.');
+  await page.getByRole('button',{name:'Notiz bearbeiten',exact:true}).click();
   await expect(page.locator('.panel-notes .selection-excerpt blockquote')).toHaveText(expected);
   await page.getByRole('button',{name:'Lesehilfe schließen'}).click();
   await select(page,0,3,1,12);
@@ -116,8 +119,9 @@ test('analysis reads the current selection, not an earlier debounced range',asyn
     const range=document.createRange();range.selectNodeContents(element);
     window.getSelection()!.removeAllRanges();window.getSelection()!.addRange(range);
     document.dispatchEvent(new Event('selectionchange'));
-    const button=[...document.querySelectorAll<HTMLButtonElement>('.selection-dock button')].find(b=>b.textContent==='Verstehen')!;button.click();
+    document.querySelector<HTMLButtonElement>('[aria-label="Lesehilfe öffnen"]')!.click();
   });
+  await page.locator('.analysis-actions').getByRole('button',{name:'Verstehen',exact:true}).click();
   const body=(await received).postDataJSON();
   expect(body.anchor.quote).toBe((await state(page)).blocks[1].text);
   expect(body.anchor.startId).toBe((await state(page)).blocks[1].id);
@@ -163,13 +167,14 @@ test('collapsed/outside selections and a rotated viewport preserve the passage; 
   const anchor=(await state(page)).selection;
   await page.evaluate(()=>window.getSelection()!.removeAllRanges());
   const viewport=page.viewportSize()!;await page.setViewportSize({width:viewport.height,height:viewport.width});
-  await page.getByRole('button',{name:'Weitere Analysearten'}).click();
+  await page.getByRole('button',{name:'Lesehilfe öffnen'}).click();
   await page.locator('.selection-excerpt blockquote').evaluate(el=>{
     const range=document.createRange();range.selectNodeContents(el);window.getSelection()!.removeAllRanges();window.getSelection()!.addRange(range);
     document.dispatchEvent(new Event('selectionchange'));
   });
   expect((await state(page)).selection).toEqual(anchor);
   await page.getByRole('button',{name:'Lesehilfe schließen'}).click();
+  await page.getByRole('button',{name:'Auswahloptionen',exact:true}).click();
   await page.getByRole('button',{name:'Auswahl aufheben'}).click();
   await page.evaluate(()=>document.dispatchEvent(new Event('selectionchange')));
   await expect(page.locator('.selection-dock')).toHaveCount(0);
@@ -180,10 +185,10 @@ test('collapsed/outside selections and a rotated viewport preserve the passage; 
 test('focus mode retains selection actions and leaves native context menus enabled',async({page})=>{
   await page.getByRole('button',{name:'Fokus aktivieren'}).click();
   await select(page,0,0,0,16);
-  await expect(page.getByRole('button',{name:'Notiz',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Notiz schreiben',exact:true})).toBeVisible();
   const allowed=await text(page,0).evaluate(el=>el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true})));
   expect(allowed).toBe(true);
-  await page.getByRole('button',{name:'Notiz',exact:true}).click();
+  await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();
   await expect(page.getByRole('textbox',{name:'Deine Notiz'})).toBeVisible();
 });
 

@@ -6,27 +6,56 @@ const book=JSON.parse(readFileSync('corpus/books/iphigenie.json','utf8')) as Boo
 const now='2026-10-21T00:00:00.000Z',anchor=makeAnchor(section,lines[0].id,lines[2].id);
 const manual:SavedNote={id:'00000000-0000-4000-a000-000000000001',workId:book.id,editionId:book.editionId,anchor,kind:'note',body:'Mein Gedanke zur Heimat',pencil:{color:'green',meaning:'Stilmittel',ink:[],transcription:'manual'},createdAt:now,updatedAt:now};
 const analysis:SavedNote={...manual,id:'00000000-0000-4000-a000-000000000002',kind:'summary',pencil:undefined,body:'',analysis:{id:'saved-analysis',mode:'summary',title:'Heimat und Fremde',summary:'Iphigenie sehnt sich nach ihrer Heimat.',observations:[],uncertainty:'',source:'prepared',model:'Test',generatedAt:now,promptVersion:'test',anchor,workId:book.id,editionId:book.editionId}};
-async function setup(page:Page){
+async function setup(page:Page,notes:SavedNote[]=[analysis,manual]){
  await page.goto('/?work=iphigenie&section=s001&view=reader');
- await page.evaluate(async snapshot=>{await new Promise<void>((resolve,reject)=>{const open=indexedDB.open('leseraum-local-v2',1);open.onupgradeneeded=()=>{if(!open.result.objectStoreNames.contains('state'))open.result.createObjectStore('state');};open.onsuccess=()=>{const db=open.result,tx=db.transaction('state','readwrite');tx.objectStore('state').put(snapshot,'reader');tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>reject(tx.error);};open.onerror=()=>reject(open.error);});},{...EMPTY_SNAPSHOT,notes:[analysis,manual]});
+ await page.evaluate(async snapshot=>{await new Promise<void>((resolve,reject)=>{const open=indexedDB.open('leseraum-local-v2',1);open.onupgradeneeded=()=>{if(!open.result.objectStoreNames.contains('state'))open.result.createObjectStore('state');};open.onsuccess=()=>{const db=open.result,tx=db.transaction('state','readwrite');tx.objectStore('state').put(snapshot,'reader');tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>reject(tx.error);};open.onerror=()=>reject(open.error);});},{...EMPTY_SNAPSHOT,notes});
  await page.reload();await expect(page.locator('.saved-highlight').first()).toBeVisible();
 }
 test('overlapping AI and manual annotations keep one color and open all entries together',async({page})=>{
  await setup(page);await expect(page.locator('.annotation-marker')).toHaveCount(1);await expect(page.locator('.annotation-marker')).toContainText('2');
  const color=await page.locator('.saved-highlight').first().evaluate(el=>getComputedStyle(el).backgroundColor);
- await page.locator('.saved-highlight').first().click();await expect(page.locator('.attached-annotations .note-card')).toHaveCount(2);
+ await page.locator('.saved-highlight').first().click();await expect(page.locator('.attached-annotations .annotation-detail')).toHaveCount(2);
  await expect(page.locator('.attached-annotations')).toContainText('Mein Gedanke zur Heimat');await expect(page.locator('.attached-annotations')).toContainText('Heimat und Fremde');
- await page.locator('.attached-annotations .note-card').filter({hasText:'Heimat und Fremde'}).getByRole('button',{name:'Notiz löschen',exact:true}).click();
- await expect(page.locator('.annotation-marker')).toContainText('1');await expect(page.locator('.attached-annotations .note-card')).toHaveCount(1);await expect(page.locator('.attached-annotations')).toContainText('Mein Gedanke zur Heimat');await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveCount(0);expect(await page.locator('.saved-highlight').first().evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(color);
+ await page.locator('.attached-annotations .annotation-detail').filter({hasText:'Heimat und Fremde'}).getByRole('button',{name:'Eintrag löschen',exact:true}).click();
+ await expect(page.locator('.annotation-marker')).toContainText('1');await expect(page.locator('.attached-annotations .annotation-detail')).toHaveCount(1);await expect(page.locator('.attached-annotations')).toContainText('Mein Gedanke zur Heimat');await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveCount(0);expect(await page.locator('.saved-highlight').first().evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(color);
  await page.reload();await expect(page.locator('.annotation-marker')).toContainText('1');
+});
+test('highlight taps show full content for the exact overlap, without unrelated neighbouring notes',async({page},testInfo)=>{
+ const first={...manual,anchor:makeAnchor(section,lines[0].id),body:'Hi – mein erster Gedanke.'};
+ const second={...manual,id:'00000000-0000-4000-a000-000000000003',anchor:makeAnchor(section,lines[1].id),body:'Wichtig: Das ist ausschließlich die Notiz zu Vers zwei.'};
+ const shared={...analysis,anchor:makeAnchor(section,lines[0].id,lines[1].id),analysis:{...analysis.analysis!,anchor:makeAnchor(section,lines[0].id,lines[1].id),summary:'Die Erklärung für beide Verse ist sofort lesbar.',observations:[{label:'Beobachtung',text:'Auch die vollständigen Beobachtungen erscheinen direkt.',quotes:[]}]}};
+ await setup(page,[first,second,shared]);
+ await page.locator('.source-row').nth(1).locator('.saved-highlight').first().click();
+ await expect(page.locator('.attached-annotations')).toContainText(second.body);await expect(page.locator('.attached-annotations')).not.toContainText(first.body);
+ await expect(page.locator('.attached-annotations')).toContainText(shared.analysis.summary);await expect(page.locator('.attached-annotations')).toContainText(shared.analysis.observations[0].text);
+ await expect(page.getByRole('button',{name:/Im Text öffnen/})).toHaveCount(0);await expect(page.locator('.row-selected')).toHaveCount(0);
+ await page.screenshot({animations:'disabled',path:testInfo.outputPath('direct-highlight-content.png')});
+ await page.locator('.source-row').first().locator('.saved-highlight').first().click();
+ await expect(page.locator('.attached-annotations')).toContainText(first.body);await expect(page.locator('.attached-annotations')).not.toContainText(second.body);
+ await page.getByRole('button',{name:'Notiz bearbeiten',exact:true}).click();await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue(first.body);
+});
+test('a single saved analysis opens its explanation immediately without a new AI request',async({page})=>{
+ let requests=0;await page.route('**/api/analysis',route=>{requests++;return route.abort();});await setup(page,[analysis]);
+ await page.locator('.saved-highlight').first().click();await expect(page.locator('.attached-annotations')).toContainText(analysis.analysis!.summary);
+ await expect(page.locator('.analysis-actions:visible')).toHaveCount(0);await expect(page.locator('.annotation-detail')).toHaveCount(1);expect(requests).toBe(0);
+});
+test('a highlighted character name opens its note instead of intercepting the tap',async({page})=>{
+ await page.goto('/?work=iphigenie&section=s001&view=reader');
+ const mention=page.locator('[data-text] .character-mention').first();
+ const target=await mention.evaluate(el=>({id:el.closest('[data-block]')!.id,name:el.textContent!}));
+ const note={...manual,anchor:makeAnchor(section,target.id),body:'Meine Notiz zu diesem Namen.'};
+ await setup(page,[note]);
+ const marked=page.locator(`[data-block="${target.id}"] .saved-highlight`).filter({hasText:target.name});
+ await marked.click();await expect(page.locator('.annotation-body')).toHaveText(note.body);
+ await expect(page.locator('.panel-figures:visible')).toHaveCount(0);
 });
 test('a verse range selects across existing highlights by two taps and supports keyboard extension',async({page},testInfo)=>{
  const tap=async(locator:ReturnType<Page['locator']>)=>testInfo.project.use.hasTouch?locator.tap():locator.click();
- await setup(page);await tap(page.getByRole('button',{name:'Vers 1 auswählen',exact:true}));
- await expect(page.locator('.selection-hint')).toBeVisible();await tap(page.locator('[data-text]').nth(2));
+ await setup(page);await page.getByRole('button',{name:'Bereich durch Antippen auswählen',exact:true}).click();await tap(page.getByRole('button',{name:'Vers 1 auswählen',exact:true}));
+ await expect(page.getByRole('button',{name:'Bereich durch Antippen auswählen',exact:true})).toHaveAttribute('aria-pressed','true');await tap(page.locator('[data-text]').nth(2));
  await expect(page.getByRole('button',{name:'Bereich durch Antippen auswählen'})).toHaveAttribute('aria-pressed','false');await expect(page.locator('.row-selected')).toHaveCount(3);
  await expect(page.locator('.assistant-panel')).toBeHidden();await page.getByRole('button',{name:'Vers 5 auswählen',exact:true}).focus();await page.keyboard.press('Shift+Enter');await expect(page.locator('.row-selected')).toHaveCount(5);
- await page.getByRole('button',{name:'Notiz',exact:true}).click();await expect(page.locator('.selection-excerpt blockquote')).toHaveText(anchor.quote+'\n'+lines[3].text+'\n'+lines[4].text);
+ await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();await expect(page.locator('.selection-excerpt blockquote')).toHaveText(anchor.quote+'\n'+lines[3].text+'\n'+lines[4].text);
 });
 test('dragging verse numbers selects forwards and backwards without opening annotations',async({page})=>{
  await setup(page);const a=await page.getByRole('button',{name:'Vers 6 auswählen',exact:true}).boundingBox(),b=await page.getByRole('button',{name:'Vers 2 auswählen',exact:true}).boundingBox();
@@ -37,8 +66,8 @@ test('dragging verse numbers selects forwards and backwards without opening anno
 test('Escape ends a gutter gesture while preserving its selection until explicitly cleared',async({page})=>{
  await setup(page);const number=page.getByRole('button',{name:'Vers 2 auswählen',exact:true}),box=await number.boundingBox();
  await page.mouse.move(box!.x+20,box!.y+20);await page.mouse.down();await page.mouse.move(box!.x+20,box!.y+110,{steps:5});await expect(page.locator('.row-selected')).not.toHaveCount(0);
- const count=await page.locator('.row-selected').count();await page.keyboard.press('Escape');await page.mouse.up();await expect(page.locator('.row-selected')).toHaveCount(count);await expect(page.getByRole('button',{name:'Lesemodus',exact:true})).toHaveAttribute('aria-pressed','true');await page.getByRole('button',{name:'Auswahl aufheben',exact:true}).click();
- await number.click();await expect(page.locator('.row-selected')).toHaveCount(1);await page.keyboard.press('Escape');await expect(page.locator('.row-selected')).toHaveCount(1);await page.getByRole('button',{name:'Auswahl aufheben',exact:true}).click();await expect(page.locator('.row-selected')).toHaveCount(0);
+ const count=await page.locator('.row-selected').count();await page.keyboard.press('Escape');await page.mouse.up();await expect(page.locator('.row-selected')).toHaveCount(count);await expect(page.getByRole('button',{name:'Lesemodus',exact:true})).toHaveAttribute('aria-pressed','true');await page.getByRole('button',{name:'Auswahloptionen',exact:true}).click();await page.getByRole('button',{name:'Auswahl aufheben',exact:true}).click();
+ await number.click();await expect(page.locator('.row-selected')).toHaveCount(1);await page.keyboard.press('Escape');await expect(page.locator('.row-selected')).toHaveCount(0);
 });
 
 test('verse numbers remain selection controls while Pencil is active',async({page})=>{

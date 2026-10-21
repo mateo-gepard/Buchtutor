@@ -141,10 +141,10 @@ test('copy and native sharing pass only the public link and citation',async({pag
   expect(await page.evaluate(()=>(window as Window&{copied?:string}).copied)).toBe(url);
 });
 
-test('selection actions scroll within the toolbar and remain reachable on a 320 px screen',async({page},testInfo)=>{
+test('selection actions use the existing study tools and remain reachable on a 320 px screen',async({page},testInfo)=>{
   await page.setViewportSize({width:320,height:740});
   await page.getByRole('button',{name:'Vers 6 auswählen',exact:true}).click();
-  const dock=page.getByRole('group',{name:'Aktionen zur Textauswahl'});
+  const dock=page.getByRole('group',{name:'Notizen und Lesehilfe'});
   await expect(dock).toBeVisible();
   const bounds=(await dock.boundingBox())!;
   for(const button of await dock.getByRole('button').all()){
