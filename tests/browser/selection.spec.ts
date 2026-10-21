@@ -124,11 +124,12 @@ test('analysis reads the current selection, not an earlier debounced range',asyn
   await expect(page.locator('.inline-error')).toContainText('Selection test');
 });
 
-test('two-tap range starts fresh, works backwards, and treats figure names as text',async({page},testInfo)=>{
+test('two-tap range preserves a completed selection, starts a backwards range and treats figure names as text',async({page},testInfo)=>{
   const tap=async(locator:ReturnType<Page['locator']>)=>testInfo.project.use.hasTouch?locator.tap():locator.click();
-  await tap(verse(page,1));
+  await tap(verse(page,1));await tap(verse(page,1));
+  const previous=(await state(page)).selection;
   await tap(page.getByRole('button',{name:'Bereich durch Antippen auswählen'}));
-  expect((await state(page)).selection).toBeNull();
+  expect((await state(page)).selection).toEqual(previous);
   await tap(verse(page,6));await tap(verse(page,2));
   await expect.poll(async()=>(await state(page)).selection?.quote).toBe((await state(page)).blocks.slice(1,6).map(b=>b.text).join('\n'));
   await expect(page.getByRole('button',{name:'Bereich durch Antippen auswählen'})).toHaveAttribute('aria-pressed','false');
@@ -138,7 +139,7 @@ test('two-tap range starts fresh, works backwards, and treats figure names as te
   await tap(mention);
   await expect.poll(async()=>(await state(page)).selection?.startId).toBe(selectedBlock);
   await expect(page.locator('.assistant-panel')).toBeHidden();
-  await tap(page.getByRole('button',{name:'Abbrechen',exact:true}));
+  await tap(page.getByRole('button',{name:'Lesemodus',exact:true}));
 });
 
 test('selection handles and cancelled scroll gestures do not activate inline figures',async({page})=>{

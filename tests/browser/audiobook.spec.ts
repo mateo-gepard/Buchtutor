@@ -172,3 +172,11 @@ test('following long prose uses the spoken phrase even with visual emphasis swit
  await page.getByRole('group',{name:'Hörstelle hervorheben'}).getByRole('button',{name:'Aus',exact:true}).click();await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await at(page,2);
  await expect.poll(()=>page.evaluate(({id,offset})=>{const el=document.getElementById(id)!.querySelector('[data-text]')!,walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let node:Node|null,total=0;while((node=walker.nextNode())){const length=node.textContent?.length??0;if(total+length>offset){const range=document.createRange();range.setStart(node,offset-total);range.setEnd(node,Math.min(length,offset-total+5));const rect=range.getBoundingClientRect();return rect.top>=90&&rect.bottom<=innerHeight-80;}total+=length;}return false;},{id:block.id,offset})).toBe(true);
 });
+
+
+test('actual playback clears a stale waiting state without another playing event',async({page})=>{
+ await setup(page);await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();
+ await page.locator('audio').evaluate(el=>el.dispatchEvent(new Event('waiting')));await expect(page.getByRole('button',{name:'Laden abbrechen',exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();expect(await page.locator('audio').evaluate(el=>(el as HTMLAudioElement).paused)).toBe(false);
+ await page.getByRole('button',{name:'Wiedergabe pausieren',exact:true}).click();await page.locator('audio').evaluate(el=>el.dispatchEvent(new Event('canplay')));await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();
+});

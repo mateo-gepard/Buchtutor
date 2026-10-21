@@ -141,17 +141,19 @@ test('copy and native sharing pass only the public link and citation',async({pag
   expect(await page.evaluate(()=>(window as Window&{copied?:string}).copied)).toBe(url);
 });
 
-test('selection controls remain inside the toolbar on a 320 px screen',async({page},testInfo)=>{
+test('selection actions scroll within the toolbar and remain reachable on a 320 px screen',async({page},testInfo)=>{
   await page.setViewportSize({width:320,height:740});
   await page.getByRole('button',{name:'Vers 6 auswählen',exact:true}).click();
   const dock=page.getByRole('group',{name:'Aktionen zur Textauswahl'});
   await expect(dock).toBeVisible();
   const bounds=(await dock.boundingBox())!;
   for(const button of await dock.getByRole('button').all()){
+    await button.scrollIntoViewIfNeeded();
     const box=(await button.boundingBox())!;
     expect(box.x).toBeGreaterThanOrEqual(bounds.x);
     expect(box.x+box.width).toBeLessThanOrEqual(bounds.x+bounds.width+1);
     expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
   }
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
   await page.screenshot({path:testInfo.outputPath('mobile-320.png')});
 });

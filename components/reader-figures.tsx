@@ -1,12 +1,13 @@
 'use client';
 import {Users,X,ArrowRight,Info,Maximize2} from 'lucide-react';
+import {SelectionSummary} from './selection-summary';
 import {Switch} from '@/components/ui/switch';
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle} from '@/components/ui/dialog';
 import type {Book,Character,Relation,Section} from '@/lib/reader-model';
 import {CAST_ART,portraitStyle} from '@/lib/reader-art';
 import {useMemo,useRef,useState} from 'react';
 
-type Props={book:Book;section:Section;selected:string[];onSelect:(id:string)=>void};
+type Props={book:Book;section:Section;selected:string[];onSelect:(id:string)=>void;onClear:()=>void};
 const RELATION_LABELS:Record<string,string>={parent_of:'Elternteil und Kind',siblings:'Geschwister',spouses:'Verheiratet oder verlobt',friends:'Freundschaft',lover_of:'Liebesbeziehung',related_with:'Verwandtschaft',associated_with:'Zugehörigkeit'};
 function relationPairs(relation:Relation):[string,string][] {
  const ids=(value:string)=>value.split(/\s+/).map(s=>s.replace(/^#/,'')).filter(Boolean);
@@ -50,7 +51,12 @@ function Constellation({book,people,relationships,selected,onSelect,large=false}
   </button>)}
  </div>;
 }
-function FigureDetail({book,picked,relationship}:{book:Book;picked:Character[];relationship:Relation|undefined}){
+function FigureDetail({book,picked,relationship,relationships}:{book:Book;picked:Character[];relationship:Relation|undefined;relationships:Relation[]}){
+ if(picked.length>2){
+  const pairs=picked.flatMap((a,index)=>picked.slice(index+1).flatMap(b=>{const relation=relationships.find(item=>connects(item,a.id,b.id));return relation?[{a,b,relation}]:[];}));
+  return <section className="figure-comparison" aria-label="Beziehungen der ausgewählten Figuren"><h3>{picked.length} Figuren im Vergleich</h3><p>Die Linien zeigen ihre bisher bekannten Beziehungen.</p>{pairs.length?<ul>{pairs.map(({a,b,relation})=><li key={a.id+':'+b.id}><strong>{a.name} · {b.name}</strong><p>{relation.description??RELATION_LABELS[relation.type]??'Beziehung aus dem Figurenverzeichnis'}</p></li>)}</ul>:<p>Für diese Auswahl sind bis zu dieser Stelle keine geprüften Beziehungen hinterlegt.</p>}</section>;
+ }
+
  if(picked.length===2)return <section className="relation-card" aria-live="polite">
   <div className="relation-portraits"><CharacterPortrait workId={book.id} person={picked[0]}/><ArrowRight size={19}/><CharacterPortrait workId={book.id} person={picked[1]}/></div>
   <div className="section-label">BEZIEHUNG</div><h3>{picked[0].name} <ArrowRight size={16}/> {picked[1].name}</h3>
@@ -66,7 +72,7 @@ function FigureDetail({book,picked,relationship}:{book:Book;picked:Character[];r
  </section>;
  return <div className="tiny-note"><Info size={16}/><span>Wähle ein Porträt aus. Mit einer zweiten Figur öffnest du ihre Beziehung.</span></div>;
 }
-export function ReaderFigures({book,section,selected,onSelect}:Props){
+export function ReaderFigures({book,section,selected,onSelect,onClear}:Props){
  const expandTrigger=useRef<HTMLButtonElement>(null);
  const [spoilers,setSpoilers]=useState(false),[filter,setFilter]=useState(''),[expanded,setExpanded]=useState(false);
  const current=book.sections.findIndex(s=>s.id===section.id);
@@ -91,17 +97,17 @@ export function ReaderFigures({book,section,selected,onSelect}:Props){
  const graphProps={book,people:featured,relationships,selected:visibleSelected,onSelect};
  return <div className="figure-view">
   <div className="setting-inline"><div><strong>Spätere Abschnitte ausblenden</strong><span>Wissen aus dem aktuellen Abschnitt</span></div><Switch checked={!spoilers} onCheckedChange={v=>setSpoilers(!v)} aria-label="Spoiler verbergen"/></div>
-  <div className="constellation-heading"><div><h3>Figurenkonstellation</h3></div><button ref={expandTrigger} type="button" className="icon-button" aria-label="Figurenkonstellation vergrößern" onClick={()=>setExpanded(true)}><Maximize2 size={17}/></button></div>
+  <div className="constellation-heading"><div><h3>Figurenkonstellation</h3></div><button ref={expandTrigger} type="button" className="icon-button" aria-label="Figurenkonstellation vergrößern" aria-haspopup="dialog" onClick={()=>setExpanded(true)}><Maximize2 size={17}/></button></div>
   {featured.length>0&&<Constellation {...graphProps}/>}
   <p className="art-caption">KI-Illustrationen · künstlerische Darstellung</p>
   <label className="search-field compact"><Users size={17}/><input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Figur finden" aria-label="Figuren durchsuchen"/></label>
-  <div className="character-chips">{people.map(c=><button key={c.id} className={'character-chip '+(visibleSelected.includes(c.id)?'selected':'')} aria-pressed={visibleSelected.includes(c.id)} onClick={()=>onSelect(c.id)}>{c.name}{visibleSelected.includes(c.id)&&<X size={13}/>}</button>)}</div>
+  <SelectionSummary count={visibleSelected.length} label="Figuren ausgewählt" onClear={onClear}/><div className="character-chips">{people.map(c=><button key={c.id} className={'character-chip '+(visibleSelected.includes(c.id)?'selected':'')} aria-pressed={visibleSelected.includes(c.id)} onClick={()=>onSelect(c.id)}>{c.name}{visibleSelected.includes(c.id)&&<X size={13}/>}</button>)}</div>
   {people.length===0&&<p className="empty-copy">Keine passende Figur gefunden.</p>}
-  <FigureDetail book={book} picked={picked} relationship={relationship}/>
-  <Dialog open={expanded} onOpenChange={setExpanded}><DialogContent className="reader-dialog constellation-dialog" onCloseAutoFocus={event=>{event.preventDefault();expandTrigger.current?.focus({preventScroll:true});}}><DialogHeader><DialogTitle>Figurenkonstellation</DialogTitle><DialogDescription>{book.title} · Eine oder zwei Figuren auswählen.</DialogDescription></DialogHeader>
-   <Constellation {...graphProps} large/>
+  <FigureDetail book={book} picked={picked} relationship={relationship} relationships={relationships}/>
+  <Dialog open={expanded} onOpenChange={setExpanded}><DialogContent className="reader-dialog constellation-dialog" onCloseAutoFocus={event=>{event.preventDefault();expandTrigger.current?.focus({preventScroll:true});}}><DialogHeader><DialogTitle>Figurenkonstellation</DialogTitle><DialogDescription>{book.title} · Figuren antippen, um sie auszuwählen oder abzuwählen.</DialogDescription></DialogHeader>
+   <SelectionSummary count={visibleSelected.length} label="Figuren ausgewählt" onClear={onClear}/><Constellation {...graphProps} large/>
    <p className="art-caption">KI-Illustrationen · künstlerische Darstellung. Linien zeigen hinterlegte Beziehungen.</p>
-   <FigureDetail book={book} picked={picked} relationship={relationship}/>
+   <FigureDetail book={book} picked={picked} relationship={relationship} relationships={relationships}/>
   </DialogContent></Dialog>
  </div>;
 }

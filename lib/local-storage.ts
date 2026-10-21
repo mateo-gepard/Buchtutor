@@ -153,7 +153,18 @@ export function saveLocalNotes(notes:SavedNote[],baselines:readonly SavedNote[]=
   },false,true);
 }
 export function saveLocalNote(note:SavedNote,baseline?:SavedNote){return saveLocalNotes([note],baseline?[baseline]:undefined);}
-export function deleteLocalNote(id:string){return updateLocal(data=>({...data,notes:data.notes.map(n=>n.id===id?{...n,deletedAt:new Date().toISOString(),updatedAt:new Date().toISOString()}:n)}));}
+export async function deleteLocalNotes(ids:readonly string[]){
+ const selected=new Set(ids);
+ let removed:SavedNote[]=[];
+ const snapshot=await updateLocal(data=>{removed=[];const now=new Date(Math.max(Date.now(),...data.notes.filter(note=>selected.has(note.id)).map(note=>Date.parse(note.updatedAt)+1))).toISOString();return {...data,notes:data.notes.map(note=>{if(!selected.has(note.id)||note.deletedAt)return note;const deleted={...note,deletedAt:now,updatedAt:now};removed.push(deleted);return deleted;})};});
+ return {snapshot,removed};
+}
+export async function deleteLocalNote(id:string){return (await deleteLocalNotes([id])).snapshot;}
+/** Undo only the exact deletion, preserving subsequent edits/restores from other tabs. */
+export function restoreLocalNotes(deleted:readonly {id:string;deletedAt?:string}[]){
+ const versions=new Map(deleted.filter(note=>note.deletedAt).map(note=>[note.id,note.deletedAt]));
+ return updateLocal(data=>({...data,notes:data.notes.map(note=>note.deletedAt&&versions.get(note.id)===note.deletedAt?{...note,deletedAt:undefined,updatedAt:new Date(Math.max(Date.now(),Date.parse(note.updatedAt)+1)).toISOString()}:note)}));
+}
 export function setLocalBookmark(workId:string,editionId:string,anchor:Anchor,enabled:boolean){return updateLocal(data=>{
   const matching=data.notes.filter(note=>matchesBookmark(note,workId,editionId,anchor));
   const now=new Date(Math.max(Date.now(),...matching.map(note=>Date.parse(note.updatedAt)+1))).toISOString();

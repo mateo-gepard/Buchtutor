@@ -4,6 +4,7 @@ import {createPortal} from 'react-dom';
 import {ArrowDown,ArrowLeft,ArrowRight,ArrowUp,Check,Eye,EyeOff,Highlighter,PenLine,GripVertical,Move,Settings2,X} from 'lucide-react';
 import type {Prefs} from '@/lib/preferences';
 import {usePencilPlacement} from '@/hooks/use-pencil-placement';
+import {useReaderPopover} from '@/hooks/use-reader-popover';
 import type {Dock} from '@/lib/pencil-placement';
 
 type Props={
@@ -20,6 +21,7 @@ type Props={
 export function ReaderWorkspace({children,selection,panel,practice,inline,detailHost,audioHost,onBeforeChange,onDismiss,visibility,onVisibilityChange,contextKey}:Props){
  const [settings,setSettings]=useState(false);
  const [layers,setLayers]=useState(false);
+ useReaderPopover(settings||layers,()=>{setSettings(false);setLayers(false);},settings?'.workspace-settings,.workspace-placement':'.workspace-layers,.workspace-layer-options',settings?'.workspace-settings':'.workspace-layers');
  useEffect(()=>{const frame=requestAnimationFrame(()=>{setSettings(false);setLayers(false);});return()=>cancelAnimationFrame(frame);},[contextKey]);
  const layerOptions=[['all','Alles anzeigen',Eye],['marks','Nur Markierungen',Highlighter],['notes','Nur Notizen',PenLine],['none','Alles ausblenden',EyeOff]] as const;
  const ActiveLayer=layerOptions.find(option=>option[0]===visibility)?.[2]??Eye;

@@ -7,9 +7,10 @@ import {pencilPalette} from '@/lib/pencil-model';
 import {highlightRanges} from '@/lib/pencil-eraser';
 import {aliasesAt} from '@/lib/mentions';
 import {annotationGroups,compareAnnotations} from '@/lib/annotation-groups';
+import {domTextRange,sameAnchor} from '@/lib/dom-selection';
 import {useVerseSelection} from '@/hooks/use-verse-selection';
 import type {AudioPosition} from '@/lib/audiobook';
-type Props={book:Book;section:Section;selection:Anchor|null;notes:SavedNote[];showNumbers:boolean;showCharacters:boolean;showHighlights?:boolean;showNotes?:boolean;selectMode:boolean;rangeOrigin:string|null;onCancelRange:()=>void;onRange:(start:string,end:string,complete:boolean)=>void;canActivate:(event:MouseEvent)=>boolean;onSelect:(id:string,extend?:boolean)=>void;onCharacter:(id:string)=>void;onNote:(note:SavedNote)=>void;onNotes?:(notes:SavedNote[])=>void;afterBlock?:Record<string,ReactNode>;listening?:AudioPosition|null};
+type Props={book:Book;section:Section;selection:Anchor|null;selections?:Anchor[];notes:SavedNote[];showNumbers:boolean;showCharacters:boolean;showHighlights?:boolean;showNotes?:boolean;selectMode:boolean;rangeOrigin:string|null;onCancelRange:()=>void;onRange:(start:string,end:string,complete:boolean)=>void;canActivate:(event:MouseEvent)=>boolean;onSelect:(id:string,extend?:boolean)=>void;onCharacter:(id:string)=>void;onNote:(note:SavedNote)=>void;onNotes?:(notes:SavedNote[])=>void;afterBlock?:Record<string,ReactNode>;listening?:AudioPosition|null};
 function segments(text:string,characters:Character[],onCharacter:(id:string)=>void,key:string,canActivate:Props['canActivate'],selectMode:boolean){
  const aliases=characters.flatMap(c=>c.aliases.filter(a=>a.length>2).map(alias=>({alias,id:c.id}))).sort((a,b)=>b.alias.length-a.alias.length);
  if(!aliases.length)return text;
@@ -24,10 +25,9 @@ function segments(text:string,characters:Character[],onCharacter:(id:string)=>vo
  }
  if(start<text.length)result.push(text.slice(start));return result;
 }
-export function ReaderText({book,section,selection,notes,showNumbers,showCharacters,showHighlights=true,showNotes=true,selectMode,rangeOrigin,onRange,onCancelRange,canActivate,onSelect,onCharacter,onNote,onNotes,afterBlock,listening}:Props){
+export function ReaderText({book,section,selection,selections,notes,showNumbers,showCharacters,showHighlights=true,showNotes=true,selectMode,rangeOrigin,onRange,onCancelRange,canActivate,onSelect,onCharacter,onNote,onNotes,afterBlock,listening}:Props){
  const indices=useMemo(()=>new Map(section.blocks.map((b,i)=>[b.id,i])),[section]);
  const available=useMemo(()=>book.characters.filter(c=>(c.afterSection??0)<=book.sections.findIndex(s=>s.id===section.id)),[book,section.id]);
- const a=selection?indices.get(selection.startId)??-1:-1,b=selection?indices.get(selection.endId)??-1:-1;
  const relevant=useMemo(()=>notes.filter(n=>n.workId===book.id&&n.editionId===book.editionId&&n.anchor.sectionId===section.id),[notes,book.id,book.editionId,section.id]);
  const groups=useMemo(()=>annotationGroups(section,relevant),[section,relevant]);
  const numberDown=useVerseSelection({origin:rangeOrigin,onRange,onCancel:onCancelRange});
@@ -40,24 +40,28 @@ export function ReaderText({book,section,selection,notes,showNumbers,showCharact
   while((node=walker.nextNode())){const length=node.textContent?.length??0;if(!started&&listening.startOffset<total+length){range.setStart(node,Math.max(0,listening.startOffset-total));started=true;}if(started&&listening.endOffset<=total+length){range.setEnd(node,Math.max(0,listening.endOffset-total));CSS.highlights.set('reader-audio',new Highlight(range));break;}total+=length;}
   return()=>{CSS.highlights.delete('reader-audio');};
  },[listening,section,notes,showCharacters]);
+ const selectedRanges=(selections??(selection?[selection]:[])).filter(anchor=>anchor.sectionId===section.id);
  useLayoutEffect(()=>{
   if(!('highlights' in CSS)||typeof Highlight==='undefined')return;
-  CSS.highlights.delete('reader-selection');if(!selection)return;
-  const ranges:Range[]=[];
-  for(const block of section.blocks.slice(a,b+1).filter(x=>x.kind==='verse'||x.kind==='prose')){
-   const el=document.getElementById(block.id)?.querySelector('[data-text]');if(!el)continue;
-   const start=block.id===selection.startId?selection.startOffset:0,end=block.id===selection.endId?selection.endOffset:block.text.length;
-   const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let node:Node|null,total=0;const range=document.createRange();let started=false;
-   while((node=walker.nextNode())){const length=node.textContent?.length??0;if(!started&&start<=total+length){range.setStart(node,Math.max(0,start-total));started=true;}if(started&&end<=total+length){range.setEnd(node,Math.max(0,end-total));ranges.push(range);break;}total+=length;}
+  const ranges:Range[]=[],activeRanges:Range[]=[];
+  for(const anchor of selections??(selection?[selection]:[])){
+   if(anchor.sectionId!==section.id)continue;
+   const startIndex=indices.get(anchor.startId)??-1,endIndex=indices.get(anchor.endId)??-1;if(startIndex<0||endIndex<startIndex)continue;
+   for(const block of section.blocks.slice(startIndex,endIndex+1).filter(x=>x.kind==='verse'||x.kind==='prose')){
+    const el=document.getElementById(block.id)?.querySelector('[data-text]');if(!el)continue;
+    const range=domTextRange(el,block.id===anchor.startId?anchor.startOffset:0,block.id===anchor.endId?anchor.endOffset:block.text.length);
+    if(range)(sameAnchor(selection,anchor)?activeRanges:ranges).push(range);
+   }
   }
-  CSS.highlights.set('reader-selection',new Highlight(...ranges));return()=>{CSS.highlights.delete('reader-selection')};
- },[selection,section,a,b,notes]);
+  CSS.highlights.set('reader-selection',new Highlight(...activeRanges));CSS.highlights.set('reader-multi-selection',new Highlight(...ranges));
+  return()=>{CSS.highlights.delete('reader-selection');CSS.highlights.delete('reader-multi-selection');};
+ },[selection,selections,section,indices,notes]);
  function lineContent(block:Block,index:number){
   const attached=groups.filter(group=>group.anchor.startId===block.id).flatMap(group=>group.notes);
   const marks=showHighlights?visibleMarks.filter(m=>m.blockId===block.id):[];
   const pending=attached.some(n=>n.pencil?.transcription==='pending'),failed=attached.some(n=>n.pencil?.transcription==='failed'||n.pencil?.uncertain),recognized=attached.some(n=>n.pencil?.transcription==='recognized');
   const status=pending?' · Handschrift wird erkannt':failed?' · Schrifterkennung prüfen':recognized?' · Suchtext gespeichert':'';
-  const isSelected=index>=a&&index<=b;
+  const isSelected=selectedRanges.some(anchor=>index>=(indices.get(anchor.startId)??-1)&&index<=(indices.get(anchor.endId)??-1));
   const cuts=[...new Set([0,block.text.length,...marks.flatMap(m=>[m.start,m.end])])].sort((x,y)=>x-y);
   const content=cuts.slice(0,-1).map((start,i)=>{
    const end=cuts[i+1],active=marks.filter(m=>start>=m.start&&end<=m.end).sort((a,b)=>compareAnnotations(a.n,b.n));

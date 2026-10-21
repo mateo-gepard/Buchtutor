@@ -1,20 +1,14 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useState} from 'react';
+import {useReaderPopover} from '@/hooks/use-reader-popover';
 import {Minus,Plus,X} from 'lucide-react';
 
 type Props={scale:number;minimum:number;maximum:number;onChange:(value:number)=>void;dismissKey:string;onOpen:()=>void};
 export function DocumentZoomControls({scale,minimum,maximum,onChange,dismissKey,onOpen}:Props){
  const [open,setOpen]=useState(false);
- const root=useRef<HTMLDivElement>(null);
  useEffect(()=>{const frame=requestAnimationFrame(()=>setOpen(false));return()=>cancelAnimationFrame(frame);},[dismissKey]);
- useEffect(()=>{
-  if(!open)return;
-  function outside(event:globalThis.PointerEvent){if(event.target instanceof Node&&!root.current?.contains(event.target))setOpen(false);}
-  function keyboard(event:KeyboardEvent){if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setOpen(false);root.current?.querySelector('button')?.focus({preventScroll:true});}}
-  document.addEventListener('pointerdown',outside,true);document.addEventListener('keydown',keyboard,true);
-  return()=>{document.removeEventListener('pointerdown',outside,true);document.removeEventListener('keydown',keyboard,true);};
- },[open]);
- return <div ref={root} className="document-zoom-controls">
+ useReaderPopover(open,()=>setOpen(false),'.document-zoom-controls','.document-zoom-trigger');
+ return <div className="document-zoom-controls">
   <button className="workspace-tool document-zoom-trigger" aria-label="Dokumentzoom" aria-expanded={open} title="Dokument vergrößern · Text und Handschrift bleiben zusammen" onClick={()=>{if(!open)onOpen();setOpen(!open);}}><strong>{Math.round(scale*100)}<small>%</small></strong><span>Zoom</span></button>
   {open&&<div className="workspace-popover document-zoom-popover" role="group" aria-label="Dokumentzoom einstellen" onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();setOpen(false);}}}>
    <div className="pencil-sheet-heading"><strong>Dokumentzoom</strong><button className="icon-button" aria-label="Dokumentzoom schließen" onClick={()=>setOpen(false)}><X size={17}/></button></div>

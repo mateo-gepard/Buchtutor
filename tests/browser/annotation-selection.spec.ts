@@ -34,11 +34,11 @@ test('dragging verse numbers selects forwards and backwards without opening anno
  await expect(page.locator('.row-selected')).toHaveCount(5);await expect(page.locator('.assistant-panel')).toBeHidden();await expect(page.getByRole('button',{name:'Bereich durch Antippen auswählen'})).toHaveAttribute('aria-pressed','false');
 });
 
-test('Escape and capture cancellation stop a gutter gesture without restoring it on pointerup',async({page})=>{
+test('Escape ends a gutter gesture while preserving its selection until explicitly cleared',async({page})=>{
  await setup(page);const number=page.getByRole('button',{name:'Vers 2 auswählen',exact:true}),box=await number.boundingBox();
  await page.mouse.move(box!.x+20,box!.y+20);await page.mouse.down();await page.mouse.move(box!.x+20,box!.y+110,{steps:5});await expect(page.locator('.row-selected')).not.toHaveCount(0);
- await page.keyboard.press('Escape');await page.mouse.up();await expect(page.locator('.row-selected')).toHaveCount(0);await expect(page.locator('.selection-dock')).toHaveCount(0);
- await number.click();await expect(page.locator('.row-selected')).toHaveCount(1);await page.keyboard.press('Escape');await expect(page.locator('.row-selected')).toHaveCount(0);
+ const count=await page.locator('.row-selected').count();await page.keyboard.press('Escape');await page.mouse.up();await expect(page.locator('.row-selected')).toHaveCount(count);await expect(page.getByRole('button',{name:'Lesemodus',exact:true})).toHaveAttribute('aria-pressed','true');await page.getByRole('button',{name:'Auswahl aufheben',exact:true}).click();
+ await number.click();await expect(page.locator('.row-selected')).toHaveCount(1);await page.keyboard.press('Escape');await expect(page.locator('.row-selected')).toHaveCount(1);await page.getByRole('button',{name:'Auswahl aufheben',exact:true}).click();await expect(page.locator('.row-selected')).toHaveCount(0);
 });
 
 test('verse numbers remain selection controls while Pencil is active',async({page})=>{

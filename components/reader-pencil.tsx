@@ -16,8 +16,10 @@ import {PencilHandwritingHint} from './pencil-handwriting-hint';
 import {usePencilDraft,type PencilEntry as Entry} from '@/hooks/use-pencil-draft';
 import {recoverCommittedPencilEntry} from '@/lib/pencil-save';
 import {setHandwritingCloud} from '@/lib/handwriting-client';
-type Props={contentAnchor?:string;toolbarHost:HTMLElement|null;dismissMenusKey:number;onPopover:()=>void;practice?:boolean;onPractice?:(kind:'mark'|'ink'|'erase',data?:{anchor?:Anchor;color?:PencilColor;body?:string})=>void;book:Book;section:Section;prefs:Prefs;selection:Anchor|null;savedNotes:SavedNote[];enabled:boolean;onToggle:()=>void;onSaved:(message:string)=>void;children:(drafts:SavedNote[],afterBlock:Record<string,ReactNode>)=>ReactNode};
-export function ReaderPencil({contentAnchor,toolbarHost,dismissMenusKey,onPopover,practice=false,onPractice,book,section,prefs,selection,savedNotes,enabled,onToggle,onSaved,children}:Props){
+import {useReaderPopover} from '@/hooks/use-reader-popover';
+import {sameAnchor} from '@/lib/dom-selection';
+type Props={markRequest?:{id:number;anchors:Anchor[]};contentAnchor?:string;toolbarHost:HTMLElement|null;dismissMenusKey:number;onPopover:()=>void;practice?:boolean;onPractice?:(kind:'mark'|'ink'|'erase',data?:{anchor?:Anchor;color?:PencilColor;body?:string})=>void;book:Book;section:Section;prefs:Prefs;selection:Anchor|null;savedNotes:SavedNote[];enabled:boolean;onToggle:()=>void;onSaved:(message:string)=>void;children:(drafts:SavedNote[],afterBlock:Record<string,ReactNode>)=>ReactNode};
+export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenusKey,onPopover,practice=false,onPractice,book,section,prefs,selection,savedNotes,enabled,onToggle,onSaved,children}:Props){
  const liveLine=useRef<SVGPathElement>(null),root=useRef<HTMLDivElement>(null);
  const continueWriting=useRef(false);
  const gesture=useRef<{id:number;strokeId:string;order:number;points:InkStroke;boxes:WordBox[];startedOnText:boolean;layout:InkLayout;referenceId:string;writing:boolean;erasing:boolean;eraserMode:Prefs['eraserMode'];radius:number;lastCheckpoint:number}|null>(null);
@@ -88,21 +90,22 @@ export function ReaderPencil({contentAnchor,toolbarHost,dismissMenusKey,onPopove
   el.addEventListener('touchstart',stylus,{passive:false});el.addEventListener('touchmove',stylus,{passive:false});
   return()=>{el.removeEventListener('touchstart',stylus);el.removeEventListener('touchmove',stylus);};
  },[enabled]);
- useEffect(()=>{
-  if(!eraserOptions)return;
-  const outside=(event:globalThis.PointerEvent)=>{if(event.target instanceof Element&&!event.target.closest('.pencil-eraser-options,.pencil-eraser'))setEraserOptions(false);};
-  document.addEventListener('pointerdown',outside,true);return()=>document.removeEventListener('pointerdown',outside,true);
- },[eraserOptions]);
+ useReaderPopover(enabled&&(eraserOptions||palette||settings||hint),()=>{setEraserOptions(false);setPalette(false);setSettings(false);if(hint)dismissHandwritingInfo();},'.pencil-popover,.pencil-color-menu,.pencil-eraser',eraserOptions?'.pencil-eraser':'.pencil-color-menu');
+ const appliedMark=useRef<number|null>(null);
+ const applyMarks=useEffectEvent((anchors:Anchor[])=>{flushActive();for(const anchor of anchors)add(anchor);});
+ useEffect(()=>{if(practice||!loaded||!markRequest||appliedMark.current===markRequest.id)return;appliedMark.current=markRequest.id;applyMarks(markRequest.anchors);},[loaded,markRequest,practice]);
  function showHandwritingInfo(){
   if(practice||hintAcknowledged===hintKey)return;try{if(localStorage.getItem(hintKey)==='1')return;}catch{/* The notice remains dismissible without storage. */}setSettings(false);setPalette(false);setHint(true);
  }
  function dismissHandwritingInfo(){setHintAcknowledged(hintKey);setHint(false);try{localStorage.setItem(hintKey,'1');}catch{/* Optional device-only notice state. */}}
  function enableCloud(){void setHandwritingCloud(true).then(dismissHandwritingInfo).catch(e=>setError(e.message));}
  function remember(){setHistory(old=>[...old.slice(-29),{entries,groups}]);}
- function add(anchor:Anchor){continueWriting.current=false;
-  if(entries.length>=100){setError('Bitte sichere zuerst diese 100 Markierungen.');return false;}
-  const duplicate=entries.find(e=>JSON.stringify(e.anchor)===JSON.stringify(anchor)&&e.pencil.color===color);
+ function add(anchor:Anchor){continueWriting.current=false;const pending=snapshot().entries;
+  if(pending.length>=100){setError('Bitte sichere zuerst diese 100 Markierungen.');return false;}
+  const duplicate=pending.find(e=>sameAnchor(e.anchor,anchor)&&e.pencil.color===color);
   if(duplicate){if(duplicate.pencil.erasedRanges?.length){remember();setEntries(old=>old.map(e=>e.id===duplicate.id?{...e,pencil:{...e.pencil,erasedRanges:[]}}:e));setError('');}return true;}
+  const saved=savedNotes.find(note=>note.kind==='note'&&note.pencil?.color===color&&sameAnchor(note.anchor,anchor));
+  if(saved?.pencil){const entry:Entry={id:saved.id,anchor:saved.anchor,pencil:{...saved.pencil,erasedRanges:[]},body:saved.body,createdAt:saved.createdAt,baseline:saved};remember();setError('');setEntries(old=>[...old,entry]);return true;}
   remember();setError('');setEntries(old=>[...old,{id:crypto.randomUUID(),anchor,pencil:{color,meaning:meaning(color),ink:[],transcription:'none'},body:'',order:Date.now()}]);if(practice)onPractice?.('mark',{anchor,color});return true;
  }
  function down(e:PointerEvent<HTMLDivElement>){
@@ -282,7 +285,7 @@ export function ReaderPencil({contentAnchor,toolbarHost,dismissMenusKey,onPopove
  const showInk=practice||prefs.annotationVisibility!=='marks'&&prefs.annotationVisibility!=='none';
  return <>
   <div ref={root} className={enabled?'pencil-text active page-writing-surface':'pencil-text'} data-writing={writing} data-erasing={erasing} onPointerOverCapture={e=>{if(root.current&&enabled&&!gesture.current)root.current.style.touchAction=(e.target as Element).closest('[data-pencil-input]')?'auto':e.pointerType==='pen'?'none':'pan-y pinch-zoom';}} onPointerDownCapture={down} onPointerMoveCapture={move} onPointerUpCapture={end} onPointerCancelCapture={end} onLostPointerCapture={end} onClickCapture={e=>{if(enabled&&!(e.target as Element).closest('[data-pencil-input]')){e.preventDefault();e.stopPropagation();}}}>
-   {children(enabled||practice?preview:[],inlineNotes)}
+   {children(preview,inlineNotes)}
    {showInk&&pageInk.length>0&&<svg className="pencil-page-ink" role="img" aria-label="Handschrift auf der Seite">{pageInk.map(({group,strokes,target})=>{const box=inkBounds(strokes.flat());return <g key={group.id} data-ink-group={group.id} data-ink-target={target?.id??''} data-ink-saved={savedGroups.includes(group)}>{strokes.map((stroke,i)=><path key={group.strokes[i].id} d={inkPath(stroke)} stroke="currentColor" fill="none" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"/>)}{enabled&&!savedGroups.includes(group)&&<text x={box.left} y={box.bottom+16} className="pencil-ink-label">{target?`↳ ${referenceLabel(section,target.anchor)}`:'Markierung wählen'}</text>}</g>;})}</svg>}
    <svg className="pencil-live" aria-hidden="true"><path ref={liveLine} stroke="#314d43" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
   </div>
@@ -293,10 +296,10 @@ export function ReaderPencil({contentAnchor,toolbarHost,dismissMenusKey,onPopove
     <div className="pencil-toolbar">
 
      <div className="pencil-colors" role="group" aria-label="Markierungsfarbe">{pencilColors.map(c=><button key={c} disabled={busy} style={{background:pencilPalette[c].fill}} aria-label={`${pencilPalette[c].name}: ${meaning(c)}`} aria-pressed={color===c&&!writing&&!erasing} title={meaning(c)} onClick={()=>{setColor(c);setWriting(false);setErasing(false);continueWriting.current=false;}}>{color===c&&!writing&&!erasing?<Check size={16}/>:<span className="sr-only">{pencilPalette[c].name}</span>}</button>)}</div>
-     <button className="pencil-color-menu icon-button" aria-label="Markierungsfarbe wählen" aria-expanded={palette} aria-pressed={!writing&&!erasing} title={`${pencilPalette[color].name} · ${meaning(color)}`} disabled={busy} onClick={()=>{onPopover();setPalette(!palette);setSettings(false);setHint(false);}}><i style={{background:pencilPalette[color].fill}}><Highlighter size={16}/></i></button>
+     <button className="pencil-color-menu icon-button" aria-label="Markierungsfarbe wählen" aria-expanded={palette} aria-pressed={!writing&&!erasing} title={`${pencilPalette[color].name} · ${meaning(color)}`} disabled={busy} onClick={()=>{flushActive();setWriting(false);setErasing(false);onPopover();setPalette(!palette);setSettings(false);setHint(false);}}><i style={{background:pencilPalette[color].fill}}><Highlighter size={16}/></i></button>
      <span className="pencil-divider"/>
-     <button className={'icon-button pencil-writing-toggle '+(writing?'pressed':'')} disabled={busy} aria-label="Auf der Seite schreiben" title="Direkt neben Markierungen schreiben. Hier aktivieren, um auch über dem Text zu schreiben." aria-pressed={writing} onClick={()=>{setWriting(!writing);setErasing(false);setPalette(false);setSettings(false);}}><PenLine size={19}/></button>
-     <button className={'icon-button pencil-eraser '+(erasing?'pressed':'')} disabled={busy} aria-label="Radiergummi" title="Radierer · E zum Werkzeugwechsel · gedrückt halten oder doppelt antippen für Einstellungen" aria-pressed={erasing} onPointerDown={()=>{stopEraserPress();skipEraserClick.current=false;eraserPress.current=setTimeout(()=>{skipEraserClick.current=true;openEraserOptions();},500);}} onPointerUp={stopEraserPress} onPointerCancel={stopEraserPress} onPointerLeave={stopEraserPress} onContextMenu={event=>{event.preventDefault();openEraserOptions();}} onDoubleClick={openEraserOptions} onClick={()=>{if(skipEraserClick.current){skipEraserClick.current=false;return;}toggleEraser();}}><Eraser size={19}/></button>
+     <button className={'icon-button pencil-writing-toggle '+(writing?'pressed':'')} disabled={busy} aria-label="Auf der Seite schreiben" title="Direkt neben Markierungen schreiben. Hier aktivieren, um auch über dem Text zu schreiben." aria-pressed={writing} onClick={()=>{flushActive();setWriting(true);setErasing(false);setPalette(false);setSettings(false);}}><PenLine size={19}/></button>
+     <button className={'icon-button pencil-eraser '+(erasing?'pressed':'')} disabled={busy} aria-label="Radiergummi" title="Radierer · E zum Werkzeugwechsel · gedrückt halten oder doppelt antippen für Einstellungen" aria-pressed={erasing} onPointerDown={()=>{stopEraserPress();skipEraserClick.current=false;eraserPress.current=setTimeout(()=>{skipEraserClick.current=true;openEraserOptions();},500);}} onPointerUp={stopEraserPress} onPointerCancel={stopEraserPress} onPointerLeave={stopEraserPress} onContextMenu={event=>{event.preventDefault();openEraserOptions();}} onDoubleClick={openEraserOptions} onClick={()=>{if(skipEraserClick.current){skipEraserClick.current=false;return;}if(!erasing)toggleEraser();}}><Eraser size={19}/></button>
      <button className="icon-button pencil-undo" disabled={busy||!history.length&&!entries.length&&!groups.length} aria-label="Letzten Strich entfernen" title="Rückgängig" onClick={undo}><RotateCcw size={18}/></button>
 
      <span className="pencil-divider"/>

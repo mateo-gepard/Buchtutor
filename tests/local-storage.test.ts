@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import 'fake-indexeddb/auto';
-import {initializeLocal,getLocalState,saveLocalNote,saveLocalProgress,deleteLocalNote,updateLocal,setLocalBookmark,saveLocalPreferences} from '../lib/local-storage';
+import {initializeLocal,getLocalState,saveLocalNote,saveLocalProgress,deleteLocalNote,deleteLocalNotes,restoreLocalNotes,updateLocal,setLocalBookmark,saveLocalPreferences} from '../lib/local-storage';
 import {EMPTY_SNAPSHOT,mergeSnapshots,snapshotSchema} from '../lib/local-model';
 import type {SavedNote} from '../lib/reader-model';
 
@@ -169,4 +169,20 @@ test('only an explicit valid import can replace two unreadable records, preservi
   for(const [key,value] of [['reader:unreadable:v1:reader',priorRaw],['reader:unreadable:v1:checkpoint',priorCheckpoint]] as const){if(value===undefined)await db.delete('state',key);else await db.put('state',value,key);}
   db.close();
  }
+});
+
+
+test('bulk deletion is atomic and undo never overwrites a later deletion from another tab',async()=>{
+ await updateLocal(()=>structuredClone(EMPTY_SNAPSHOT));
+ const note:SavedNote={id:'batch-a',workId:'book',editionId:'edition',anchor:{sectionId:'s',startId:'b',endId:'b',startOffset:0,endOffset:4,quote:'Text'},kind:'note',body:'Original',pencil:{color:'green',meaning:'Stilmittel',ink:[[{x:1,y:2,pressure:.5},{x:3,y:4,pressure:.5}]],transcription:'none'},createdAt:'2026-10-21T00:00:00.000Z',updatedAt:'2026-10-21T00:00:00.000Z'};
+ await saveLocalNote(note);await saveLocalNote({...note,id:'batch-b'});await saveLocalNote({...note,id:'unselected'});
+ const removed=(await deleteLocalNotes(['batch-a','batch-b'])).removed;
+ assert.equal((await deleteLocalNotes(['batch-a'])).removed.length,0);
+ assert.equal(removed.length,2);assert.equal(removed[0].deletedAt,removed[1].deletedAt);assert.deepEqual(removed[0].pencil,note.pencil);
+ await updateLocal(data=>({...data,notes:data.notes.map(item=>item.id==='batch-a'?{...item,body:'Neuere Fassung',deletedAt:new Date(Date.parse(item.deletedAt!)+1000).toISOString()}:item)}));
+ await restoreLocalNotes(removed);
+ const final=getLocalState().data.notes;
+ assert.equal(final.find(item=>item.id==='batch-a')?.body,'Neuere Fassung');assert.ok(final.find(item=>item.id==='batch-a')?.deletedAt);
+ assert.equal(final.find(item=>item.id==='batch-b')?.deletedAt,undefined);assert.deepEqual(final.find(item=>item.id==='batch-b')?.pencil,note.pencil);
+ assert.equal(final.find(item=>item.id==='unselected')?.deletedAt,undefined);
 });
