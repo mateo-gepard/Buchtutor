@@ -24,7 +24,7 @@ test('precise erasing splits a saved line, undo restores it, and fragments survi
  await page.getByRole('button',{name:'Auf der Seite schreiben',exact:true}).click();await draw(page,[{x:-45,y:12},{x:40,y:12}]);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('[data-ink-saved=true] path')).toHaveCount(1);
  await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await settings(page);await page.getByRole('button',{name:'Präziser Radierer',exact:false}).click();await size(page,8);await page.getByRole('button',{name:'Radierer-Einstellungen schließen',exact:true}).click();
  const original=await page.locator('[data-ink-group] path').getAttribute('d');await draw(page,[{x:-15,y:0},{x:-15,y:24}]);await expect(page.locator('[data-ink-group] path')).toHaveCount(2);
- await page.getByRole('button',{name:'Letzten Strich entfernen',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveAttribute('d',original!);
+ await page.getByRole('button',{name:'Rückgängig',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveAttribute('d',original!);
  await draw(page,[{x:-15,y:0},{x:-15,y:24}]);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);await page.reload();await expect(page.locator('[data-ink-saved=true] path')).toHaveCount(2);
  await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await settings(page);await expect(page.getByRole('button',{name:'Präziser Radierer',exact:false})).toHaveAttribute('aria-pressed','true');await expect(page.getByRole('slider',{name:'Radierergröße'})).toHaveValue('8');
 });
@@ -32,7 +32,7 @@ test('scribble-to-erase is explicit, preserves ordinary writing and supports und
  await page.getByRole('button',{name:'Auf der Seite schreiben',exact:true}).click();await draw(page,[{x:-45,y:12},{x:40,y:12}]);await settings(page);await expect(page.getByRole('checkbox',{name:/Kritzeln zum Radieren/})).not.toBeChecked();await page.getByRole('checkbox',{name:/Kritzeln zum Radieren/}).check();await page.getByRole('button',{name:'Radierer-Einstellungen schließen',exact:true}).click();
  await page.keyboard.press('e');await expect(page.getByRole('button',{name:'Auf der Seite schreiben',exact:true})).toHaveAttribute('aria-pressed','true');
  await draw(page,Array.from({length:11},(_,i)=>({x:i%2?35:-35,y:i*2})));await expect(page.locator('[data-ink-group] path')).toHaveCount(0);await expect(page.locator('.pencil-error')).toContainText('Weggekritzelt');
- await page.getByRole('button',{name:'Letzten Strich entfernen',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveCount(1);
+ await page.getByRole('button',{name:'Rückgängig',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveCount(1);
  await draw(page,Array.from({length:15},(_,i)=>({x:50+i*3,y:Math.sin(i)*10+5})));await expect(page.locator('[data-ink-group] path')).toHaveCount(2);
 });
 test('quick switch restores the previous tool, ignores typing and accepts a real pen eraser button',async({page})=>{

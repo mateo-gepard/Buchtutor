@@ -58,7 +58,7 @@ test('writing at document zoom stores the same document coordinates and erases t
  await page.getByRole('button',{name:'Dokumentzoom',exact:true}).click();for(let i=0;i<2;i++)await page.getByRole('button',{name:'Dokument vergrößern',exact:true}).click();await page.getByRole('button',{name:'Dokumentzoom schließen',exact:true}).click();
  await page.getByRole('button',{name:'Radiergummi',exact:true}).click();await ink(page);
  await expect(page.locator('[data-ink-group] path')).toHaveCount(0);await expect(page.locator('.saved-highlight')).toHaveCount(1);
- await page.getByRole('button',{name:'Letzten Strich entfernen',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveAttribute('d',path!);
+ await page.getByRole('button',{name:'Rückgängig',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveAttribute('d',path!);
 });
 
 test('equally near overlapping marks require an explicit association and preserve original handwriting',async({page})=>{
@@ -69,7 +69,7 @@ test('equally near overlapping marks require an explicit association and preserv
  const original=await page.locator('[data-ink-group] path').getAttribute('d');
  await page.getByRole('button',{name:'Zuordnung prüfen',exact:true}).click();
  const choice=page.getByRole('combobox',{name:'Markierung für Handschrift 1',exact:true}),values=await choice.locator('option').evaluateAll(options=>options.map(option=>(option as HTMLOptionElement).value).filter(Boolean));expect(values).toHaveLength(2);
- await choice.selectOption(values[1]);await page.getByRole('button',{name:'Farbbedeutungen schließen',exact:true}).click();
+ await choice.selectOption(values[1]);await page.getByRole('button',{name:'Zuordnung schließen',exact:true}).click();
  await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);
  await expect(page.locator('[data-ink-saved=true] path')).toHaveAttribute('d',original!);
  await page.reload();await expect(page.locator('[data-ink-saved=true] path')).toHaveAttribute('d',original!);

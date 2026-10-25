@@ -18,6 +18,7 @@ async function seed(page:Page,items=notes){
  },{...EMPTY_SNAPSHOT,notes:items} satisfies LocalSnapshot);
  await page.reload();await page.getByRole('button',{name:'Meine Notizen',exact:true}).click();
  await expect(page.locator('.note-card')).toHaveCount(items.length);
+ await page.locator('.notebook-filter-disclosure>summary').click();
 }
 test('work, search, color and reset filters combine; removing the last entry keeps its work selectable',async({page},testInfo)=>{
  await seed(page);const work=page.getByRole('combobox',{name:'Notizen nach Werk filtern'});

@@ -1,0 +1,17 @@
+.pencil-draft-notice{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 14px;margin:0 0 20px;border:1px solid var(--border);border-radius:12px;background:var(--card);font:13px/1.4 var(--font-sans);color:var(--foreground)}
+.pencil-draft-notice span{display:grid;gap:3px}.pencil-draft-notice strong{font-weight:600}.pencil-draft-notice small{color:var(--muted-foreground);font-size:12px}.pencil-draft-notice button{min-height:44px;flex-shrink:0}.pencil-draft-notice.is-unsafe{border-color:var(--destructive)}.pencil-draft-notice.is-unsafe strong{color:var(--destructive)}
+.pencil-assignment-sheet{display:grid;gap:14px;width:min(340px,calc(100vw - 32px));max-height:min(420px,calc(100dvh - 140px));overflow:auto;padding:16px}.pencil-assignment-sheet p{margin:0;font-size:14px;color:var(--muted-foreground)}.pencil-assignment-sheet label{display:grid;gap:6px;font-size:13px}.pencil-assignment-sheet select{width:100%;min-height:44px;padding:8px;border:1px solid var(--border);border-radius:8px}.pencil-assignment-sheet .primary-button{justify-self:stretch}
+.annotation-detail .saved-ink svg{background:var(--paper);color:var(--ink)}
+.assistant-heading .notebook-reader-link{margin:0;font-size:12px;min-height:44px;gap:4px;padding:0 6px}
+
+.workspace-inline-details .workspace-popover{max-height:min(300px,var(--inline-panel-height,300px))}
+.workspace-inline-details .assistant-panel[data-panel=notes]:not(.expanded){max-height:min(300px,var(--inline-panel-height,300px))}
+.workspace-inline-details .assistant-panel.expanded{max-height:min(560px,var(--inline-panel-height,72dvh))}
+.workspace-inline-details .audio-details{max-height:min(300px,var(--inline-panel-height,300px))}
+.workspace-note-actions{flex-shrink:0}
+
+@media(max-width:649px){
+ .workspace-inline-details .assistant-heading{flex-wrap:wrap;column-gap:8px}
+ .workspace-inline-details .assistant-heading>div{margin-left:auto}
+ .workspace-inline-details .assistant-heading .notebook-reader-link{font-size:0;gap:0;width:44px;min-width:44px;padding:0;justify-content:center}
+}

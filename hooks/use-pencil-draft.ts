@@ -28,12 +28,12 @@ const hasInk=(draft:Draft)=>draft.entries.length||draft.groups.length;
 // journal; another tab can never overwrite its only copy. Empty checkpoints
 // acknowledge a completed save, so old recovery data is not resurrected.
 export function usePencilDraft(key:string,practice:boolean,onError:Dispatch<SetStateAction<string>>,beforeFlush:()=>void){
- const [draft,setDraft]=useState<Draft>(empty),[loaded,setLoaded]=useState(false),[recoveries,setRecoveries]=useState<{key:string;at:number;draft:Draft}[]>([]);
+ const [draft,setDraft]=useState<Draft>(empty),[loaded,setLoaded]=useState(false),[storageSafe,setStorageSafe]=useState(true),[recoveries,setRecoveries]=useState<{key:string;at:number;draft:Draft}[]>([]);
  const current=useRef(empty()),ready=useRef(false),persisted=useRef<string|null>(null),tab=useRef(''),previousTab=useRef<string|null>(null),journal=useRef(''),activeKey=useRef('');
  const persist=useCallback(()=>{
   if(!ready.current||practice)return false;
   const next=current.current,serialized=JSON.stringify(next);
-  if(!draftSchema.safeParse(next).success){onError('Der Entwurf ist zu groß oder enthält ungültige Daten. Die letzte Sicherung bleibt erhalten. Bitte die Seite geöffnet lassen.');return false;}
+  if(!draftSchema.safeParse(next).success){setStorageSafe(false);onError('Der Entwurf ist zu groß oder enthält ungültige Daten. Die letzte Sicherung bleibt erhalten. Bitte die Seite geöffnet lassen.');return false;}
   if(serialized===persisted.current)return true;
   try{
    // Preserve this tab's preceding valid state before replacing its journal.
@@ -42,8 +42,8 @@ export function usePencilDraft(key:string,practice:boolean,onError:Dispatch<SetS
    localStorage.setItem(journal.current,JSON.stringify({version:1,at:Date.now(),draft:next}));
    // Keep the original public key/format for existing devices and migrations.
    if(hasInk(next))localStorage.setItem(key,serialized);else localStorage.removeItem(key);
-   persisted.current=serialized;return true;
-  }catch{onError(previous=>previous.startsWith('Nicht gespeichert:')?previous:'Nicht gespeichert: Der Entwurf konnte nicht vollständig gesichert werden. Bitte mit „Fertig“ speichern, bevor du die Seite verlässt.');return false;}
+   persisted.current=serialized;setStorageSafe(true);return true;
+  }catch{setStorageSafe(false);onError(previous=>previous.startsWith('Nicht gespeichert:')?previous:'Nicht gespeichert: Der Entwurf konnte nicht vollständig gesichert werden. Bitte mit „Fertig“ speichern, bevor du die Seite verlässt.');return false;}
  },[key,practice,onError]);
  useLayoutEffect(()=>{
   ready.current=false;persisted.current=null;
@@ -123,5 +123,5 @@ export function usePencilDraft(key:string,practice:boolean,onError:Dispatch<SetS
   setRecoveries(old=>[{key:journal.current+':memory',at:Date.now(),draft:current.current},...old.filter(record=>record.key!==recoveryKey)].filter(record=>hasInk(record.draft)));
   update(()=>recovery.draft);onError('Lokaler Handschriftentwurf wiederhergestellt.');
  },[recoveries,persist,update,onError]);
- return {...draft,setEntries,setGroups,loaded,snapshot,checkpoint,acknowledge,recoveries,restore};
+ return {...draft,setEntries,setGroups,loaded,storageSafe,persist,snapshot,checkpoint,acknowledge,recoveries,restore};
 }

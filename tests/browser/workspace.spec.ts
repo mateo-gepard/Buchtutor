@@ -113,6 +113,14 @@ test('iPad-sized keyboard space and split view keep the note input and controls 
  await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();
  await fits(page,'.assistant-panel');
  await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Ein Gedanke mit geöffneter Tastatur.');
+ await page.setViewportSize({width:680,height:430});
+ await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).focus();
+ await expect.poll(()=>page.getByRole('button',{name:'Notiz speichern',exact:true}).evaluate(el=>{
+  const r=el.getBoundingClientRect(),footer=document.querySelector('.reading-footer')!.getBoundingClientRect();
+  return r.top>=0&&r.bottom<=footer.top&&document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)?.closest('button')===el;
+ })).toBe(true);
+ await page.getByRole('button',{name:'Notiz speichern',exact:true}).click();
+ await expect(page.locator('.toast')).toContainText('Notiz auf diesem Gerät gespeichert');
 });
 
 test('switching tools preserves the reading anchor and never closes audio on pointer-down',async({page})=>{

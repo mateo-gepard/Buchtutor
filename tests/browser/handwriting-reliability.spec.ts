@@ -156,7 +156,7 @@ test('erasing saved handwriting removes stale search text and undo restores the 
   });
  }
  await eraseInk();await expect(page.locator('[data-ink-group] path')).toHaveCount(0);
- await page.getByRole('button',{name:'Letzten Strich entfernen',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveCount(1);
+ await page.getByRole('button',{name:'Rückgängig',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveCount(1);
  await eraseInk();await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);
  await notebook(page);await page.getByRole('textbox',{name:'Notizen durchsuchen'}).fill('Einmaliger Handschriftbegriff');await expect(page.locator('.note-card')).toHaveCount(0);
  await page.reload();const notes=await localNotes(page);expect(notes[0].pencil.ink).toHaveLength(0);expect(notes[0].pencil.pageInk).toHaveLength(0);expect(notes[0].body).toBe('');

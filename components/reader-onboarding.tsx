@@ -2,7 +2,7 @@
 import {useEffect,useEffectEvent,useLayoutEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {ArrowLeft,ArrowRight,BookOpen,Bookmark,Check,CheckCircle2,Eraser,FileKey2,Filter,Highlighter,Lightbulb,LockKeyhole,MousePointer2,PenLine,MessageSquare,Users,X} from 'lucide-react';
-import {ONBOARDING_KEY,tourChapters,tourSteps} from '@/lib/onboarding';
+import {ONBOARDING_KEY,tourChapters,tourChapterLabels,tourSteps} from '@/lib/onboarding';
 type Box={x:number;y:number;width:number;height:number};
 // Overlapping cutouts must form one hole; even-odd SVG paths would shade their intersection.
 function mergeSpots(spots:Box[]){
@@ -20,33 +20,42 @@ function mergeSpots(spots:Box[]){
  }
  return merged;
 }
-type Props={ready:boolean;open:boolean;bookTitle:string;colorLabel:string;exampleText:string;step:number|null;done:Record<string,boolean>;onTry:(value?:string)=>void;onStart:()=>void;onBegin:()=>void;onStep:(index:number)=>void;onClose:()=>void};
+type Props={ready:boolean;open:boolean;bookTitle:string;colorLabel:string;exampleText:string;welcomeActionLabel?:string;step:number|null;done:Record<string,boolean>;onTry:(value?:string)=>void;onStart:()=>void;onBegin:()=>void;onStep:(index:number)=>void;onClose:()=>void};
 const icons={book:BookOpen,eraser:Eraser,note:MessageSquare,selection:Highlighter,pencil:Highlighter,pen:PenLine,bulb:Lightbulb,users:Users,bookmark:Bookmark,filter:Filter,lock:LockKeyhole};
 function visible(el:HTMLElement){const r=el.getBoundingClientRect();return !el.closest('[hidden],[aria-hidden=true]')&&r.width>0&&r.height>0&&getComputedStyle(el).visibility!=='hidden';}
 function firstOfEach(selector:string){return selector?selector.split(',').flatMap(part=>{const el=[...document.querySelectorAll<HTMLElement>(part.trim())].find(visible);return el?[el]:[];}):[];}
 function TourAutoAdvance({complete,changing,onAdvance}:{complete:boolean;changing:boolean;onAdvance:()=>void}){
  const [alreadyComplete]=useState(complete),[held,setHeld]=useState(false);
  const interaction=useRef({pointers:new Set<number>(),composing:false});
+ const timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
  const advance=useEffectEvent(onAdvance);
+ const clear=useEffectEvent(()=>{clearTimeout(timer.current);timer.current=undefined;});
+ const arm=useEffectEvent(()=>{
+  clear();const activity=interaction.current;
+  if(!alreadyComplete&&!held&&!changing&&complete&&!activity.pointers.size&&!activity.composing&&!document.hidden&&document.hasFocus())timer.current=setTimeout(()=>advance(),1800);
+ });
  useEffect(()=>{
-  if(alreadyComplete||held||changing)return;
-  let timer:ReturnType<typeof setTimeout>;const activity=interaction.current;
-  const clear=()=>clearTimeout(timer);
-  function arm(){clear();if(complete&&!activity.pointers.size&&!activity.composing&&!document.hidden&&document.hasFocus())timer=setTimeout(()=>advance(),1800);}
+  const activity=interaction.current;
   function down(event:PointerEvent){activity.pointers.add(event.pointerId);clear();}
   function up(event:PointerEvent){activity.pointers.delete(event.pointerId);arm();}
+  function lost(event:PointerEvent){if(!event.buttons)up(event);}
   function move(event:PointerEvent){if(event.buttons)clear();}
   function input(event:Event){if(event instanceof InputEvent&&event.isComposing){activity.composing=true;clear();}else arm();}
   function compose(){activity.composing=true;clear();}
   function composed(){activity.composing=false;arm();}
-  document.addEventListener('pointerdown',down,true);document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',up,true);document.addEventListener('pointermove',move,true);
+  // Keep one listener set through completion. Replacing it while a sweep commits
+  // can miss its release and leave the pointer recorded as permanently held.
+  document.addEventListener('pointerdown',down,true);document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',up,true);document.addEventListener('lostpointercapture',lost,true);document.addEventListener('pointermove',move,true);
   document.addEventListener('input',input,true);document.addEventListener('keydown',clear,true);document.addEventListener('keyup',arm,true);document.addEventListener('compositionstart',compose,true);document.addEventListener('compositionend',composed,true);document.addEventListener('visibilitychange',arm);window.addEventListener('blur',clear);window.addEventListener('focus',arm);arm();
-  return()=>{clear();document.removeEventListener('pointerdown',down,true);document.removeEventListener('pointerup',up,true);document.removeEventListener('pointercancel',up,true);document.removeEventListener('pointermove',move,true);document.removeEventListener('input',input,true);document.removeEventListener('keydown',clear,true);document.removeEventListener('keyup',arm,true);document.removeEventListener('compositionstart',compose,true);document.removeEventListener('compositionend',composed,true);document.removeEventListener('visibilitychange',arm);window.removeEventListener('blur',clear);window.removeEventListener('focus',arm);};
+  return()=>{clear();document.removeEventListener('pointerdown',down,true);document.removeEventListener('pointerup',up,true);document.removeEventListener('pointercancel',up,true);document.removeEventListener('lostpointercapture',lost,true);document.removeEventListener('pointermove',move,true);document.removeEventListener('input',input,true);document.removeEventListener('keydown',clear,true);document.removeEventListener('keyup',arm,true);document.removeEventListener('compositionstart',compose,true);document.removeEventListener('compositionend',composed,true);document.removeEventListener('visibilitychange',arm);window.removeEventListener('blur',clear);window.removeEventListener('focus',arm);};
+ },[]);
+ useEffect(()=>{
+  arm();return()=>clear();
  },[complete,alreadyComplete,held,changing]);
  if(!complete||alreadyComplete)return null;
  return <div className="tour-auto-advance" aria-live="polite"><span>{held?'Gehe weiter, wenn du bereit bist.':'Gleich zum nächsten Schritt …'}</span>{!held&&<button onClick={()=>setHeld(true)}>Hier bleiben</button>}</div>;
 }
-export function ReaderOnboarding({ready,open,bookTitle,colorLabel,exampleText,step,done,onTry,onStart,onBegin,onStep,onClose}:Props){
+export function ReaderOnboarding({ready,open,bookTitle,colorLabel,welcomeActionLabel='Selbst loslegen',step,done,onTry,onStart,onBegin,onStep,onClose}:Props){
  const card=useRef<HTMLDivElement>(null),attempted=useRef(false),lastPosition=useRef<{x:number;y:number}|null>(null);
  const timers=useRef<{change?:ReturnType<typeof setTimeout>;reveal?:ReturnType<typeof setTimeout>}>({});
  const [changing,setChanging]=useState(false);
@@ -116,20 +125,19 @@ export function ReaderOnboarding({ready,open,bookTitle,colorLabel,exampleText,st
   return()=>{disposed=true;cancelAnimationFrame(frame);cancelAnimationFrame(focusFrame);observer.disconnect();mutations.disconnect();restoreAccess();document.removeEventListener('input',input,true);document.removeEventListener('change',input,true);document.removeEventListener('focusin',focus);document.removeEventListener('keydown',keyboard,true);window.removeEventListener('resize',schedule);window.removeEventListener('scroll',schedule,true);window.visualViewport?.removeEventListener('resize',schedule);window.visualViewport?.removeEventListener('scroll',schedule);};
  },[step,open]);
  if(!open)return null;
- const current=step===null?null:tourSteps[step],last=step===tourSteps.length-1,Icon=current?icons[current.icon]:BookOpen,complete=current?done[current.id]:false;
+ const current=step===null?null:tourSteps[step],last=step===tourSteps.length-1,Icon=current?icons[current.icon]:BookOpen,complete=current?done[current.id]:false,missingPracticeNote=current?.id==='notebook'&&!done.notes;
  const holes=mergeSpots(geometry?.spots??[]).map(r=>{const c=Math.min(10,r.width/2,r.height/2);return `M${r.x+c},${r.y} H${r.x+r.width-c} Q${r.x+r.width},${r.y} ${r.x+r.width},${r.y+c} V${r.y+r.height-c} Q${r.x+r.width},${r.y+r.height} ${r.x+r.width-c},${r.y+r.height} H${r.x+c} Q${r.x},${r.y+r.height} ${r.x},${r.y+r.height-c} V${r.y+c} Q${r.x},${r.y} ${r.x+c},${r.y} Z`;}).join(' ');
  return createPortal(<div className="reader-onboarding" data-transition={changing?'changing':'ready'}>
   <svg className="tour-shade" aria-hidden="true"><path fillRule="evenodd" d={`M0,0 H100000 V100000 H0 Z ${holes}`}/>{geometry?.spots.map((r,i)=><rect key={i} className="tour-spotlight" x={r.x} y={r.y} width={r.width} height={r.height} rx={10}/>)}{changing&&<rect width="100%" height="100%" fill="transparent" style={{pointerEvents:'all'}}/>}</svg>
   <div ref={card} role="dialog" aria-modal={step===null||last?'true':'false'} aria-labelledby="tour-title" aria-describedby="tour-description" className={'tour-card '+(step===null?'tour-welcome':last?'tour-finish':'')} tabIndex={-1} data-tour-step={current?.id??'welcome'} style={geometry?{left:geometry.card.x,top:geometry.card.y,width:geometry.card.width,maxHeight:geometry.card.height}:{visibility:'hidden'}}>
    <div className="tour-topline"><span>{current&&step!==null?`${tourChapters[current.chapter]} · Schritt ${step+1} von ${tourSteps.length}`:'Buchtutor kennenlernen'}</span><button className="icon-button" aria-label="Tour überspringen" onClick={finish}><X size={18}/></button></div>
    {current?<>
-    <div className="tour-chapters" aria-label="Abschnitte der Einführung">{tourChapters.map((chapter,i)=><span key={chapter} className={i===current.chapter?'is-current':i<current.chapter?'is-past':''}><i/>{i===0?'Bearbeiten':i===1?'Ergänzen':'Wiederfinden'}</span>)}</div>
+    <div className="tour-chapters" aria-label="Abschnitte der Einführung">{tourChapters.map((chapter,i)=><span key={chapter} className={i===current.chapter?'is-current':i<current.chapter?'is-past':''}><i/>{tourChapterLabels[i]}</span>)}</div>
     <div className="tour-title-row"><span className="tour-symbol"><Icon size={23} strokeWidth={1.7}/></span><h2 id="tour-title">{current.title}</h2></div>
-    <p id="tour-description">{current.text}</p>
+    <p id="tour-description">{missingPracticeNote?'Du hast noch keine Übungsnotiz gemerkt. Gehe zurück und speichere einen Gedanken oder sieh dir weitere Werkzeuge an.':current.text}</p>
     {current.id==='pencil'&&!complete&&<div className="tour-gesture" aria-hidden="true"><span>Ein Gedanke im Text</span><i/><PenLine size={17}/></div>}
-    {current.task&&<div className={'tour-task '+(complete?'is-complete':'')} aria-live="polite">{complete?<CheckCircle2 size={20}/>:<MousePointer2 size={20}/>}<div><small>{complete?'Ausprobiert':'optional' in current?'Wenn du möchtest':'Du bist dran'}</small><span>{complete?current.success:current.id==='notebook'?`Wähle „${colorLabel}“ im Farbfilter.`:current.task}</span></div></div>}
-    {current.task&&step!==null&&<TourAutoAdvance key={step} complete={!!complete} changing={changing} onAdvance={()=>navigate(step+1)}/>}
-    {current.id==='notebook'&&<blockquote className="tour-note-preview">{exampleText.slice(0,160)}</blockquote>}
+    {current.task&&!missingPracticeNote&&<div className={'tour-task '+(complete?'is-complete':'')} aria-live="polite">{complete?<CheckCircle2 size={20}/>:<MousePointer2 size={20}/>}<div><small>{complete?'Ausprobiert':'optional' in current?'Wenn du möchtest':'Du bist dran'}</small><span>{complete?current.success:current.id==='notebook'?`Wähle „${colorLabel}“ im Farbfilter.`:current.task}</span></div></div>}
+    {current.task&&!missingPracticeNote&&step!==null&&<TourAutoAdvance key={step} complete={!!complete} changing={changing} onAdvance={()=>navigate(step+1)}/>}
     {last&&<>
      <div className="tour-recap">{[['selection','Textstelle auswählen'],['pencil','Markierung setzen'],['notes','Gedanken festhalten'],['notebook','Im Notizbuch wiederfinden']].map(([id,label])=><span key={id}>{done[id]?<CheckCircle2 size={17}/>:<Check size={17}/>} {label}</span>)}</div>
      <p className="tour-backup-tip"><FileKey2 size={20}/><span><strong>Deine eigenen Notizen sichern</strong>Mit „Geräteübertragung“ nimmst du sie als verschlüsselte Datei plus Passwort mit.</span></p>
@@ -140,10 +148,10 @@ export function ReaderOnboarding({ready,open,bookTitle,colorLabel,exampleText,st
     <h2 id="tour-title">Lerne Buchtutor an einer Textstelle kennen</h2>
     <p id="tour-description">Wähle eine Stelle, ergänze einen Gedanken und finde ihn wieder. Wir gehen das gemeinsam durch.</p>
     <div className="tour-welcome-route"><span><Highlighter size={17}/>Bearbeiten</span><ArrowRight size={14}/><span><MessageSquare size={17}/>Ergänzen</span><ArrowRight size={14}/><span><Bookmark size={17}/>Wiederfinden</span></div>
-    <p className="tour-welcome-detail">10 kurze Schritte · Übungen freiwillig · keine KI-Kosten</p>
+    <p className="tour-welcome-detail">Nach 4 Schritten bei deiner Notiz · danach weitere Werkzeuge</p>
    </>}
-   <div className="tour-actions"><button className="tour-skip" onClick={finish}>{current?'Überspringen':'Direkt lesen'}</button><div>{step!==null&&step>0&&<button className="icon-button" aria-label="Vorheriger Schritt" disabled={changing} onClick={()=>navigate(step-1)}><ArrowLeft size={18}/></button>}<button data-tour-next className="primary-button" disabled={changing} onClick={()=>last?finish():navigate(step===null?0:step+1)}>{current?current.next:'Gemeinsam ausprobieren'}{last?<Check size={17}/>:<ArrowRight size={17}/>}</button></div></div>
-   {!current&&<p className="tour-welcome-later">Lieber gleich loslegen? Die Einführung findest du jederzeit unter <strong>?</strong>.</p>}
+   <div className="tour-actions"><button className="tour-skip" onClick={finish}>{current?'Beenden':welcomeActionLabel}</button><div>{step!==null&&step>0&&<button className="icon-button" aria-label="Vorheriger Schritt" disabled={changing} onClick={()=>navigate(step-1)}><ArrowLeft size={18}/></button>}<button data-tour-next className="primary-button" disabled={changing} onClick={()=>last?finish():navigate(step===null?0:step+1)}>{current?current.next:'Gemeinsam ausprobieren'}{last?<Check size={17}/>:<ArrowRight size={17}/>}</button></div></div>
+   {!current&&<p className="tour-welcome-later">10 Schritte · Übungen freiwillig · keine KI-Anfragen. Jederzeit wieder unter <strong>?</strong>.</p>}
   </div>
  </div>,document.body);
 }

@@ -58,7 +58,7 @@ test('manual bookmark toggles without duplicates and survives encrypted transfer
     await device.getByRole('button',{name:'Schließen',exact:true}).click();
     await device.getByRole('button',{name:'Zur Bibliothek',exact:true}).click();
     await device.getByRole('button',{name:'Meine Notizen',exact:true}).click();
-    await device.getByRole('button',{name:'Lesezeichen',exact:true}).click();
+    await device.locator('.notebook-filter-disclosure>summary').click();await device.getByRole('button',{name:'Lesezeichen',exact:true}).click();
     await expect(device.locator('.note-card')).toHaveCount(1);
     await device.locator('.note-open').click();
     await expect(device.locator('.panel-notes .selection-excerpt')).toContainText(bookmark.anchor.quote);

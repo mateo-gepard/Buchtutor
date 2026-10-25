@@ -1,7 +1,7 @@
 'use client';
 import {createPortal} from 'react-dom';
 import {useCallback,useEffect,useEffectEvent,useLayoutEffect,useMemo,useRef,useState,type PointerEvent,type ReactNode} from 'react';
-import {Check,Highlighter,LoaderCircle,RotateCcw,X,Settings2,PenLine,Eraser} from 'lucide-react';
+import {Check,Highlighter,LoaderCircle,RotateCcw,RotateCw,X,Settings2,PenLine,Eraser} from 'lucide-react';
 import type {Anchor,Book,SavedNote,Section} from '@/lib/reader-model';
 import {referenceLabel,validateAnchor} from '@/lib/reader-model';
 import {saveLocalNotes,saveLocalPreferences} from '@/lib/local-storage';
@@ -19,6 +19,7 @@ import {setHandwritingCloud} from '@/lib/handwriting-client';
 import {useReaderPopover} from '@/hooks/use-reader-popover';
 import {sameAnchor} from '@/lib/dom-selection';
 type Props={markRequest?:{id:number;anchors:Anchor[]};contentAnchor?:string;toolbarHost:HTMLElement|null;dismissMenusKey:number;onPopover:()=>void;practice?:boolean;onPractice?:(kind:'mark'|'ink'|'erase',data?:{anchor?:Anchor;color?:PencilColor;body?:string})=>void;book:Book;section:Section;prefs:Prefs;selection:Anchor|null;savedNotes:SavedNote[];enabled:boolean;onToggle:()=>void;onSaved:(message:string)=>void;children:(drafts:SavedNote[],afterBlock:Record<string,ReactNode>)=>ReactNode};
+type DraftFrame={entries:Entry[];groups:PageInkGroup[]};
 export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenusKey,onPopover,practice=false,onPractice,book,section,prefs,selection,savedNotes,enabled,onToggle,onSaved,children}:Props){
  const liveLine=useRef<SVGPathElement>(null),root=useRef<HTMLDivElement>(null);
  const continueWriting=useRef(false);
@@ -30,16 +31,18 @@ export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenus
  const previousWriting=useRef(false),eraserPress=useRef<ReturnType<typeof setTimeout>|null>(null),skipEraserClick=useRef(false);
  const key=`buchtutor-pencil-draft:${book.id}:${book.editionId}:${section.id}`;
  const flushActive=useCallback(()=>interruptGesture.current(),[]);
- const {entries,groups,setEntries,setGroups,loaded,snapshot,checkpoint,acknowledge,recoveries,restore}=usePencilDraft(key,practice,setError,flushActive);
+ const {entries,groups,setEntries,setGroups,loaded,storageSafe,persist,snapshot,checkpoint,acknowledge,recoveries,restore}=usePencilDraft(key,practice,setError,flushActive);
+ const [assigning,setAssigning]=useState(false);
  const [composing,setComposing]=useState(false);
  const composition=useRef(false),saving=useRef(false);
  const [scribble,setScribble]=useState(false),[hint,setHint]=useState(false);
  const [cloudChoice,setCloudChoice]=useState<boolean|null>(null);
  const [hintAcknowledged,setHintAcknowledged]=useState<string|null>(null);
  const hintKey=prefs.handwritingCloud?PENCIL_CLOUD_HINT_KEY:PENCIL_HANDWRITING_HINT_KEY;
- const [history,setHistory]=useState<{entries:Entry[];groups:PageInkGroup[]}[]>([]);
+ const [history,setHistory]=useState<DraftFrame[]>([]),[future,setFuture]=useState<DraftFrame[]>([]);
+ const timeline=useRef<{past:DraftFrame[];future:DraftFrame[]}>({past:[],future:[]});
  const [layout,setLayout]=useState<InkLayout>({width:640,fontSize:20,tops:{}});
- useEffect(()=>{const epoch=menuEpoch.current,frame=requestAnimationFrame(()=>{if(epoch!==menuEpoch.current)return;setSettings(false);setPalette(false);setHint(false);setEraserOptions(false);});return()=>cancelAnimationFrame(frame);},[dismissMenusKey]);
+ useEffect(()=>{const epoch=menuEpoch.current,frame=requestAnimationFrame(()=>{if(epoch!==menuEpoch.current)return;setSettings(false);setPalette(false);setHint(false);setEraserOptions(false);setAssigning(false);});return()=>cancelAnimationFrame(frame);},[dismissMenusKey]);
  const meaning=(c:PencilColor)=>prefs.pencilMeanings?.[c]??pencilPalette[c].meaning;
  const effectiveEntries=useMemo(()=>entries.map(entry=>recoverCommittedPencilEntry(entry,groups,savedNotes.find(note=>note.id===entry.id),layout)),[entries,groups,savedNotes,layout]);
  const committedGroups=useMemo(()=>savedNotes.flatMap(note=>note.pencil?.pageInk??[]),[savedNotes]);
@@ -48,8 +51,18 @@ export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenus
  const savedGroups=useMemo(()=>eligible.flatMap(note=>note.pencil?.pageInk??[]),[eligible]);
  const inkHitBoxes=useMemo(()=>[...savedGroups,...visibleGroups].flatMap(group=>projectedInk(group,layout).map(stroke=>inkBounds(stroke))),[visibleGroups,savedGroups,layout]);
  const latest=useRef({eligible,section});useLayoutEffect(()=>{latest.current={eligible,section}},[eligible,section]);
+ const unassigned=groups.filter(group=>!group.targetId||!eligible.some(note=>note.id===group.targetId));
+ const prepareToLeave=useEffectEvent((event:Event)=>{
+  if(practice)return;
+  flushActive();const current=snapshot();
+  if((current.entries.length||current.groups.length)&&(!persist()||saving.current||composition.current)){
+   event.preventDefault();setPalette(false);setSettings(false);setHint(false);setEraserOptions(false);setAssigning(false);
+   if(saving.current||composition.current)setError('Bitte das Speichern bzw. die Texteingabe abschließen. Deine Änderungen bleiben hier erhalten.');
+  }
+ });
+ useEffect(()=>{window.addEventListener('buchtutor-before-reader-leave',prepareToLeave);return()=>window.removeEventListener('buchtutor-before-reader-leave',prepareToLeave);},[]);
 
- useEffect(()=>{if(enabled)return;const frame=requestAnimationFrame(()=>{setSettings(false);setPalette(false);setEraserOptions(false);});return()=>cancelAnimationFrame(frame);},[enabled]);
+ useEffect(()=>{if(enabled)return;const frame=requestAnimationFrame(()=>{setSettings(false);setPalette(false);setEraserOptions(false);setAssigning(false);});return()=>cancelAnimationFrame(frame);},[enabled]);
  function measure():InkLayout{
   const el=root.current;if(!el)return layout;
   const {rect,scale}=documentGeometry(el);
@@ -90,7 +103,7 @@ export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenus
   el.addEventListener('touchstart',stylus,{passive:false});el.addEventListener('touchmove',stylus,{passive:false});
   return()=>{el.removeEventListener('touchstart',stylus);el.removeEventListener('touchmove',stylus);};
  },[enabled]);
- useReaderPopover(enabled&&(eraserOptions||palette||settings||hint),()=>{setEraserOptions(false);setPalette(false);setSettings(false);if(hint)dismissHandwritingInfo();},'.pencil-popover,.pencil-color-menu,.pencil-eraser',eraserOptions?'.pencil-eraser':'.pencil-color-menu');
+ useReaderPopover(enabled&&(eraserOptions||palette||settings||hint||assigning),()=>{setEraserOptions(false);setPalette(false);setSettings(false);setAssigning(false);if(hint)dismissHandwritingInfo();},'.pencil-popover,.pencil-color-menu,.pencil-eraser,.pencil-error',eraserOptions?'.pencil-eraser':'.pencil-color-menu');
  const appliedMark=useRef<number|null>(null);
  const applyMarks=useEffectEvent((anchors:Anchor[])=>{flushActive();for(const anchor of anchors)add(anchor);});
  useEffect(()=>{if(practice||!loaded||!markRequest||appliedMark.current===markRequest.id)return;appliedMark.current=markRequest.id;applyMarks(markRequest.anchors);},[loaded,markRequest,practice]);
@@ -99,7 +112,14 @@ export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenus
  }
  function dismissHandwritingInfo(){setHintAcknowledged(hintKey);setHint(false);try{localStorage.setItem(hintKey,'1');}catch{/* Optional device-only notice state. */}}
  function enableCloud(){void setHandwritingCloud(true).then(dismissHandwritingInfo).catch(e=>setError(e.message));}
- function remember(){setHistory(old=>[...old.slice(-29),{entries,groups}]);}
+ function historyFrame():DraftFrame{const current=snapshot();return {entries:current.entries,groups:current.groups};}
+ function updateHistory(past:DraftFrame[],future:DraftFrame[]){timeline.current={past,future};setHistory(past);setFuture(future);}
+ function remember(){updateHistory([...timeline.current.past.slice(-29),historyFrame()],[]);}
+ function assignHandwriting(groupId:string,targetId:string){
+  if(!eligible.some(note=>note.id===targetId))return;
+  remember();setError('');setGroups(old=>old.map(group=>group.id===groupId?{...group,targetId}:group));
+ }
+ function restoreDraft(recoveryKey:string){restore(recoveryKey);updateHistory([],[]);}
  function add(anchor:Anchor){continueWriting.current=false;const pending=snapshot().entries;
   if(pending.length>=100){setError('Bitte sichere zuerst diese 100 Markierungen.');return false;}
   const duplicate=pending.find(e=>sameAnchor(e.anchor,anchor)&&e.pencil.color===color);
@@ -219,16 +239,34 @@ export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenus
   menuEpoch.current++;flushActive();onPopover();if(!erasing)previousWriting.current=writing;setErasing(true);setWriting(false);setEraserOptions(true);setPalette(false);setSettings(false);setHint(false);
  }
  function stopEraserPress(){if(eraserPress.current)clearTimeout(eraserPress.current);eraserPress.current=null;}
- const quickEraser=useEffectEvent(toggleEraser);
+ const quickEraser=useEffectEvent(toggleEraser),shortcutUndo=useEffectEvent(undo),shortcutRedo=useEffectEvent(redo);
  useEffect(()=>{
-  if(!enabled||busy)return;
-  const key=(event:KeyboardEvent)=>{if(event.repeat||event.ctrlKey||event.metaKey||event.altKey||event.key.toLowerCase()!=='e'||(event.target instanceof Element&&event.target.closest('input,textarea,select,[contenteditable="true"],[role="dialog"]'))||document.querySelector('[role="dialog"]:not([data-state="closed"])'))return;event.preventDefault();quickEraser();};
+  if(!enabled||busy||!loaded)return;
+  const key=(event:KeyboardEvent)=>{
+   if(event.defaultPrevented||event.repeat||event.altKey||event.isComposing||(event.target instanceof Element&&event.target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"],[role="dialog"]'))||document.querySelector('[role="dialog"]:not([data-state="closed"])'))return;
+   if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){
+    if(event.shiftKey?shortcutRedo():shortcutUndo())event.preventDefault();return;
+   }
+   if(!event.ctrlKey&&!event.metaKey&&event.key.toLowerCase()==='e'){event.preventDefault();quickEraser();}
+  };
   document.addEventListener('keydown',key);return()=>{document.removeEventListener('keydown',key);stopEraserPress();};
- },[enabled,busy]);
+ },[enabled,busy,loaded]);
  function undo(){
-  const previous=history.at(-1);if(previous){setEntries(previous.entries);setGroups(previous.groups);setHistory(old=>old.slice(0,-1));setError('');return;}
-  const strokes=groups.flatMap(g=>g.strokes.map(s=>({groupId:g.id,...s}))).sort((a,b)=>b.order-a.order),last=strokes[0],mark=entries.at(-1);
-  if(last&&last.order>=(mark?.order??0))setGroups(old=>old.map(g=>g.id===last.groupId?{...g,strokes:g.strokes.filter(s=>s.id!==last.id)}:g).filter(g=>g.strokes.length));else setEntries(old=>old.slice(0,-1));setError('');
+  if(saving.current||composition.current||!loaded)return false;
+  flushActive();const current=historyFrame(),previous=timeline.current.past.at(-1);
+  if(!previous&&!current.entries.length&&!current.groups.length)return false;
+  updateHistory(timeline.current.past.slice(0,-1),[...timeline.current.future.slice(-29),current]);setError('');
+  if(previous){setEntries(previous.entries);setGroups(previous.groups);return true;}
+  // Recovered drafts have no in-memory history; retain their existing ability
+  // to remove the latest draft stroke or revert an edited saved annotation.
+  const strokes=current.groups.flatMap(g=>g.strokes.map(s=>({groupId:g.id,...s}))).sort((a,b)=>b.order-a.order),last=strokes[0],mark=current.entries.at(-1);
+  if(last&&last.order>=(mark?.order??0))setGroups(old=>old.map(g=>g.id===last.groupId?{...g,strokes:g.strokes.filter(s=>s.id!==last.id)}:g).filter(g=>g.strokes.length));else setEntries(old=>old.slice(0,-1));return true;
+ }
+ function redo(){
+  if(saving.current||composition.current||!loaded)return false;
+  flushActive();const next=timeline.current.future.at(-1);if(!next)return false;
+  updateHistory([...timeline.current.past.slice(-29),historyFrame()],timeline.current.future.slice(0,-1));setError('');
+  setEntries(next.entries);setGroups(next.groups);return true;
  }
  function changeNativeNote(note:typeof eligible[number],body:string){
   if(!note.pencil)return;const existing=snapshot().entries.find(e=>e.id===note.id);
@@ -247,10 +285,10 @@ export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenus
    const note=eligible.find(n=>n.id===field.dataset.pencilNote);if(note)changeNativeNote(note,field.value);
   }
   const draft=snapshot();if(!draft.entries.length&&!draft.groups.length)return;
-  setPalette(false);setSettings(false);setHint(false);setEraserOptions(false);
+  setPalette(false);setSettings(false);setHint(false);setEraserOptions(false);setAssigning(false);
   const current=measure(),linked=linkInk(uncommittedPageInk(draft.groups,committedGroups),current,root.current?inkTargets(root.current,section,eligible):[]);
   const validTargets=new Set(inkTargets(root.current!,section,eligible).map(target=>target.id));
-  if(linked.some(g=>!g.targetId||!validTargets.has(g.targetId))){setError('Eine Handschrift ist noch nicht eindeutig zugeordnet. Wähle „Zuordnung prüfen“ oder markiere die passende Stelle daneben. Dein Entwurf bleibt erhalten.');return;}
+  if(linked.some(g=>!g.targetId||!validTargets.has(g.targetId))){if(!enabled)onToggle();setError(eligible.length?'Eine Handschrift ist noch nicht eindeutig zugeordnet. Wähle die passende Markierung. Dein Entwurf bleibt erhalten.':'Markiere die Textstelle neben deiner Handschrift. Danach kannst du beides mit „Fertig“ speichern. Dein Entwurf bleibt erhalten.');return;}
   saving.current=true;setBusy(true);setError('');
   try{
    const next=draft.entries.map(entry=>recoverCommittedPencilEntry(entry,draft.groups,savedNotes.find(note=>note.id===entry.id),current));
@@ -275,23 +313,29 @@ export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenus
     const saved=notes.find(n=>n.id===entry.id);return saved?{...entry,pencil:{...saved.pencil,transcription:entry.body.trim()?'manual':'none'},createdAt:saved.createdAt}:entry;
    }));
    const savedStrokes=new Set(draft.groups.flatMap(g=>g.strokes.map(s=>s.id)));
-   setGroups(old=>old.map(g=>({...g,strokes:g.strokes.filter(s=>!savedStrokes.has(s.id))})).filter(g=>g.strokes.length));setHistory([]);
+   setGroups(old=>old.map(g=>({...g,strokes:g.strokes.filter(s=>!savedStrokes.has(s.id))})).filter(g=>g.strokes.length));
+   // Finishing commits notes through IndexedDB. Draft undo must never replay an
+   // old snapshot into those committed notes or overwrite a later correction.
+   updateHistory([],[]);
    onSaved(notes.length?`${notes.length} Eintrag${notes.length===1?'':'e'} auf diesem Gerät gespeichert.`:'Die Handschrift ist bereits auf diesem Gerät gespeichert.');
-   if(!snapshot().entries.length&&!snapshot().groups.length)onToggle();
-  }catch(e){setError((e as Error).message);}finally{saving.current=false;setBusy(false);}
+   if(enabled&&!snapshot().entries.length&&!snapshot().groups.length)onToggle();
+  }catch(e){if(!enabled)onToggle();setError((e as Error).message);}finally{saving.current=false;setBusy(false);}
  }
  const preview=effectiveEntries.map(e=>({...e,workId:book.id,editionId:book.editionId,kind:'note' as const,createdAt:'',updatedAt:''}));
  const pageInk=[...savedGroups,...visibleGroups].map(group=>({group,strokes:projectedInk(group,layout),target:eligible.find(e=>e.id===group.targetId)}));
  const showInk=practice||prefs.annotationVisibility!=='marks'&&prefs.annotationVisibility!=='none';
  return <>
+   {!practice&&!enabled&&(entries.length>0||groups.length>0)&&<div className={'pencil-draft-notice'+(!storageSafe?' is-unsafe':'')} data-pencil-input role={storageSafe?'status':'alert'}><span><strong>{storageSafe?'Pencil-Entwurf gesichert':'Nicht gespeichert'}</strong><small>{storageSafe?'Mit „Fertig“ ins Notizbuch übernehmen.':'Bitte hier speichern, bevor du das Buch verlässt.'}</small></span><button className="text-button" disabled={busy||composing} onClick={()=>void finish()}>{busy?'Speichern …':'Fertig'}</button></div>}
   <div ref={root} className={enabled?'pencil-text active page-writing-surface':'pencil-text'} data-writing={writing} data-erasing={erasing} onPointerOverCapture={e=>{if(root.current&&enabled&&!gesture.current)root.current.style.touchAction=(e.target as Element).closest('[data-pencil-input]')?'auto':e.pointerType==='pen'?'none':'pan-y pinch-zoom';}} onPointerDownCapture={down} onPointerMoveCapture={move} onPointerUpCapture={end} onPointerCancelCapture={end} onLostPointerCapture={end} onClickCapture={e=>{if(enabled&&!(e.target as Element).closest('[data-pencil-input]')){e.preventDefault();e.stopPropagation();}}}>
+
    {children(preview,inlineNotes)}
    {showInk&&pageInk.length>0&&<svg className="pencil-page-ink" role="img" aria-label="Handschrift auf der Seite">{pageInk.map(({group,strokes,target})=>{const box=inkBounds(strokes.flat());return <g key={group.id} data-ink-group={group.id} data-ink-target={target?.id??''} data-ink-saved={savedGroups.includes(group)}>{strokes.map((stroke,i)=><path key={group.strokes[i].id} d={inkPath(stroke)} stroke="currentColor" fill="none" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"/>)}{enabled&&!savedGroups.includes(group)&&<text x={box.left} y={box.bottom+16} className="pencil-ink-label">{target?`↳ ${referenceLabel(section,target.anchor)}`:'Markierung wählen'}</text>}</g>;})}</svg>}
    <svg className="pencil-live" aria-hidden="true"><path ref={liveLine} stroke="#314d43" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
   </div>
   {enabled&&toolbarHost&&createPortal(<section className="pencil-workspace" aria-label="Apple Pencil Werkzeuge" aria-busy={busy} onClickCapture={event=>{menuEpoch.current++;if(!(event.target as Element).closest('.pencil-eraser-options,.pencil-eraser'))setEraserOptions(false);}}>
+    {assigning&&<div className="pencil-popover pencil-assignment-sheet"><div className="pencil-sheet-heading"><strong>Handschrift zuordnen</strong><button className="icon-button" aria-label="Zuordnung schließen" onClick={()=>setAssigning(false)}><X size={17}/></button></div><p>Welche Markierung gehört zu deiner Handschrift?</p>{unassigned.map((group,index)=><label key={group.id}>Handschrift {index+1}<select aria-label={`Markierung für Handschrift ${index+1}`} value="" onChange={event=>{assignHandwriting(group.id,event.currentTarget.value);}}><option value="">Markierung wählen …</option>{eligible.map(note=><option key={note.id} value={note.id}>{note.pencil?pencilPalette[note.pencil.color].name+' · ':''}{referenceLabel(section,note.anchor)} · {note.anchor.quote.slice(0,55)}</option>)}</select></label>)}{!unassigned.length&&<p role="status">Zugeordnet. Die Handschrift bleibt an ihrem Platz.</p>}<button className="primary-button" disabled={!!unassigned.length||busy} onClick={()=>void finish()}>Speichern</button></div>}
     {eraserOptions&&<PencilEraserOptions prefs={activeEraser} onClose={()=>setEraserOptions(false)} onChange={async patch=>{setEraserChoice(old=>({...old,...patch}));try{await saveLocalPreferences({...prefs,...eraserChoice,...patch});}finally{setEraserChoice(old=>{const next={...old};for(const key of Object.keys(patch) as (keyof typeof patch)[])if(next[key]===patch[key])delete next[key];return next;});}}}/>}
-    {settings&&<div className="pencil-settings pencil-popover"><div className="pencil-sheet-heading"><strong>Pencil-Einstellungen</strong><button className="icon-button" aria-label="Farbbedeutungen schließen" onClick={()=>setSettings(false)}><X size={17}/></button></div><label className="pencil-cloud-setting"><input type="checkbox" checked={cloudChoice??prefs.handwritingCloud} disabled={practice||busy} onChange={e=>{const value=e.currentTarget.checked;setCloudChoice(value);void setHandwritingCloud(value).catch(error=>setError(error.message)).finally(()=>setCloudChoice(null));}}/><span><strong>Handschrift automatisch erkennen</strong><small>Nach „Fertig“: Bildkopie über OpenRouter an Google. Original bleibt auf der Seite, Suchtext wird im Hintergrund gespeichert.</small></span></label><button className="secondary-button eraser-settings-entry" onClick={openEraserOptions}><Eraser size={16}/>Radierer-Einstellungen</button><strong className="pencil-settings-label">Farbbedeutungen</strong><div className="pencil-meanings">{pencilColors.map(c=><label key={c}><i style={{background:pencilPalette[c].fill}}/><span>{pencilPalette[c].name}</span><input aria-label={`Bedeutung für ${pencilPalette[c].name}`} maxLength={80} defaultValue={meaning(c)} key={meaning(c)} onBlur={e=>{const value=e.target.value.trim()||pencilPalette[c].meaning;setEntries(old=>old.map(entry=>entry.pencil.color===c?{...entry,pencil:{...entry.pencil,meaning:value}}:entry));void saveLocalPreferences({...prefs,pencilMeanings:{...prefs.pencilMeanings,[c]:value}}).catch(e=>setError(e.message));}}/></label>)}</div>{groups.some(group=>!group.targetId||!eligible.some(note=>note.id===group.targetId))&&<div className="pencil-assignments"><strong>Handschrift zuordnen</strong><p>Bei mehreren nahen Markierungen wählst du die passende Stelle selbst. Die Schrift bleibt an ihrem Platz.</p>{groups.filter(group=>!group.targetId||!eligible.some(note=>note.id===group.targetId)).map((group,index)=><label key={group.id}>Handschrift {index+1}<select aria-label={`Markierung für Handschrift ${index+1}`} value="" onChange={event=>{const targetId=event.currentTarget.value;if(eligible.some(note=>note.id===targetId))setGroups(old=>old.map(item=>item.id===group.id?{...item,targetId}:item));}}><option value="">Markierung wählen …</option>{eligible.map(note=><option key={note.id} value={note.id}>{note.pencil?pencilPalette[note.pencil.color].name+' · '+note.pencil.meaning+' · ':''}{referenceLabel(section,note.anchor)} · {note.anchor.quote.slice(0,55)}</option>)}</select></label>)}</div>}{recoveries.length>0&&<details className="pencil-draft-recovery"><summary>Lokale Entwürfe wiederherstellen ({recoveries.length})</summary><p>Der aktuelle Entwurf bleibt als Sicherung erhalten.</p>{recoveries.map(record=><button key={record.key} className="text-button" onClick={()=>restore(record.key)}>Entwurf vom {new Date(record.at).toLocaleString('de-DE')} öffnen</button>)}</details>}<p className="small-note">Handschrift und Notizen bleiben auf deinem Gerät. In Safari auf dem iPad wandelt Apple „Kritzeln“ Schrift im Notizfeld kostenlos in Text um.</p>{!!selection&&<button className="text-button" onClick={()=>add(selection)}><Highlighter size={14}/>Textauswahl übernehmen</button>}</div>}
+    {settings&&<div className="pencil-settings pencil-popover"><div className="pencil-sheet-heading"><strong>Pencil-Einstellungen</strong><button className="icon-button" aria-label="Farbbedeutungen schließen" onClick={()=>setSettings(false)}><X size={17}/></button></div><label className="pencil-cloud-setting"><input type="checkbox" checked={cloudChoice??prefs.handwritingCloud} disabled={practice||busy} onChange={e=>{const value=e.currentTarget.checked;setCloudChoice(value);void setHandwritingCloud(value).catch(error=>setError(error.message)).finally(()=>setCloudChoice(null));}}/><span><strong>Handschrift automatisch erkennen</strong><small>Nach „Fertig“: Bildkopie über OpenRouter an Google. Original bleibt auf der Seite, Suchtext wird im Hintergrund gespeichert.</small></span></label><button className="secondary-button eraser-settings-entry" onClick={openEraserOptions}><Eraser size={16}/>Radierer-Einstellungen</button><strong className="pencil-settings-label">Farbbedeutungen</strong><div className="pencil-meanings">{pencilColors.map(c=><label key={c}><i style={{background:pencilPalette[c].fill}}/><span>{pencilPalette[c].name}</span><input aria-label={`Bedeutung für ${pencilPalette[c].name}`} maxLength={80} defaultValue={meaning(c)} key={meaning(c)} onBlur={e=>{const value=e.target.value.trim()||pencilPalette[c].meaning;if(snapshot().entries.some(entry=>entry.pencil.color===c&&entry.pencil.meaning!==value))remember();setEntries(old=>old.map(entry=>entry.pencil.color===c?{...entry,pencil:{...entry.pencil,meaning:value}}:entry));void saveLocalPreferences({...prefs,pencilMeanings:{...prefs.pencilMeanings,[c]:value}}).catch(e=>setError(e.message));}}/></label>)}</div>{groups.some(group=>!group.targetId||!eligible.some(note=>note.id===group.targetId))&&<div className="pencil-assignments"><strong>Handschrift zuordnen</strong><p>Bei mehreren nahen Markierungen wählst du die passende Stelle selbst. Die Schrift bleibt an ihrem Platz.</p>{groups.filter(group=>!group.targetId||!eligible.some(note=>note.id===group.targetId)).map((group,index)=><label key={group.id}>Handschrift {index+1}<select aria-label={`Markierung für Handschrift ${index+1}`} value="" onChange={event=>{assignHandwriting(group.id,event.currentTarget.value);}}><option value="">Markierung wählen …</option>{eligible.map(note=><option key={note.id} value={note.id}>{note.pencil?pencilPalette[note.pencil.color].name+' · '+note.pencil.meaning+' · ':''}{referenceLabel(section,note.anchor)} · {note.anchor.quote.slice(0,55)}</option>)}</select></label>)}</div>}{recoveries.length>0&&<details className="pencil-draft-recovery"><summary>Lokale Entwürfe wiederherstellen ({recoveries.length})</summary><p>Der aktuelle Entwurf bleibt als Sicherung erhalten.</p>{recoveries.map(record=><button key={record.key} className="text-button" onClick={()=>restoreDraft(record.key)}>Entwurf vom {new Date(record.at).toLocaleString('de-DE')} öffnen</button>)}</details>}<p className="small-note">Handschrift und Notizen bleiben auf deinem Gerät. In Safari auf dem iPad wandelt Apple „Kritzeln“ Schrift im Notizfeld kostenlos in Text um.</p>{!!selection&&<button className="text-button" onClick={()=>add(selection)}><Highlighter size={14}/>Textauswahl übernehmen</button>}</div>}
     {palette&&<div className="pencil-mobile-palette pencil-popover" role="group" aria-label="Markierungsfarbe wählen">{pencilColors.map(c=><button key={c} aria-label={`${pencilPalette[c].name}: ${meaning(c)}`} onClick={()=>{setColor(c);setWriting(false);setErasing(false);continueWriting.current=false;setPalette(false);}}><i style={{background:pencilPalette[c].fill}}/><span>{pencilPalette[c].name}</span>{color===c&&<Check size={15}/>}</button>)}<p className="pencil-palette-meaning">{meaning(color)}</p><button className="pencil-meanings-trigger" aria-label="Farbbedeutungen anpassen" disabled={busy||practice} onClick={()=>{setSettings(true);setPalette(false);setHint(false);}}><Settings2 size={16}/>Farbbedeutungen</button></div>}
     <div className="pencil-toolbar">
 
@@ -300,14 +344,15 @@ export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenus
      <span className="pencil-divider"/>
      <button className={'icon-button pencil-writing-toggle '+(writing?'pressed':'')} disabled={busy} aria-label="Auf der Seite schreiben" title="Direkt neben Markierungen schreiben. Hier aktivieren, um auch über dem Text zu schreiben." aria-pressed={writing} onClick={()=>{flushActive();setWriting(true);setErasing(false);setPalette(false);setSettings(false);}}><PenLine size={19}/></button>
      <button className={'icon-button pencil-eraser '+(erasing?'pressed':'')} disabled={busy} aria-label="Radiergummi" title="Radierer · E zum Werkzeugwechsel · gedrückt halten oder doppelt antippen für Einstellungen" aria-pressed={erasing} onPointerDown={()=>{stopEraserPress();skipEraserClick.current=false;eraserPress.current=setTimeout(()=>{skipEraserClick.current=true;openEraserOptions();},500);}} onPointerUp={stopEraserPress} onPointerCancel={stopEraserPress} onPointerLeave={stopEraserPress} onContextMenu={event=>{event.preventDefault();openEraserOptions();}} onDoubleClick={openEraserOptions} onClick={()=>{if(skipEraserClick.current){skipEraserClick.current=false;return;}if(!erasing)toggleEraser();}}><Eraser size={19}/></button>
-     <button className="icon-button pencil-undo" disabled={busy||!history.length&&!entries.length&&!groups.length} aria-label="Letzten Strich entfernen" title="Rückgängig" onClick={undo}><RotateCcw size={18}/></button>
+     <button className="icon-button pencil-undo" disabled={busy||composing||!loaded||!history.length&&!entries.length&&!groups.length} aria-label="Rückgängig" aria-keyshortcuts="Meta+Z Control+Z" title="Rückgängig · ⌘/Strg+Z" onClick={undo}><RotateCcw size={18}/></button>
+     {future.length>0&&<button className="icon-button pencil-redo" disabled={busy||composing||!loaded} aria-label="Wiederholen" aria-keyshortcuts="Meta+Shift+Z Control+Shift+Z" title="Wiederholen · ⌘/Strg+Umschalt+Z" onClick={redo}><RotateCw size={18}/></button>}
 
      <span className="pencil-divider"/>
      <button className="pencil-done" aria-label={busy?'Speichern …':'Fertig'} title={composing?'Texteingabe erst abschließen':'Markierungen, Notiztext und Originalhandschrift auf diesem Gerät speichern'} onClick={()=>void finish()} disabled={practice||busy||composing||!loaded||!entries.length&&!groups.length}>{busy?<LoaderCircle size={18} className="spin"/>:<Check size={19}/>}<span>{busy?'Speichern …':'Fertig'}</span></button>
     </div>
     {hint&&<div className="pencil-handwriting-hint pencil-popover" role="status"><button className="icon-button" aria-label="Handschrift-Hinweis schließen" onClick={dismissHandwritingInfo}><X size={16}/></button><PencilHandwritingHint scribble={scribble} cloud={prefs.handwritingCloud} onEnableCloud={practice?undefined:enableCloud}/></div>}
 
-    {error&&!palette&&!settings&&!hint&&!eraserOptions&&<div className="inline-error pencil-error" role="alert">{error}{groups.some(group=>!group.targetId||!eligible.some(note=>note.id===group.targetId))&&<button className="text-button" onClick={()=>{setSettings(true);setPalette(false);}}>Zuordnung prüfen</button>}</div>}
+    {error&&!palette&&!settings&&!hint&&!eraserOptions&&!assigning&&<div className="inline-error pencil-error" role="alert">{error}{unassigned.length>0&&<button className="text-button" onClick={()=>{setPalette(false);setSettings(false);setHint(false);if(eligible.length)setAssigning(true);else{setWriting(false);setErasing(false);continueWriting.current=false;setError('Streiche jetzt über die passende Textstelle neben deiner Handschrift.');}}}>{eligible.length?'Zuordnung prüfen':'Textstelle markieren'}</button>}</div>}
    </section>,toolbarHost)}
  </>;
 }

@@ -132,7 +132,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     setScrub(null);setPencilMode(['pencil','handwriting','eraser'].includes(step.id));setPanelOpen(['notes','help','figures'].includes(step.id));setPanel(step.id==='figures'?'figures':step.id==='notes'?'notes':'help');
   }
   function startTour(){
-    if(tourOpen)return;
+    if(tourOpen||!prepareToLeaveReader())return;
     tourSnapshot.current={view,focus,panel,panelOpen,panelExpanded,pencilMode,scrub,scrollY:window.scrollY,position:capturePosition(),trigger:document.activeElement instanceof HTMLElement?document.activeElement:null};
     setTourDone({});setTourNotebookFilters(defaultNotebookFilters);setTourSelection(null);setTourBookmark(false);setTourMode(undefined);setTourNote('');setTourCharacters([]);setTourColor('green');setTourStamp(new Date().toISOString());setDialog(null);setTourOpen(true);
   }
@@ -148,7 +148,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     const sequence=++audioScrollRequest.current;setAudioPosition(next);if(!next||!follow||tourOpen||bookBusy||pencilMode||view!=='reader'&&!requestReader)return;
     if(requestReader)setView('reader');
     const target=book.sections.find(s=>s.id===next.sectionId);if(!target)return;
-    if(target.id!==section.id){goToSection(target.id,next.blockId,false);updateURL(book,target,'reader',next.blockId,true);}
+    if(target.id!==section.id){if(!goToSection(target.id,next.blockId,false))return;updateURL(book,target,'reader',next.blockId,true);}
     afterLayout(()=>{if(sequence!==audioScrollRequest.current)return;const el=document.getElementById(next.blockId);if(!el)return;const text=el.querySelector('[data-text]'),range=text?domTextRange(text,next.startOffset,next.endOffset):null,box=range?range.getBoundingClientRect():el.getBoundingClientRect(),obstacles=[...document.querySelectorAll<HTMLElement>('.reader-workspace,.workspace-popover:not([hidden])')].filter(e=>e.getClientRects().length&&!e.closest('.workspace-inline-details')).map(e=>e.getBoundingClientRect());let top=100,bottom=window.innerHeight-80;for(const r of obstacles){if(r.right<box.left||r.left>box.right)continue;if(r.top<window.innerHeight/2)top=Math.max(top,r.bottom+20);else bottom=Math.min(bottom,r.top-20);}if(bottom-top<100){top=100;bottom=window.innerHeight-80;}if(box.top<top||box.bottom>bottom)window.scrollBy({top:box.top-(top+bottom)/2+Math.min(box.height,80)/2,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});});
   }
   const pencilPractice=tourStep!==null;
@@ -157,7 +157,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const displayDraft=tourStep!==null?tourNote:draft;
   // Stay attached to this passage while scrolling, switching tools, or listening.
   const inlineAnchorId=displaySelection?.endId??section.blocks.find(b=>b.id===detailsAnchorId&&isText(b))?.id??firstTourBlock?.id;
-  const tourExample:SavedNote|null=firstTourBlock?{id:'onboarding-example',workId:book.id,editionId:book.editionId,anchor:tourSelection??makeAnchor(section,firstTourBlock.id),kind:'note',body:tourNote||'Beispiel: Diese Stelle möchte ich genauer untersuchen.',pencil:{color:tourColor,meaning:prefs.pencilMeanings?.[tourColor]??pencilPalette[tourColor].meaning,ink:[],transcription:tourNote?'manual':'none'},createdAt:tourStamp,updatedAt:tourStamp}:null;
+  const tourExample:SavedNote|null=tourDone.notes&&firstTourBlock?{id:'onboarding-example',workId:book.id,editionId:book.editionId,anchor:tourSelection??makeAnchor(section,firstTourBlock.id),kind:'note',body:tourNote||'Beispiel: Diese Stelle möchte ich genauer untersuchen.',pencil:{color:tourColor,meaning:prefs.pencilMeanings?.[tourColor]??pencilPalette[tourColor].meaning,ink:[],transcription:tourNote?'manual':'none'},createdAt:tourStamp,updatedAt:tourStamp}:null;
   const capturePosition=useCallback(()=>{
     // Keep the beginning of the chapter at the top when a second tool row appears.
     if(window.scrollY<=1)return null;
@@ -185,16 +185,28 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   },[panel,panelOpen,detailHost,inlineDetails]);
   useEffect(()=>{
     if(!inlineDetails||!detailHost||!(panelOpen||audioExpanded)||tourOpen)return;
-    const frame=requestAnimationFrame(()=>{
-      const card=detailHost.querySelector<HTMLElement>('.workspace-popover:not([hidden])');if(!card)return;
-      const box=card.getBoundingClientRect(),bar=document.querySelector('.reader-workspace')?.getBoundingClientRect();
-      let top=(document.querySelector('.reader-header')?.getBoundingClientRect().bottom??70)+16;
-      if(bar&&bar.top<150&&bar.right>box.left&&bar.left<box.right)top=Math.max(top,bar.bottom+12);
-      // Reveal a distant card with the preceding passage; don't pull it back on ordinary scrolls.
-      if(box.top<top||box.top>window.innerHeight-180)window.scrollBy({top:box.top-top-60,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
-    });
-    return()=>cancelAnimationFrame(frame);
-  },[inlineDetails,detailHost,panelOpen,audioExpanded,tourOpen]);
+    let frame=0;
+    const reveal=()=>{
+      cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{
+        const card=detailHost.querySelector<HTMLElement>('.workspace-popover:not([hidden])');if(!card)return;
+        const viewport=window.visualViewport,viewportTop=viewport?.offsetTop??0,viewportBottom=viewportTop+(viewport?.height??window.innerHeight);
+        const workspace=document.querySelector<HTMLElement>('.reader-workspace');
+        const bar=workspace&&!['left','right'].includes(workspace.dataset.dock??'')?workspace.getBoundingClientRect():undefined,footer=document.querySelector('.reading-footer')?.getBoundingClientRect();
+        let top=Math.max(viewportTop,(document.querySelector('.reader-header')?.getBoundingClientRect().bottom??70))+12,bottom=viewportBottom-12;
+        const box=card.getBoundingClientRect();
+        if(bar&&bar.top<top+100&&bar.right>box.left&&bar.left<box.right)top=Math.max(top,bar.bottom+12);
+        if(footer&&footer.top>top&&footer.top<bottom)bottom=footer.top-12;
+        if(bar&&bar.top>top+100&&bar.top<bottom&&bar.right>box.left&&bar.left<box.right)bottom=bar.top-12;
+        card.style.setProperty('--inline-panel-height',Math.max(160,bottom-top)+'px');
+        const updated=card.getBoundingClientRect();
+        // Reveal the complete input and save action when a keyboard reduces the viewport.
+        const desired=Math.max(top,Math.min(updated.top,bottom-updated.height));
+        if(Math.abs(updated.top-desired)>1)window.scrollBy({top:updated.top-desired,behavior:'instant'});
+      });
+    };
+    reveal();window.addEventListener('resize',reveal);window.visualViewport?.addEventListener('resize',reveal);
+    return()=>{cancelAnimationFrame(frame);window.removeEventListener('resize',reveal);window.visualViewport?.removeEventListener('resize',reveal);};
+  },[inlineDetails,detailHost,panelOpen,panel,audioExpanded,tourOpen]);
   function updateURL(nextBook:Book,nextSection:Section,nextView:View,blockId?:string,replace=false){
     const url=new URL(window.location.href);
     url.search=nextView==='library'?'view=library':new URLSearchParams({work:nextBook.id,section:nextSection.id,view:nextView}).toString();url.hash=blockId??'';
@@ -246,26 +258,34 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   function scrollToView(next:View,blockId?:string){
     if(next==='notes')afterLayout(()=>window.scrollTo({top:notebookScroll.current,behavior:'instant'}));else scrollToBlock(blockId);
   }
+  function prepareToLeaveReader(){
+    if(view!=='reader'||tourOpen)return true;
+    const allowed=window.dispatchEvent(new Event('buchtutor-before-reader-leave',{cancelable:true}));
+    if(!allowed){setDialog(null);setContentsOpen(false);setPanelOpen(false);setAudioExpanded(false);setMenusKey(n=>n+1);}
+    return allowed;
+  }
   function showView(next:View){
-    cancelBookOpen();if(next===view)return;
+    if(next===view||!prepareToLeaveReader())return;cancelBookOpen();
     if(view==='notes')notebookScroll.current=window.scrollY;
     rememberReading();readMode();closeReaderDetails();if(next!=='reader')setAudioOpen(false);
     setView(next);updateURL(book,section,next);scrollToView(next);
   }
   function goToSection(id:string,blockId?:string,writeURL=true){
-    const next=book.sections.find(s=>s.id===id);if(!next)return;
+    const next=book.sections.find(s=>s.id===id);if(!next||id!==section.id&&!prepareToLeaveReader())return false;
     if(writeURL){cancelBookOpen();closeReaderDetails();}else{contentsPosition.current=null;setPanelOpen(false);setContentsOpen(false);}
     rememberReading();restoreReading(book,next);setSectionId(id);setView('reader');setScrub(null);
     setCurrentBlock(blockId??next.blocks.find(isText)?.id??'');
     if(writeURL)updateURL(book,next,'reader',blockId);
-    scrollToBlock(blockId);
+    scrollToBlock(blockId);return true;
   }
   async function openBook(id:string,target?:{sectionId?:string;blockId?:string;anchor?:Anchor;note?:SavedNote},destination:View='reader',writeURL=true){
+    if(!prepareToLeaveReader()){if(!writeURL)updateURL(book,section,view,currentBlock,true);return false;}
     const seq=++bookRequest.current;bookAbort.current?.abort();const controller=new AbortController();bookAbort.current=controller;setBookBusy(true);
     if(view==='notes'&&destination!=='notes')notebookScroll.current=window.scrollY;
     try{
       const next=bookCache.current.get(id)??(await request<{book:Book}>('/api/books/'+encodeURIComponent(id),undefined,controller.signal)).book;
-      if(!next)throw new Error('Das Werk ist nicht verfügbar.');if(seq!==bookRequest.current)return;
+      if(!next)throw new Error('Das Werk ist nicht verfügbar.');if(seq!==bookRequest.current)return false;
+      if(!prepareToLeaveReader()){if(!writeURL)updateURL(book,section,view,currentBlock,true);return false;}
       bookCache.current.set(id,next);
       const remembered=prefs.autoBookmark?readingPlaces.current.get(next.editionId)??local.data.progress.find(p=>p.workId===id&&p.editionId===next.editionId):undefined;
       const nextSection=next.sections.find(s=>s.id===(target?.sectionId??remembered?.sectionId))??firstReadable(next);
@@ -275,6 +295,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
       if(writeURL)updateURL(next,nextSection,destination,blockId);
       scrollToView(destination,destination==='reader'?blockId:undefined);
       if(target?.anchor){activeSelection.current={bookId:next.id,anchor:target.anchor};setSelection(target.anchor);setPassages([target.anchor]);setEditNote(target.note??null);setResult(target.note?.analysis??null);setPanel(target.note?.analysis?'help':'notes');if(target.note)setPanelOpen(true);}
+      return true;
     }catch(e){if(seq===bookRequest.current&&!controller.signal.aborted)announce((e as Error).message);}finally{if(seq===bookRequest.current){setBookBusy(false);bookAbort.current=null;}}
   }
   function openContents(event:MouseEvent<HTMLButtonElement>){contentsPosition.current=capturePosition();contentsTrigger.current=event.currentTarget;setContentsOpen(true);setPanelOpen(false);restorePosition(contentsPosition.current);}
@@ -378,10 +399,10 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   }
   function example(){
     const item=aiStatus.examples.find(e=>e.workId===book.id);if(!item)return;
-    goToSection(item.anchor.sectionId,item.anchor.startId);changeSelection(item.anchor);openPanel('help');
+    if(!goToSection(item.anchor.sectionId,item.anchor.startId))return;changeSelection(item.anchor);openPanel('help');
   }
   function changeNoteInput(value:string){
-    if(tourStep!==null){setTourNote(value);if(value.trim())markTour('notes');}
+    if(tourStep!==null){setTourNote(value);setTourDone(old=>old.notes&&value!==tourNote?{...old,notes:false}:old);}
     else if(value!==draft)changeDraft(draftKey,value);
   }
   async function save(kind:SavedNote['kind']='note',analysis?:Analysis){
@@ -437,7 +458,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   function jumpToReference(){
     const number=Number(jump),target=locations.find(({block})=>block.unit===book.referenceMode&&block.number!==undefined&&block.number<=number&&(block.numberEnd??block.number)>=number);
     if(!Number.isInteger(number)||number<1||!target){setJumpError('Diese Nummer ist in dieser Ausgabe nicht enthalten. Suche alternativ nach einem Wort aus der Stelle.');return;}
-    setDialog(null);setJumpError('');goToSection(target.section.id,target.block.id);changeSelection(makeAnchor(target.section,target.block.id));
+    setDialog(null);setJumpError('');if(!goToSection(target.section.id,target.block.id))return;changeSelection(makeAnchor(target.section,target.block.id));
   }
   function commitScrub(value:number){if(tourStep!==null){markTour('navigation');return;}const target=locations[value];if(target)goToSection(target.section.id,target.block.id);setScrub(null);}
   const searchResults=useMemo(()=>{
@@ -451,13 +472,13 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
 
   useReaderTools({
     read:()=>({view,workId:book.id,title:book.title,editionId:book.editionId,sectionId:section.id,referenceMode:book.referenceMode,selection,sections:book.sections.map(s=>({id:s.id,title:s.title,path:s.path})),blocks:section.blocks.filter(isText).map(b=>({id:b.id,text:b.text,number:b.number,unit:b.unit})),library:catalog.map(w=>({id:w.id,title:w.title}))}),
-    open:async input=>{if(typeof input.workId!=='string'||typeof input.sectionId!=='string'||!catalog.some(w=>w.id===input.workId))throw new Error('Unknown work or section.');await openBook(input.workId,{sectionId:input.sectionId});return {opened:true};},
+    open:async input=>{if(typeof input.workId!=='string'||typeof input.sectionId!=='string'||!catalog.some(w=>w.id===input.workId))throw new Error('Unknown work or section.');return {opened:!!await openBook(input.workId,{sectionId:input.sectionId})};},
     select:input=>{
       if(typeof input.sectionId!=='string'||typeof input.startId!=='string'||(input.endId!==undefined&&typeof input.endId!=='string'))throw new Error('Section and block IDs are required.');
       for(const key of ['startOffset','endOffset'])if(input[key]!==undefined&&(!Number.isInteger(input[key])||Number(input[key])<0))throw new Error('Invalid offset.');
       const next=book.sections.find(s=>s.id===input.sectionId);if(!next)throw new Error('Unknown section.');
       const anchor=makeAnchor(next,input.startId,input.endId as string|undefined,input.startOffset as number|undefined,input.endOffset as number|undefined);
-      goToSection(next.id,anchor.startId);changeSelection(anchor);return {selection:anchor,reference:referenceLabel(next,anchor)};
+      if(!goToSection(next.id,anchor.startId))throw new Error('Save pending reader changes before navigating.');changeSelection(anchor);return {selection:anchor,reference:referenceLabel(next,anchor)};
     },
   });
 
@@ -470,7 +491,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const singleSelectionActions=selection&&selectedPassages.length===1&&!panelOpen&&!audioExpanded&&!pencilMode&&<ReaderSelectionActions key={book.editionId+':'+section.id+':'+menusKey} reference={referenceLabel(section,selection)} choosing={selectMode} onAdd={addAnotherPassage} onMark={markPassages} onClear={resetSelection} bookmark={selectionBookmark}/>;
 
   const companionPanel=view==='reader'&&<aside data-panel={panel} className={'workspace-popover assistant-panel '+(panelExpanded?'expanded ':'')+(panel==='notes'&&attachedIds.length?'showing-annotations':'')} hidden={!panelOpen||focus} inert={!panelOpen||focus} aria-hidden={!panelOpen||focus} aria-labelledby="assistant-title">
-      <div className="panel-handle" aria-hidden="true"/><div className="assistant-heading"><h2 id="assistant-title" ref={panelHeading} tabIndex={-1}>{panel==='notes'?(attachedIds.length?'Zur Markierung':'Notiz'):panel==='figures'?'Figuren':'KI-Hilfe'}{panel==='notes'&&displaySelection&&<span className="workspace-note-reference">{referenceLabel(section,displaySelection)}</span>}</h2><div><button className="icon-button expand-panel" aria-label={panelExpanded?'Lesehilfe verkleinern':'Lesehilfe vergrößern'} onClick={()=>setPanelExpanded(!panelExpanded)}>{panelExpanded?<Minimize2 size={17}/>:<Maximize2 size={17}/>}</button><button className="icon-button" aria-label="Lesehilfe schließen" onClick={closePanel}><X size={19}/></button></div></div>
+      <div className="panel-handle" aria-hidden="true"/><div className="assistant-heading"><h2 id="assistant-title" ref={panelHeading} tabIndex={-1}>{panel==='notes'?(attachedIds.length?'Zur Markierung':'Notiz'):panel==='figures'?'Figuren':'KI-Hilfe'}{panel==='notes'&&displaySelection&&<span className="workspace-note-reference">{referenceLabel(section,displaySelection)}</span>}</h2><div>{panel==='notes'&&tourStep===null&&<button className="text-button notebook-reader-link" aria-label="Notizbuch" title="Notizbuch öffnen" onClick={()=>showView('notes')}>Notizbuch<BookOpen size={16}/></button>}<button className="icon-button expand-panel" aria-label={panelExpanded?'Lesehilfe verkleinern':'Lesehilfe vergrößern'} onClick={()=>setPanelExpanded(!panelExpanded)}>{panelExpanded?<Minimize2 size={17}/>:<Maximize2 size={17}/>}</button><button className="icon-button" aria-label="Lesehilfe schließen" onClick={closePanel}><X size={19}/></button></div></div>
       {passagePicker}<div className="companion-tabs" role="group" aria-label="Lesehilfe auswählen">{[['help','Verstehen',Lightbulb],['figures','Figuren',Users],['notes','Notizen',MessageSquare]].map(([value,label,Icon])=>{const TabIcon=Icon as typeof Lightbulb;return <button key={value as string} aria-pressed={panel===value} onClick={()=>setPanel(value as string)}><TabIcon size={18}/>{label as string}</button>;})}</div>
       <div className="panel-scroll" key={panel} ref={panelScroll} onScroll={event=>{if(panelOpen)panelScrollPositions.current[panel]=event.currentTarget.scrollTop;}}>
         {panel==='help'?<ReaderAssistant book={book} section={section} selection={displaySelection} practiceMode={tourStep!==null?tourMode:undefined} analysis={tourStep!==null?null:result} status={aiStatus} busy={analysisBusy} error={analysisError} question={question} setQuestion={setQuestion} onAnalyze={mode=>void analyze(mode)} onExample={example} onFigures={()=>setPanel('figures')} onNote={()=>setPanel('notes')} onSave={()=>result&&void save(result.mode,result)} onQuote={id=>{closePanel();scrollToBlock(id);}} saving={saving} saved={!!result&&notes.some(n=>n.analysis?.id===result.id)} remaining={remaining} normalized={normalized} onCancel={cancelAnalysis}/>:panel==='figures'?<ReaderFigures key={book.id} book={book} section={section} selected={tourStep!==null?tourCharacters:selectedCharacters} onSelect={selectCharacter} onClear={()=>tourStep!==null?setTourCharacters([]):setSelectedCharacters([])}/>:<div className="panel-notes">
@@ -492,7 +513,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
     </header>:<header className="library-header"><button className="wordmark" aria-label="Buchtutor · Bibliothek" onClick={()=>showView('library')}><BrandMark/><span>{brand.name}</span></button><nav aria-label="Hauptnavigation"><button aria-current={view==='library'?'page':undefined} onClick={()=>showView('library')}>Bibliothek</button><button aria-current={view==='notes'?'page':undefined} onClick={()=>showView('notes')}>Meine Notizen</button></nav><button className="icon-button tour-launch" aria-label="Einführung starten" title="Einführung" onClick={startTour}><CircleHelp size={19}/></button><button className="icon-button" aria-label="Einstellungen und Geräteübertragung" aria-haspopup="dialog" onClick={()=>openSettings()}><Settings2 size={20}/></button></header>}
     {focus&&<button className="focus-exit" onClick={toggleFocus}><Minimize2 size={17}/>Fokus beenden</button>}
     {local.error&&<div className="storage-error" role="alert">{local.error}</div>}
-    {view==='library'?<ReaderLibrary catalog={catalog} progress={prefs.autoBookmark?local.data.progress:[]} onOpen={id=>void openBook(id)}/>:view==='notes'?<Notebook selected={notebookSelection} onSelectedChange={setNotebookSelection} selecting={notebookSelecting} onSelectingChange={setNotebookSelecting} onDeleteMany={removeNotes} filters={tourStep!==null?tourNotebookFilters:notebookFilters} onFiltersChange={tourStep!==null?setTourNotebookFilters:setNotebookFilters} practice={tourStep!==null} notes={tourStep!==null&&tourExample?[tourExample]:notes} catalog={catalog} onOpen={note=>tourStep!==null?prepareTour(4):openNote(note)} onDelete={note=>{if(tourStep===null)void removeNote(note);}} deletedNotes={local.data.notes.filter(note=>!!note.deletedAt)} onRestore={async note=>{await saveLocalNote({...note,deletedAt:undefined,updatedAt:new Date(Math.max(Date.now(),Date.parse(note.updatedAt)+1)).toISOString()},note);setDeleted(null);announce('Eintrag mit Markierung und Handschrift wiederhergestellt.');}} onTransfer={()=>openSettings('transfer')}/>:<>
+    {view==='library'?<ReaderLibrary catalog={catalog} progress={prefs.autoBookmark?local.data.progress:[]} onOpen={id=>void openBook(id)}/>:view==='notes'?<Notebook onResumeDraft={async(workId,sectionId)=>{if(await openBook(workId,{sectionId}))setPencilMode(true);}} onBrowseBooks={()=>showView('library')} selected={notebookSelection} onSelectedChange={setNotebookSelection} selecting={notebookSelecting} onSelectingChange={setNotebookSelecting} onDeleteMany={removeNotes} filters={tourStep!==null?tourNotebookFilters:notebookFilters} onFiltersChange={tourStep!==null?setTourNotebookFilters:setNotebookFilters} practice={tourStep!==null} notes={tourStep!==null?(tourExample?[tourExample]:[]):notes} catalog={catalog} onOpen={note=>tourStep!==null?prepareTour(tourSteps.findIndex(step=>step.id==='notes')):openNote(note)} onDelete={note=>{if(tourStep===null)void removeNote(note);}} deletedNotes={local.data.notes.filter(note=>!!note.deletedAt)} onRestore={async note=>{await saveLocalNote({...note,deletedAt:undefined,updatedAt:new Date(Math.max(Date.now(),Date.parse(note.updatedAt)+1)).toISOString()},note);setDeleted(null);announce('Eintrag mit Markierung und Handschrift wiederhergestellt.');}} onTransfer={()=>openSettings('transfer')}/>:<>
       <main className="reading-main" id="main-content">
        <div ref={documentStageRef} className="document-zoom-stage" data-zoom-gestures={!dialog&&!contentsOpen&&!tourOpen}>
         <article ref={article} className="reading-page" data-document-scale={documentScale}>
@@ -559,12 +580,12 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
           <button className="settings-tour-launch" onClick={startTour}><CircleHelp size={17}/>Einführung erneut starten</button><div className="settings-links"><a href="/datenschutz">Datenschutz</a><a href="/impressum">Impressum</a></div>
         </div>}</>}
         {dialog==='share'&&shareTarget&&<ReaderShare key={shareTarget.url} target={shareTarget}/>}
-        {dialog==='search'&&<><form className="jump-form" onSubmit={e=>{e.preventDefault();jumpToReference();}}><label htmlFor="jump-number">Zu {unitLabel(book.referenceMode)} springen</label><div><input id="jump-number" className="text-input" type="number" inputMode="numeric" min="1" step="1" value={jump} onChange={e=>{setJump(e.target.value);setJumpError('');}} placeholder="z. B. 322"/><button className="primary-button" type="submit">Öffnen<ArrowRight size={16}/></button></div>{jumpError&&<p className="inline-error" role="alert">{jumpError}</p>}{book.referenceMode!=='verse'&&<p className="small-note">Nummern gelten für diese Digitalausgabe.</p>}</form><label className="search-field"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Wort oder Textstelle" aria-label="Im gesamten Werk suchen"/></label><div className="search-results">{searchResults.map(({section:s,block:b})=><button key={b.id} onClick={()=>{setDialog(null);goToSection(s.id,b.id);changeSelection(makeAnchor(s,b.id));}}><span>{s.path.join(' · ')} {s.title} · {unitLabel(b.unit,true)} {b.number}</span><p>{b.text.slice(Math.max(0,b.text.toLocaleLowerCase('de').indexOf(query.toLocaleLowerCase('de'))-50),Math.max(0,b.text.toLocaleLowerCase('de').indexOf(query.toLocaleLowerCase('de'))-50)+230)}</p></button>)}{query.length>=2&&!searchResults.length&&<p>Keine Stelle gefunden.</p>}{searchResults.length===50&&<p className="small-note">Die ersten 50 Treffer. Grenze die Suche weiter ein.</p>}</div></>}
+        {dialog==='search'&&<><form className="jump-form" onSubmit={e=>{e.preventDefault();jumpToReference();}}><label htmlFor="jump-number">Zu {unitLabel(book.referenceMode)} springen</label><div><input id="jump-number" className="text-input" type="number" inputMode="numeric" min="1" step="1" value={jump} onChange={e=>{setJump(e.target.value);setJumpError('');}} placeholder="z. B. 322"/><button className="primary-button" type="submit">Öffnen<ArrowRight size={16}/></button></div>{jumpError&&<p className="inline-error" role="alert">{jumpError}</p>}{book.referenceMode!=='verse'&&<p className="small-note">Nummern gelten für diese Digitalausgabe.</p>}</form><label className="search-field"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Wort oder Textstelle" aria-label="Im gesamten Werk suchen"/></label><div className="search-results">{searchResults.map(({section:s,block:b})=><button key={b.id} onClick={()=>{setDialog(null);if(!goToSection(s.id,b.id))return;changeSelection(makeAnchor(s,b.id));}}><span>{s.path.join(' · ')} {s.title} · {unitLabel(b.unit,true)} {b.number}</span><p>{b.text.slice(Math.max(0,b.text.toLocaleLowerCase('de').indexOf(query.toLocaleLowerCase('de'))-50),Math.max(0,b.text.toLocaleLowerCase('de').indexOf(query.toLocaleLowerCase('de'))-50)+230)}</p></button>)}{query.length>=2&&!searchResults.length&&<p>Keine Stelle gefunden.</p>}{searchResults.length===50&&<p className="small-note">Die ersten 50 Treffer. Grenze die Suche weiter ein.</p>}</div></>}
         {dialog==='source'&&<div className="source-details"><h3>Nummern dieser Ausgabe</h3><p>{book.note}</p>{!!book.validation.missingReferences?.length&&<p>Die Vorlage lässt die Nummern {book.validation.missingReferences[0]}–{book.validation.missingReferences.at(-1)} im Lesetext aus. Diese Lücke bleibt erhalten.</p>}<p>Ein Abgleich mit einer bestimmten Reclam-ISBN und die vollständige fachliche Durchsicht stehen noch aus.</p><h3>Textgrundlage</h3><p>{book.sourceEdition}</p><a href={book.sourceUrl} target="_blank" rel="noreferrer">{book.sourceLabel}<ExternalLink size={14}/></a><h3>Nutzung</h3>{book.licenses.map(license=><p key={license.name}><a href={license.url} target="_blank" rel="noreferrer">{license.name}<ExternalLink size={13}/></a></p>)}{book.id==='faust'&&<p>Diese Faust-Textgrundlage darf nur nichtkommerziell weiterverwendet werden.</p>}<details><summary>Ausgabe identifizieren</summary><code>{book.editionId}</code><p className="small-note">SHA-256: {book.revision}</p></details><button className="secondary-button" onClick={async()=>{try{await navigator.clipboard.writeText(book.author+': '+book.title+'. '+section.path.join(', ')+' '+section.title+', '+referenceLabel(section,selection??undefined)+'. '+book.sourceEdition+'. '+book.sourceUrl);announce('Quellenangabe kopiert.');}catch{announce('Kopieren wurde vom Browser nicht erlaubt.');}}}><Copy size={16}/>Quellenangabe kopieren</button></div>}
       </DialogContent>
     </Dialog>
 
-    <ReaderOnboarding open={tourOpen} bookTitle={book.title} colorLabel={pencilPalette[tourColor].name} exampleText={tourExample?.body??''} onBegin={()=>prepareTour(0)} done={tourDone} onTry={value=>{if(tourStep!==null&&(tourSteps[tourStep].id!=='notebook'||value===tourColor))markTour(tourSteps[tourStep].id);}} ready={local.ready&&!bookBusy&&!analysisBusy&&!dialog&&!contentsOpen} step={tourStep} onStart={startTour} onStep={prepareTour} onClose={closeTour}/>
+    <ReaderOnboarding welcomeActionLabel={view==='reader'?'Weiterlesen':view==='notes'?'Zu meinen Notizen':'Werk wählen'} open={tourOpen} bookTitle={book.title} colorLabel={pencilPalette[tourColor].name} exampleText={tourExample?.body??''} onBegin={()=>prepareTour(0)} done={tourDone} onTry={value=>{if(tourStep!==null&&(tourSteps[tourStep].id!=='notebook'||value===tourColor))markTour(tourSteps[tourStep].id);}} ready={local.ready&&!bookBusy&&!analysisBusy&&!dialog&&!contentsOpen} step={tourStep} onStart={startTour} onStep={prepareTour} onClose={closeTour}/>
     {bookBusy&&<div className="loading-overlay" role="status"><LoaderCircle className="spin" size={22}/><span>Werk wird geöffnet …</span><button className="icon-button" aria-label="Öffnen des Werkes abbrechen" onClick={cancelBookOpen}><X size={18}/></button></div>}
     {(notice||deleted)&&<div className={'toast '+(view==='reader'&&(selection||selectMode)&&!panelOpen&&!pencilMode?'above-selection':'')} role="status"><span>{notice||'Eintrag gelöscht.'}</span>{deleted&&<button onClick={()=>void undo()}>Rückgängig</button>}<button className="icon-button" aria-label="Hinweis schließen" onClick={()=>{setNotice('');setDeleted(null);}}><X size={16}/></button></div>}
   </div>;
