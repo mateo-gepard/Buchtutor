@@ -6,7 +6,7 @@ const reader='/?work=iphigenie&section=s001&view=reader';
 const book=JSON.parse(readFileSync('corpus/books/iphigenie.json','utf8')) as Book,section=book.sections[0];
 const lines=section.blocks.filter(block=>block.kind==='verse');
 const button=(page:Page,name:string)=>page.getByRole('button',{name,exact:true});
-async function range(page:Page,start:number,end:number){await button(page,'Bereich durch Antippen auswählen').click();await button(page,`Vers ${start} auswählen`).click();await button(page,`Vers ${end} auswählen`).click();}
+async function range(page:Page,start:number,end:number){const tool=button(page,'Bereich durch Antippen auswählen');if(await tool.getAttribute('aria-pressed')!=='true')await tool.click();await button(page,`Vers ${start} auswählen`).click();await button(page,`Vers ${end} auswählen`).click();}
 async function notebook(page:Page){await button(page,'Zur Bibliothek').click();await button(page,'Meine Notizen').click();}
 async function seed(page:Page){
  const now='2026-10-21T00:00:00.000Z';

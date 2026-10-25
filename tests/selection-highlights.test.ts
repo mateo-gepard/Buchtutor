@@ -11,6 +11,7 @@ test('direct marking is idempotent and reuses a note without discarding its body
  const withInk={...first.notes[0],pencil:{...first.notes[0].pencil!,ink:[[{x:1,y:2,pressure:.5}]],transcript:'Handschrift',transcription:'recognized' as const,erasedRanges:[{blockId:line.id,start:0,end:3}]}};
  const restored=selectionHighlights(book,[anchor],[withInk],'green');assert.equal(restored.notes[0].id,base.id);assert.deepEqual(restored.notes[0].pencil?.ink,withInk.pencil.ink);assert.equal(restored.notes[0].pencil?.transcript,'Handschrift');assert.deepEqual(restored.notes[0].pencil?.erasedRanges,[]);
  const repeat=selectionHighlights(book,[anchor],restored.notes,'green');assert.deepEqual(repeat.notes,restored.notes);
+ const recolored=selectionHighlights(book,[anchor],repeat.notes,'blue');assert.equal(recolored.notes.length,1);assert.equal(recolored.notes[0].id,base.id);assert.equal(recolored.notes[0].body,base.body);assert.deepEqual(recolored.notes[0].pencil?.ink,withInk.pencil.ink);assert.equal(recolored.notes[0].pencil?.transcript,'Handschrift');assert.equal(recolored.notes[0].pencil?.color,'blue');assert.equal(recolored.notes[0].pencil?.meaning,'Interpretationsansatz');
 });
 test('direct marking never edits a tombstone or another edition and rejects a stale quote',()=>{
  const first=selectionHighlights(book,[anchor],[],'green').notes[0];

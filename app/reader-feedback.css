@@ -6,3 +6,37 @@
 
 /* A short saved note uses only its content height beside the passage. */
 .reader-workspace .assistant-panel.showing-annotations:not(.expanded){height:auto;max-height:min(520px,calc(var(--pencil-available-height,75dvh) - 68px))}
+
+/* Color is actionable without adding a second row of tools to the reader. */
+.reader-workspace .selection-mark>i{display:grid;place-items:center;width:24px;height:22px;border-radius:6px;font-style:normal;flex-shrink:0}
+.reader-workspace .selection-mark[data-marked=true]{background:transparent;color:var(--primary)}
+.highlight-colors{padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:8px}
+.highlight-colors>[role=group]{display:flex;justify-content:space-between;gap:0}
+.highlight-colors>[role=group]>button{display:grid;place-items:center;width:44px;min-width:44px;height:44px;border-radius:9px;padding:0;background:transparent}
+.highlight-colors>[role=group]>button>i{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;font-style:normal;border:1px solid #142b2420}
+.highlight-colors>[role=group]>button[aria-pressed=true]>i{outline:2px solid var(--primary);outline-offset:3px}
+.highlight-colors>p{font-size:11px;line-height:1.5;color:var(--muted-foreground);margin:6px 3px 2px;overflow-wrap:anywhere}
+.highlight-colors>p>strong{font-weight:500;color:var(--foreground)}
+.reader-workspace .multi-selection-options{max-height:min(360px,calc(var(--pencil-available-height,75dvh) - 68px))}
+
+/* A saved mark opens a focused inspector; the text remains the main content. */
+.showing-annotations .workspace-note-reference{display:inline;font-size:11px;font-weight:400;color:var(--muted-foreground)}
+.annotation-color-trigger{display:inline-flex;align-items:center;gap:6px;min-height:44px;max-width:100%;padding:0 6px;border-radius:8px;text-align:left;font-size:11px;color:var(--muted-foreground)}
+.annotation-color-trigger:hover,.annotation-color-trigger[aria-expanded=true]{background:var(--secondary)}
+.annotation-color-trigger>i{width:13px!important;height:13px!important}
+.annotation-empty-note{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:8px 10px;text-align:left;color:var(--primary);background:var(--secondary);border-radius:10px;font-size:13px}
+.annotation-empty-note small{display:block;color:var(--muted-foreground);font-size:11px;margin-top:2px}
+.annotation-detail:has(.annotation-empty-note) .icon-button[aria-label="Notiz bearbeiten"]{display:none}
+.saved-highlight[data-annotation-active=true]{text-decoration:underline;text-decoration-color:var(--primary);text-decoration-thickness:1px;text-underline-offset:4px}
+.annotation-editor-back{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-size:12px;color:var(--primary);margin-bottom:4px}
+.annotation-detail .highlight-colors{margin-top:0;padding-top:0}
+.showing-annotations .panel-scroll{overscroll-behavior:contain}
+.annotation-detail:last-of-type{border-bottom:0;padding-bottom:0}
+.showing-annotations .notebook-reader-link{font-size:0;gap:0;width:44px;height:44px;justify-content:center}
+.showing-annotations .annotation-detail>header>span{min-width:0}
+.showing-annotations .annotation-color-trigger{overflow-wrap:anywhere}
+@media(prefers-reduced-motion:no-preference){
+ .highlight-colors button>i,.selection-mark>i{transition:background-color .15s,outline-color .15s}
+}
+
+.showing-annotations .workspace-note-reference{margin-left:6px}

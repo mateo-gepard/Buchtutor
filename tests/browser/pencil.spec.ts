@@ -40,6 +40,17 @@ test('handwriting survives closing and reload; unavailable cloud recognition nev
  await mark(page);await writeNear(page);await page.getByRole('button',{name:'Lesemodus',exact:true}).click();await page.reload();await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveCount(3);await expect(page.locator('.pencil-ink-label')).toHaveText('↳ V. 1');await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);
 });
 
+test('tapping the active Pencil tool off preserves unfinished original strokes through reopening and reload',async({page})=>{
+ await mark(page);await writeNear(page);
+ const tool=page.getByRole('button',{name:'Apple Pencil Modus',exact:true});
+ for(let i=0;i<2;i++){
+  await tool.click();await expect(tool).toHaveAttribute('aria-pressed','false');await expect(page.locator('.pencil-page-ink path')).toHaveCount(3);
+  await tool.click();await expect(tool).toHaveAttribute('aria-pressed','true');await expect(page.locator('[data-ink-group] path')).toHaveCount(3);
+ }
+ await tool.click();await page.reload();await tool.click();await expect(page.locator('[data-ink-group] path')).toHaveCount(3);
+ await page.getByRole('button',{name:'Fertig',exact:true}).click();await page.reload();await expect(page.locator('.saved-highlight')).toHaveCount(1);await expect(page.locator('.pencil-page-ink path')).toHaveCount(3);
+});
+
 test('two different handwritten notes keep their colors and canonical targets',async({page})=>{
  await mark(page);await writeNear(page);await chooseColor(page,'Blau: Interpretationsansatz');await mark(page,5);await writeNear(page,5);await expect(page.locator('[data-ink-group]')).toHaveCount(2);await expect(page.locator('.pencil-ink-label')).toHaveText(['↳ V. 1','↳ V. 6']);await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);await openNotebook(page);await expect(page.locator('.note-card')).toHaveCount(2);await page.locator('.notebook-filter-disclosure>summary').click();await page.getByLabel('Nach Markierungsfarbe filtern').selectOption('blue');await expect(page.locator('.note-card')).toHaveCount(1);await expect(page.locator('.note-card')).toContainText('Blau · Interpretationsansatz');
 });

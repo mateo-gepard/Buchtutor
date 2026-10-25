@@ -1,7 +1,7 @@
 import {test,expect,type Page} from './reader-test';
 
 const button=(page:Page,name:string)=>page.getByRole('button',{name,exact:true});
-async function range(page:Page,start:number,end:number){await button(page,'Bereich durch Antippen auswählen').click();await button(page,`Vers ${start} auswählen`).click();await button(page,`Vers ${end} auswählen`).click();}
+async function range(page:Page,start:number,end:number){const tool=button(page,'Bereich durch Antippen auswählen');if(await tool.getAttribute('aria-pressed')!=='true')await tool.click();await button(page,`Vers ${start} auswählen`).click();await button(page,`Vers ${end} auswählen`).click();}
 async function multiple(page:Page){await range(page,1,2);await button(page,'Auswahloptionen').click();await button(page,'Weitere Stelle auswählen').click();await range(page,6,7);}
 async function fits(page:Page){
  await expect.poll(()=>page.locator('.reader-workspace').evaluate(el=>{
