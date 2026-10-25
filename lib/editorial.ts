@@ -10,7 +10,10 @@ const introductions:Record<string,string>={
  emilia:'Ein Prinz, ein Bild und ein Arbeitstag am Hof: Schon zu Beginn treffen private Wünsche auf politische Macht.',
  kabale:'Die Liebe zwischen Luise Miller und Ferdinand von Walter gerät in Konflikt mit Familie, Stand und höfischer Macht.',
  maria:'Maria Stuart ist in England gefangen. Schillers Drama macht den Konflikt zwischen persönlichem Schicksal und politischem Handeln sichtbar.',
- verwandlung:'Gregor Samsa wacht verwandelt auf. Trotzdem kreisen seine ersten Gedanken um Arbeit, Pflichten und die Erwartungen seiner Familie.'
+ verwandlung:'Gregor Samsa wacht verwandelt auf. Trotzdem kreisen seine ersten Gedanken um Arbeit, Pflichten und die Erwartungen seiner Familie.',
+ lenz:'Ein Mann wandert durch das Gebirge und sucht bei Pfarrer Oberlin im Steinthal Ruhe. Büchners Erzählung blieb ein Fragment; hier ist der vollständig erhaltene Erzähltext enthalten.',
+ sandmann:'Nathanael schreibt seinem Freund Lothar von einer Begegnung, die Erinnerungen an seine Kindheit weckt. Drei Briefe eröffnen Hoffmanns Erzählung.',
+ kleider:'Ein armer Schneider ist auf dem Weg nach Goldach. Sein gepflegtes Äußeres und sein weiter Mantel lassen ihn wohlhabender erscheinen, als er ist.'
 };
 const people:Record<string,Character[]>={
  iphigenie:[

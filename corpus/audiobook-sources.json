@@ -138,5 +138,30 @@
       "Vierter Aufzug",
       "Fünfter Aufzug"
     ]
+  },
+  "lenz": {
+    "kind": "human",
+    "archiveId": "lenz_rk_librivox",
+    "narrator": "Rolf Kaiser",
+    "note": "Am Anfang ergänzt die Aufnahme „Jänner“ nach „20.“. Die Mitlesemarken folgen den übereinstimmenden Textstellen.",
+    "sourceLabel": "LibriVox · Internet Archive",
+    "sourceUrl": "https://librivox.org/lenz-by-georg-buchner/",
+    "licenseUrl": "https://librivox.org/pages/public-domain/"
+  },
+  "sandmann": {
+    "kind": "human",
+    "archiveId": "sandmann_1308_librivox",
+    "narrator": "Karlsson",
+    "sourceLabel": "LibriVox · Internet Archive",
+    "sourceUrl": "https://librivox.org/der-sandmann-by-e-t-a-hoffmann/",
+    "licenseUrl": "https://librivox.org/pages/public-domain/"
+  },
+  "kleider": {
+    "kind": "human",
+    "archiveId": "kleider_machen_leute_librivox",
+    "narrator": "Stefan Schmelz",
+    "sourceLabel": "LibriVox · Internet Archive",
+    "sourceUrl": "https://librivox.org/kleider-machen-leute-by-gottfried-keller/",
+    "licenseUrl": "https://librivox.org/pages/public-domain/"
   }
 }

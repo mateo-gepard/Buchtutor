@@ -4,11 +4,13 @@ import {hasAudiobook} from '@/lib/audiobook';
 import {BookCover} from './book-cover';
 import type {ReadingProgress,WorkMeta} from '@/lib/reader-model';
 
+const proseGenres=new Set(['Erzählung','Erzählfragment','Novellenfragment','Novelle','Roman','Briefroman']);
+
 export type LibraryFilters={query:string;filter:'all'|'drama'|'prose'};
 
 export function ReaderLibrary({catalog,progress,onOpen,filters,onFiltersChange}:{catalog:WorkMeta[];progress:ReadingProgress[];onOpen:(id:string)=>void;filters:LibraryFilters;onFiltersChange:(next:LibraryFilters)=>void}){
   const {query,filter}=filters,search=query.trim().toLocaleLowerCase('de');
-  const works=catalog.filter(w=>(filter==='all'||filter==='drama'&&w.genre!=='Erzählung'||filter==='prose'&&w.genre==='Erzählung')&&`${w.title} ${w.author}`.toLocaleLowerCase('de').includes(search));
+  const works=catalog.filter(w=>(filter==='all'||filter==='drama'&&!proseGenres.has(w.genre)||filter==='prose'&&proseGenres.has(w.genre))&&`${w.title} ${w.author}`.toLocaleLowerCase('de').includes(search));
   const showUnavailable=(filter==='all'||filter==='prose')&&'heimsuchung jenny erpenbeck'.includes(search);
   const latest=[...progress].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).map(p=>catalog.find(w=>w.id===p.workId&&w.editionId===p.editionId)).find(Boolean);
   return <main className="library-page" id="main-content">

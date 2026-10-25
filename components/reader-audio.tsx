@@ -4,6 +4,7 @@ import {useEffect,useEffectEvent,useId,useRef,useState} from 'react';
 import {ChevronDown,ChevronUp,Headphones,Pause,Play,RotateCcw,RotateCw,LocateFixed,LoaderCircle,X} from 'lucide-react';
 import {audioProgressKey,audioProgressSchema,audioTime,cueAt,validateAudiobook,type Audiobook,type AudioPosition,type AudioProgress,type AudioEmphasis} from '@/lib/audiobook';
 import {referenceLabel,type Book} from '@/lib/reader-model';
+import {coverImage} from '@/lib/reader-art';
 import {AudioReadingOptions} from './audio-reading-options';
 
 type Props={detailsHost:HTMLElement|null;expanded:boolean;onExpandedChange:(expanded:boolean)=>void;book:Book;sectionId:string;blockId:string;suspended:boolean;onPosition:(position:AudioPosition|null,follow:boolean,requestReader?:boolean)=>void;onClose:()=>void};
@@ -100,7 +101,8 @@ export function ReaderAudio({detailsHost,expanded,onExpandedChange:setExpanded,b
  const seekEvent=useEffectEvent((at:number)=>seek(at)),backEvent=useEffectEvent(()=>jump(-15)),forwardEvent=useEffectEvent(()=>jump(15));
  useEffect(()=>{
   if(!('mediaSession' in navigator))return;
-  navigator.mediaSession.metadata=new MediaMetadata({title:book.title,artist:manifest?.narrator??book.author,album:book.author,artwork:[{src:'/art/cover-'+book.id+'-v1.webp',type:'image/webp'}]});
+  const cover=coverImage(book.id);
+  navigator.mediaSession.metadata=new MediaMetadata({title:book.title,artist:manifest?.narrator??book.author,album:book.author,artwork:cover?[{src:cover,type:'image/webp'}]:[{src:'/apple-icon.png',sizes:'180x180',type:'image/png'}]});
   const handlers:{[key:string]:MediaSessionActionHandler}={play:()=>playEvent(),pause:()=>pauseEvent(),seekbackward:()=>backEvent(),seekforward:()=>forwardEvent(),seekto:details=>{if(typeof details.seekTime==='number')seekEvent(details.seekTime);}};
   for(const [action,handler] of Object.entries(handlers))try{navigator.mediaSession.setActionHandler(action as MediaSessionAction,handler);}catch{/* Optional browser action. */}
   return()=>{navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none';for(const action of Object.keys(handlers))try{navigator.mediaSession.setActionHandler(action as MediaSessionAction,null);}catch{/* Optional browser action. */}};

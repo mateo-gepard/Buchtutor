@@ -1,0 +1,2 @@
+# Keep the downloaded Project Gutenberg snapshot byte-exact, including CRLF.
+/corpus/sources/kleider.txt -text

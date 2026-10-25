@@ -19,8 +19,14 @@ async function ink(page:Page){
 }
 async function listenAndPause(page:Page){
  await button(page,'Hören und mitlesen').click();await expect(button(page,'Hörbuch abspielen')).toBeEnabled();await button(page,'Hörbuch abspielen').click();await expect(button(page,'Wiedergabe pausieren')).toBeVisible();
- await page.locator('audio').evaluate(el=>new Promise<void>(resolve=>{const audio=el as HTMLAudioElement;audio.addEventListener('seeked',()=>{audio.dispatchEvent(new Event('timeupdate'));resolve();},{once:true});audio.currentTime=8;}));
+ await button(page,'Hörbuch-Details öffnen').click();
+ await expect.poll(()=>page.locator('audio').evaluate(el=>{const audio=el as HTMLAudioElement;return audio.readyState>=1&&!audio.seeking;})).toBe(true);
+ // Use the app's seek intent. A raw media assignment can race its initial
+ // native seek and falsely test persistence of a position the UI never chose.
+ await page.getByRole('slider',{name:'Hörposition im Audiokapitel'}).evaluate(el=>{(el as HTMLInputElement).valueAsNumber=8;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));});
+ await expect.poll(()=>page.locator('audio').evaluate(el=>{const audio=el as HTMLAudioElement;return !audio.seeking&&audio.currentTime>=8&&audio.currentTime<9;})).toBe(true);
  await button(page,'Wiedergabe pausieren').click();await expect.poll(()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)??'null')?.time,audioKey)).toBeGreaterThanOrEqual(8);
+ await button(page,'Hörbuch-Details schließen').click();
 }
 test.beforeEach(async({page,context})=>{
  await useLocalHandwriting(context);await context.addInitScript(()=>{localStorage.setItem('buchtutor-pencil-handwriting-hint-v1','1');localStorage.setItem('buchtutor-pencil-cloud-hint-v1','1');});

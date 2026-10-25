@@ -93,5 +93,23 @@
     "paragraphCount": 97,
     "textExact": true,
     "manualReview": false
+  },
+  "lenz": {
+    "textBlocks": 33,
+    "paragraphCount": 33,
+    "textExact": true,
+    "manualReview": false
+  },
+  "sandmann": {
+    "textBlocks": 41,
+    "paragraphCount": 41,
+    "textExact": true,
+    "manualReview": false
+  },
+  "kleider": {
+    "textBlocks": 173,
+    "paragraphCount": 173,
+    "textExact": true,
+    "manualReview": false
   }
 }

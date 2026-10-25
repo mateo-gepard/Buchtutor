@@ -26,7 +26,10 @@ SOURCES = json.loads((ROOT / 'corpus/audiobook-sources.json').read_text())
 
 def normalized(text):
     text = text.lower().replace('ß', 'ss').replace('ſ', 's')
-    return ''.join(c for c in unicodedata.normalize('NFKD', text) if c.isalnum())
+    token = ''.join(c for c in unicodedata.normalize('NFKD', text) if c.isalnum())
+    # Historical ꝛc. in Hoffmann's letter endings is spoken as "etc.".
+    # Compare the abbreviation without changing canonical text or its offsets.
+    return 'etc' if token == 'ꝛc' else token
 
 
 def duration(value):

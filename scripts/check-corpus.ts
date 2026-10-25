@@ -10,7 +10,8 @@ for(const book of books){
  const blocks=book.sections.flatMap(s=>s.blocks),text=blocks.filter(b=>b.kind==='verse'||b.kind==='prose');
  assert.equal(new Set(blocks.map(b=>b.id)).size,blocks.length);assert.equal(new Set(book.sections.map(s=>s.id)).size,book.sections.length);
  assert.equal(text.length,book.validation.textBlocks);assert(blocks.every(b=>b.text.trim().length));
- const bytes=readFileSync(new URL(`sources/${book.id}.${book.id==='verwandlung'?'txt':'xml'}`,base));
+ const sourceExtensions:Record<string,string>={verwandlung:'txt',kleider:'txt',lenz:'html'};
+ const bytes=readFileSync(new URL(`sources/${book.id}.${sourceExtensions[book.id]??'xml'}`,base));
  // Gutenberg's original digest uses CRLF. Git normalized the tracked text to LF;
  // reconstruct only that source's original line endings without changing its edition or anchors.
  const sourceBytes=book.id==='verwandlung'?Buffer.from(bytes.toString('utf8').replace(/\r?\n/g,'\r\n')):bytes;

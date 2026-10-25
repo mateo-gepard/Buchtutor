@@ -345,5 +345,115 @@
     },
     "note": "Absätze sind innerhalb dieser digitalen Ausgabe nummeriert. Sie entsprechen keinen Zeilen- oder Seitenzahlen eines Schulhefts.",
     "curriculum": "Ergänzende Oberstufenlektüre"
+  },
+  {
+    "id": "lenz",
+    "title": "Lenz",
+    "author": "Georg Büchner",
+    "year": 1839,
+    "epoch": "Vormärz",
+    "genre": "Erzählfragment",
+    "color": "#687461",
+    "editionId": "lenz-prose-v1-daf24e8cf534",
+    "revision": "daf24e8cf534d4013c1e3d1999b05ee38bfeacb45d368903c779f071bf10f41c",
+    "sourceUrl": "https://de.wikisource.org/w/index.php?title=Lenz_(Georg_B%C3%BCchner)&oldid=3071239",
+    "sourceLabel": "Wikisource · Franzos-Ausgabe 1879",
+    "sourceEdition": "Georg Büchner: Sämmtliche Werke und handschriftlicher Nachlaß. Erste kritische Gesammt-Ausgabe, herausgegeben von Karl Emil Franzos. Sauerländer, Frankfurt am Main 1879, S. 205, 207–239. Wikisource-Transkription, Revision 3071239. Erstveröffentlichung des Fragments 1839.",
+    "licenses": [
+      {
+        "name": "Gemeinfreier Originaltext; Wikisource-Lizenzbestimmungen",
+        "url": "https://de.wikisource.org/wiki/Wikisource:Lizenzbestimmungen"
+      }
+    ],
+    "referenceMode": "paragraph",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 33,
+      "paragraphCount": 33,
+      "textExact": true,
+      "manualReview": false
+    },
+    "note": "Vollständiger erhaltener Erzähltext des Fragments, einschließlich der drei Liedstrophen; ohne Herausgeberanmerkungen. 33 digitale Absätze einschließlich Liedstrophen. Historische Schreibweise der Wikisource-Transkription; Leerraum und typografische Zeichen sind normalisiert. Keine Schulbuchseiten oder ISBN-Zuordnung.",
+    "curriculum": "Ergänzende Oberstufenlektüre",
+    "sourceFile": "lenz.html",
+    "sourceParser": {
+      "version": "prose-v1",
+      "contract": "Wikisource HTML, oldid 3071239: p-Elemente im mw-parser-output vom eindeutigen Beginn „Den 20. ging Lenz durchs Gebirg.“ bis einschließlich „So lebte er hin. …“; eingeschobene Gedichte bleiben enthalten. PageNumber, Fußnotenverweise und Referenzlisten sind Metadaten und werden ausgeschlossen. HTML-Entities dekodieren; br und sonstigen Leerraum auf Einzelabstände reduzieren; ſ→s, a/o/u/A/O/U + U+0364→ä/ö/ü/Ä/Ö/Ü, Unicode NFC. Keine sonstige Rechtschreibänderung."
+    },
+    "sourceContributors": "https://de.wikisource.org/w/index.php?title=Lenz_(Georg_B%C3%BCchner)&action=history&offset=20171206215224"
+  },
+  {
+    "id": "sandmann",
+    "title": "Der Sandmann",
+    "author": "E. T. A. Hoffmann",
+    "year": 1817,
+    "epoch": "Romantik",
+    "genre": "Erzählung",
+    "color": "#65546f",
+    "editionId": "sandmann-prose-v1-d220f20e6f74",
+    "revision": "d220f20e6f74d00eac2a35aaadc51a0bf08c5eb519e60a1b931c04d748973416",
+    "sourceUrl": "https://www.deutschestextarchiv.de/book/download_xml/hoffmann_nachtstuecke01_1817",
+    "sourceLabel": "Deutsches Textarchiv · Erstdruck 1817",
+    "sourceEdition": "E. T. A. Hoffmann: Nachtstücke. Erster Theil. Realschulbuchhandlung, Berlin 1817, S. 1–82. DTA-Transkription des Exemplars der Staatsbibliothek zu Berlin, Signatur 19 ZZ 4975-1/2. Nur „Der Sandmann“, ohne die folgenden Erzählungen.",
+    "licenses": [
+      {
+        "name": "Gemeinfreier Originaltext; reine Texte nach DTA-Nutzungsbedingungen frei nutzbar",
+        "url": "https://www.deutschestextarchiv.de/doku/nutzungsbedingungen"
+      },
+      {
+        "name": "DTA-XML und Annotationen: CC BY-SA 4.0",
+        "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.de"
+      }
+    ],
+    "referenceMode": "paragraph",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 41,
+      "paragraphCount": 41,
+      "textExact": true,
+      "manualReview": false
+    },
+    "note": "Vollständige Erzählung des Erstdrucks von 1817. Drei originale Briefüberschriften; die anschließende Erzählung ist als redaktioneller Abschnitt abgetrennt. 41 digitale Absätze, keine Schulbuchseiten. Langes s und historische Umlautzeichen sind typografisch normalisiert; historische Schreibweise bleibt erhalten. DTA-Korrekturen werden übernommen, Drucksignaturen und rein druckbedingte Worttrennungen ausgelassen.",
+    "curriculum": "Ergänzende Oberstufenlektüre",
+    "sourceFile": "sandmann.xml",
+    "sourceParser": {
+      "version": "prose-v1",
+      "contract": "DTA TEI: vollständiges erstes direktes body/div (n=1, head „Der Sandmann .“) bis vor „Ignaz Denner.“; alle 43 p-Elemente der drei untergeordneten divs in Reihenfolge. Dritter Brief endet vor dem Trennstrich nach „Tausend Grüße“; danach redaktionelle Abschnittsgrenze. choice/corr statt choice/sic; fw, note, pb, milestone aus dem Lesetext ausschließen. Discretionary ¬ plus folgenden Leerraum entfernen; die zwei p-Seitenfortsetzungen entsetzli¬|ches und Da|packte zusammenführen. Bei Wetterglas-<lb/>Händler und himmliſch-<lb/>ſchoͤne ausschließlich den Umbruchleerraum entfernen und den Bindestrich erhalten; „Wald- und Blumenflur“ bleibt unverändert. ſ→s, a/o/u/A/O/U + U+0364→ä/ö/ü/Ä/Ö/Ü; Unicode NFC und Leerraum vereinheitlichen. Keine sonstige Rechtschreibänderung."
+    }
+  },
+  {
+    "id": "kleider",
+    "title": "Kleider machen Leute",
+    "author": "Gottfried Keller",
+    "year": 1874,
+    "epoch": "Poetischer Realismus",
+    "genre": "Novelle",
+    "color": "#806b4c",
+    "editionId": "kleider-prose-v1-d2bcf015f1df",
+    "revision": "d2bcf015f1dfa76f71bd4781d7295f12a94637ad387f01e39bd0bf40b6ac0031",
+    "sourceUrl": "https://www.gutenberg.org/cache/epub/28042/pg28042.txt",
+    "sourceLabel": "Project Gutenberg · Cotta-Ausgabe 1913",
+    "sourceEdition": "Gottfried Keller: Gesammelte Werke. Fünfter Band. Die Leute von Seldwyla, zweiter Band. 74.–78. Auflage. J. G. Cotta, Stuttgart und Berlin 1913, S. 11–65. Project Gutenberg eBook 28042. Nur die Novelle „Kleider machen Leute“; Erstveröffentlichung 1874.",
+    "licenses": [
+      {
+        "name": "Gemeinfreier Originaltext; Transkriptionsquelle mit Gutenberg-Lizenz",
+        "url": "https://www.gutenberg.org/policy/license.html"
+      }
+    ],
+    "referenceMode": "paragraph",
+    "schoolAligned": false,
+    "validation": {
+      "textBlocks": 173,
+      "paragraphCount": 173,
+      "textExact": true,
+      "manualReview": false
+    },
+    "note": "Vollständige Novelle nach der Cotta-Ausgabe von 1913, ohne Sammlungseinleitung und andere Erzählungen. 173 digitale Absätze; keine Zeilen- oder Seitenzahlen einer Schulausgabe und kein ISBN-Abgleich.",
+    "curriculum": "Ergänzende Oberstufenlektüre",
+    "sourceFile": "kleider.txt",
+    "sourceParser": {
+      "version": "prose-v1",
+      "contract": "Project-Gutenberg-UTF-8-Snapshot 28042, Originalbytes einschließlich CRLF durch .gitattributes erhalten. Zum Parsen UTF-8-BOM entfernen und CRLF→LF; Text nach der genau einmal vorkommenden alleinstehenden Überschrift „Kleider machen Leute“ bis vor die genau einmal vorkommende alleinstehende Überschrift „Der Schmied seines Glückes“. Die laut Quellenhinweis als Antiqua-Schriftauszeichnung verwendeten #...#-Marker bei #a# und #b# entfernen; die Buchstaben a und b erhalten. Leerzeilen trennen Absätze; übriger Leerraum→Einzelabstände, Unicode NFC. Kein Text aus Inhaltsverzeichnis, Sammlungseinleitung, Folgeschichten oder Gutenberg-Lizenzteil."
+    }
   }
 ]

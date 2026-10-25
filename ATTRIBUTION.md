@@ -1,6 +1,6 @@
 # Textquellen und Lizenzen
 
-Die unveränderten Ausgangsdateien liegen in `corpus/sources/`. Der Konverter normalisiert Zwischenräume, überträgt die TEI-Struktur nach JSON und blendet bei Faust den textkritischen Apparat sowie den zweiten Teil aus. Er modernisiert die Schreibweise nicht. Quellenrevision und Änderungen bleiben nachvollziehbar.
+Die unveränderten Ausgangsdateien liegen in `corpus/sources/`. Die Konverter normalisieren Zwischenräume und übertragen die Quellstruktur nach JSON; bei Faust werden der textkritische Apparat sowie der zweite Teil ausgeblendet. Die historische Wortschreibung bleibt erhalten. Bei den drei ergänzten Prosawerken werden Druckzeilen und Typographie wie unten beschrieben normalisiert. Quellenrevision und Änderungen bleiben nachvollziehbar.
 
 Die literarischen Originale und die digitale Edition sind getrennt zu betrachten. Die folgenden Hinweise nennen die übernommenen Lizenzangaben; für Faust gilt ausdrücklich die nichtkommerzielle Beschränkung.
 
@@ -146,6 +146,36 @@ Georg Büchner: Sämtliche Werke und Briefe. Historisch-kritische Ausgabe mit Ko
 
 SHA-256: `4b5ad114ace0c871dd8992a2645a0ff50a8c004249dc0b70be962ba75dffa5e0`
 
+
+## Lenz
+
+Georg Büchner: *Lenz*. In: *Sämmtliche Werke und handschriftlicher Nachlaß. Erste kritische Gesammt-Ausgabe*, herausgegeben von Karl Emil Franzos. Sauerländer, Frankfurt am Main 1879, S. 205, 207–239. Vollständiges erhaltenes Erzählfragment, einschließlich der drei eingebetteten Gedichte; kein nachträglich ergänzter Schluss.
+
+[Wikisource, festgehaltene Revision 3071239](https://de.wikisource.org/w/index.php?title=Lenz_(Georg_B%C3%BCchner)&oldid=3071239). Gemeinfreier Originaltext; [Wikisource-Lizenzbestimmungen](https://de.wikisource.org/wiki/Wikisource:Lizenzbestimmungen). Die Transkription bleibt der Quelle zugeordnet; eine zusätzliche CC-BY-SA-Lizenz wird nicht behauptet.
+
+`corpus/sources/lenz.html` enthält die unveränderte Quellseite. Der Import entfernt Seitenzahlen und zwei Herausgeberfußnoten, enthält alle drei Gedichte innerhalb ihrer Absätze und zählt 33 digitale Absätze. Zeilenumbrüche werden zu Leerzeichen. Diese Absatznummern sind keine Seitenzahlen einer Schulausgabe.
+
+SHA-256: `daf24e8cf534d4013c1e3d1999b05ee38bfeacb45d368903c779f071bf10f41c`
+
+## Der Sandmann
+
+E. T. A. Hoffmann: *Der Sandmann*. In: *Nachtstücke. Erster Theil*. Realschulbuchhandlung, Berlin 1817, S. 1–82. Digitalisiert vom Deutschen Textarchiv nach dem Exemplar der Staatsbibliothek zu Berlin, Signatur 19 ZZ 4975-1/2.
+
+[DTA-Quellendatei](https://www.deutschestextarchiv.de/book/download_xml/hoffmann_nachtstuecke01_1817), [Nutzungsbedingungen](https://www.deutschestextarchiv.de/doku/nutzungsbedingungen): historische Texte frei nutzbar; XML-Auszeichnungen unter [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Die unveränderte XML-Quelle liegt in `corpus/sources/sandmann.xml`.
+
+Importiert ist ausschließlich die vollständige erste Erzählung, nicht das folgende *Ignaz Denner*. Die drei Briefüberschriften stammen aus der Quelle; „Erzählung nach den Briefen“ ist als redaktioneller Abschnitt gekennzeichnet. Zwei im Druck über Seiten getrennte Absatzfortsetzungen werden verbunden: 43 Quellabsätze ergeben 41 digitale Absätze. TEI-Korrekturlesarten werden übernommen, Drucksignaturen ausgeblendet, gekennzeichnete Zeilentrennungen verbunden. Langes s und übergeschriebene Umlautzeichen werden typographisch normalisiert; die historische Wortschreibung bleibt erhalten.
+
+SHA-256: `d220f20e6f74d00eac2a35aaadc51a0bf08c5eb519e60a1b931c04d748973416`
+
+## Kleider machen Leute
+
+Gottfried Keller: *Kleider machen Leute*. In: *Gesammelte Werke*, Band 5, *Die Leute von Seldwyla*, Band 2, 74.–78. Auflage. J. G. Cotta, Stuttgart und Berlin 1913, S. 11–65. Erstveröffentlichung der Novelle: 1874.
+
+[Project Gutenberg, E-Book 28042](https://www.gutenberg.org/ebooks/28042), [unveränderte Textquelle](https://www.gutenberg.org/cache/epub/28042/pg28042.txt). Gemeinfreier Originaltext; Transkriptionsquelle mit [Gutenberg-Lizenz](https://www.gutenberg.org/policy/license.html). Mitwirkende und vollständige Quellhinweise bleiben in `corpus/sources/kleider.txt` erhalten.
+
+Importiert sind alle 173 Absätze der ersten Novelle. Sammlungsvorwort, Inhaltsverzeichnis, folgende Novellen und Lizenzanhang sind nicht Teil des Lesetexts. Druckzeilen innerhalb eines Absatzes werden verbunden; Antiqua-Markierungen der Textdatei werden entfernt, ihre Buchstaben erhalten. Die historische Wortschreibung bleibt erhalten. Digitale Absatznummern sind keine Editionsseiten.
+
+SHA-256: `d2bcf015f1dfa76f71bd4781d7295f12a94637ad387f01e39bd0bf40b6ac0031`
 
 ## Software und Lesehilfen
 

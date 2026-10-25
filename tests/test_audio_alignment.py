@@ -18,6 +18,14 @@ def alignment(texts, spoken, reviewed=True):
 
 
 class AlignmentTests(unittest.TestCase):
+    def test_historical_letter_closing_uses_real_abbreviation_timings(self):
+        text = 'Tausend Grüße ꝛc. ꝛc. ꝛc.'
+        cues = alignment([text], 'Tausend Grüße etc etc etc', reviewed=False)
+        self.assertEqual({cue['blockId'] for cue in cues}, {'0'})
+        self.assertEqual(cues[0]['start'], 0)
+        self.assertEqual(cues[-1]['end'], 4.5)
+        self.assertEqual(' '.join(text[c['startOffset']:c['endOffset']] for c in cues), 'Tausend Grüße ꝛc ꝛc ꝛc')
+
     def test_short_reply_needs_matching_context_on_both_sides(self):
         texts = ['eins zwei drei alt', 'ja', 'alt vier fünf sechs']
         self.assertIn('1', {c['blockId'] for c in alignment(texts, 'eins zwei drei neu ja neu vier fünf sechs')})
