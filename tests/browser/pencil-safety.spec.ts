@@ -46,16 +46,16 @@ test('a malformed main draft recovers from its valid journal without deleting th
  await page.getByRole('button',{name:'Fertig',exact:true}).click();await expect(page.locator('.pencil-workspace')).toHaveCount(0);
 });
 test('writing at document zoom stores the same document coordinates and erases through scaled geometry',async({page})=>{
- await mark(page);await page.getByRole('button',{name:'Dokumentzoom',exact:true}).click();
+ await mark(page);await page.getByRole('button',{name:'Ansicht einstellen',exact:true}).click();
  for(let i=0;i<4;i++)await page.getByRole('button',{name:'Dokument vergrößern',exact:true}).click();
- await page.getByRole('button',{name:'Dokumentzoom schließen',exact:true}).click();
+ await page.getByRole('button',{name:'Ansicht schließen',exact:true}).click();
  await ink(page);await expect(page.locator('[data-ink-group] path')).toHaveCount(1);
  const path=await page.locator('[data-ink-group] path').getAttribute('d');
  const point=await page.evaluate(()=>{const key=Object.keys(localStorage).find(key=>key.startsWith('buchtutor-pencil-draft:'))!;return JSON.parse(localStorage.getItem(key)!).groups[0].strokes[0].points[0];});expect(point.x).toBeCloseTo(-25,1);expect(point.y).toBeCloseTo(4,1);
  await page.getByRole('button',{name:'Fertig',exact:true}).click();await page.reload();
  await expect(page.locator('[data-ink-saved=true] path')).toHaveAttribute('d',path!);
  await page.getByRole('button',{name:'Apple Pencil Modus',exact:true}).click();
- await page.getByRole('button',{name:'Dokumentzoom',exact:true}).click();for(let i=0;i<2;i++)await page.getByRole('button',{name:'Dokument vergrößern',exact:true}).click();await page.getByRole('button',{name:'Dokumentzoom schließen',exact:true}).click();
+ await page.getByRole('button',{name:'Ansicht einstellen',exact:true}).click();for(let i=0;i<2;i++)await page.getByRole('button',{name:'Dokument vergrößern',exact:true}).click();await page.getByRole('button',{name:'Ansicht schließen',exact:true}).click();
  await page.getByRole('button',{name:'Radiergummi',exact:true}).click();await ink(page);
  await expect(page.locator('[data-ink-group] path')).toHaveCount(0);await expect(page.locator('.saved-highlight')).toHaveCount(1);
  await page.getByRole('button',{name:'Rückgängig',exact:true}).click();await expect(page.locator('[data-ink-group] path')).toHaveAttribute('d',path!);

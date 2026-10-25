@@ -18,19 +18,10 @@
 @media(max-width:759px){
  .reader-workspace:not([data-dock=left]):not([data-dock=right]) .document-zoom-controls{flex-shrink:0}
 }
-/* Reuse the Pencil row's free space on narrow screens and short edge rails. */
-@media(max-width:759px){
- .reader-workspace:has(.pencil-workspace):not([data-dock=left]):not([data-dock=right]) .document-zoom-controls{display:contents}
- .reader-workspace:has(.pencil-workspace):not([data-dock=left]):not([data-dock=right]) .document-zoom-trigger{position:absolute;right:7px;bottom:7px}
- .reader-workspace:has(.pencil-workspace):not([data-dock=left]):not([data-dock=right]) .workspace-pencil-slot{padding-right:48px}
-}
+/* Compact rails keep the Pencil tray as one unit below the main modes. */
 .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .workspace-pencil-slot{grid-row:3}
-.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .document-zoom-controls{display:contents}
-.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .document-zoom-trigger{grid-column:1/-1;grid-row:3;align-self:start;justify-self:end;margin:2px;z-index:1}
 .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-color-menu{grid-column:1;width:44px}
-.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-writing-toggle{grid-row:2;grid-column:1}
-.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-eraser{grid-row:2;grid-column:2}
-.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-undo{grid-row:3;grid-column:1}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-writing-toggle{grid-row:1;grid-column:2}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-eraser{grid-row:2;grid-column:1}
+.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-undo{grid-row:2;grid-column:2}
 .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]):has(.pencil-workspace) .pencil-done{grid-row:3;grid-column:2}
-.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .audio-main:has(.audio-return){display:flex;gap:2px}
-.reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .audio-main:has(.audio-return)>:is(.audio-play,.audio-details-trigger,.audio-return){width:30px;min-width:30px;padding:0}

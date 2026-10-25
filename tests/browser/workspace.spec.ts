@@ -197,3 +197,21 @@ test('keyboard focus, individual panel scroll positions and reduced motion remai
  await fits(page,'.reader-workspace');
  expect(await page.locator('.reader-workspace').evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length)).toBe(0);
 });
+
+test('keyboard view changes keep focus when the tabs move between the note and help headers',async({page})=>{
+ await page.locator('.source-row').first().locator('.line-number').click();
+ await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();
+ await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Die Passage bleibt beim Ansichtswechsel erhalten.');
+ await page.getByRole('button',{name:'Lesehilfe vergrößern',exact:true}).click();
+ for(const name of ['Verstehen','Figuren','Notizen']){
+  const tab=page.getByRole('group',{name:'Lesehilfe auswählen',exact:true}).getByRole('button',{name,exact:true});
+  await tab.press('Enter');
+  await expect(tab).toBeFocused();
+ }
+ await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Die Passage bleibt beim Ansichtswechsel erhalten.');
+ await page.getByRole('button',{name:'Lesehilfe verkleinern',exact:true}).click();
+ await page.getByRole('button',{name:'Lesehilfe öffnen',exact:true}).click();
+ await page.getByRole('button',{name:'Notizen',exact:true}).press('Enter');
+ await expect(page.locator('#assistant-title')).toBeFocused();
+ await expect(page.getByRole('textbox',{name:'Deine Notiz',exact:true})).toHaveValue('Die Passage bleibt beim Ansichtswechsel erhalten.');
+});

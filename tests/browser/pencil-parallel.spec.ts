@@ -49,7 +49,7 @@ test('eraser cursor shows the actual scaled size, ignores fingers and closes wit
  const eraser=button(page,'Radiergummi');await eraser.focus();await eraser.press('ArrowDown');await expect(page.getByRole('group',{name:'Radierer-Einstellungen',exact:true})).toBeVisible();
  await page.getByRole('button',{name:/Präziser Radierer/}).click();const size=page.getByRole('slider',{name:'Radierergröße',exact:true});await expect(size).toBeEnabled();
  await size.evaluate(el=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(el,'8');el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));});await size.dispatchEvent('pointerup');await expect(size).toBeEnabled();await button(page,'Radierer-Einstellungen schließen').click();await expect(eraser).toBeFocused();
- await button(page,'Dokumentzoom').click();await button(page,'Dokument vergrößern').click();await button(page,'Dokument vergrößern').click();await button(page,'Dokumentzoom schließen').click();
+ await button(page,'Ansicht einstellen').click();await button(page,'Dokument vergrößern').click();await button(page,'Dokument vergrößern').click();await button(page,'Ansicht schließen').click();
  await expect.poll(()=>page.locator('.pencil-text').evaluate(el=>el.getBoundingClientRect().width/(el as HTMLElement).offsetWidth)).toBeCloseTo(1.5,2);
  await page.mouse.move(20,40);await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
  const point=await page.locator('.pencil-text').evaluate(el=>{

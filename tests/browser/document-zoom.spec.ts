@@ -1,7 +1,7 @@
 import {test,expect,useLocalHandwriting,type Page} from './reader-test';
 
 async function zoom(page:Page,value:number){
- const trigger=page.getByRole('button',{name:'Dokumentzoom',exact:true});
+ const trigger=page.getByRole('button',{name:'Ansicht einstellen',exact:true});
  if(await trigger.getAttribute('aria-expanded')!=='true')await trigger.click();
  if(value===1)await page.getByRole('button',{name:'Auf 100 % zurücksetzen',exact:true}).click();
  else{
@@ -84,7 +84,7 @@ test('pinch preserves its focal point, pans the page and leaves ordinary scrolli
 
 test('magnified notes and audio controls stay outside the document and keep drafts through rotation',async({page})=>{
  await page.setViewportSize({width:680,height:759});
- await zoom(page,1.5);await page.getByRole('button',{name:'Dokumentzoom schließen',exact:true}).click();
+ await zoom(page,1.5);await page.getByRole('button',{name:'Ansicht schließen',exact:true}).click();
  await page.getByRole('button',{name:'Notiz schreiben',exact:true}).click();
  await page.getByRole('textbox',{name:'Deine Notiz',exact:true}).fill('Diese Notiz bleibt beim Dokumentzoom erhalten.');
  expect(await page.locator('.assistant-panel').evaluate(el=>!!el.closest('.reading-page'))).toBe(false);

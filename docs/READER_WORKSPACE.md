@@ -1,5 +1,15 @@
 # Gemeinsame Lesewerkzeuge
 
+## UI-Überarbeitung vom 25.10.2026
+
+Die gemeinsame Leiste enthält jetzt ein beschriftetes Menü **Ansicht** für Dokumentzoom, Sichtbarkeit von Markierungen/Handschrift und Andocken. Drei einzelne Auslöser entfallen; Lesen, Auswahl, Pencil, Notiz, KI-Hilfe und Hören bleiben unmittelbar erreichbar. Die Hauptwerkzeuge behalten 44-Pixel-Touchflächen und ihre Anordnung in Hochformat, Querformat und Split View.
+
+Die Leseseite hebt sich als zusammenhängende Papierfläche vom Hintergrund ab. Kapitelpfad und Abschnittstitel haben eine eigene Hierarchie. Diese Änderung betrifft die Darstellung, nicht die Text- oder Handschriftkoordinaten. Bei KI-Hilfe und Figuren ersetzt der Ansichtswechsel die zusätzliche Titelzeile im Kartenkopf. Tastaturfokus bleibt auch beim Wechsel von oder zu einer Notiz erhalten.
+
+Grundlage sind offizielle Beispiele von [Goodnotes](https://support.goodnotes.com/hc/en-us/articles/13682253498767-Improved-User-Interface), [Notability](https://support.gingerlabs.com/en-us/articles/16300108-getting-started-with-notability), [Readwise Reader](https://docs.readwise.io/reader/docs/faqs/highlights-tags-notes) und [Apples Toolbar-Richtlinien](https://developer.apple.com/design/human-interface-guidelines/toolbars): häufige Werkzeuge zuerst, zusammengehörige Optionen bündeln und Inhalte vor wiederholten Überschriften priorisieren.
+
+`reader-view.spec.ts` prüft das gemeinsame Menü einschließlich Zoom, gespeicherter Sichtbarkeit, Docking, Escape und Fokus. Die bestehenden Workspace-, Dokumentzoom-, Handschrift- und Integrationsprüfungen decken die unveränderten Entwürfe, Originalstriche und Audiozustände ab.
+
 Betreiberauftrag vom 20.10.2026: Pencil/Notizen, Hörbuch und KI-Hilfe in einer gemeinsamen, verschiebbaren Leiste zusammenführen. Die pausierte Vorbereitung weiterer Hörbücher bleibt davon unberührt.
 
 ## Referenzen und Übertragung

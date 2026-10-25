@@ -47,7 +47,7 @@ for(const [width,height] of [[390,844],[600,1000],[834,1194]] as const){
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath('selection-with-labelled-actions.png')});
 
-  await page.getByRole('button',{name:'Werkzeugleiste anordnen',exact:true}).click();
+  await page.getByRole('button',{name:'Ansicht einstellen',exact:true}).click();
   await page.getByRole('button',{name:'Werkzeugleiste links andocken',exact:true}).click();
   await expect(page.locator('.reader-workspace')).toHaveAttribute('data-dock','left');
   await expectNamedCoreTools(page);

@@ -87,3 +87,23 @@
 /* Notes have the same focused, content-sized editor on wide and narrow screens. */
 .reader-workspace .assistant-panel[data-panel=notes]:not(.expanded){height:auto;max-height:min(520px,calc(var(--pencil-available-height,75dvh) - 68px))}
 .workspace-details .assistant-panel[data-panel=notes]:not(.expanded) .companion-tabs{display:none}
+.workspace-details .assistant-panel:not([data-panel=notes]) .assistant-heading{padding:5px 6px;gap:4px;border-bottom:1px solid var(--border)}
+.workspace-details .assistant-heading>.companion-tabs{flex:1;min-width:0;padding:0;border:0;gap:1px}
+.workspace-details .assistant-heading>.companion-tabs>button{flex:1;min-width:44px;flex-direction:column;gap:2px;padding:3px 5px;font-size:10px;line-height:1.2}
+.workspace-details .assistant-heading>.companion-tabs>button>svg{width:17px;height:17px}
+
+/* A stable document surface: only paint changes, so ink and canonical text
+   retain their coordinates when the page is magnified. */
+.reader-app.unified-tools .reading-main{background:color-mix(in srgb,var(--border) 36%,var(--paper))}
+.reader-app.unified-tools .reading-page{background:var(--paper);box-shadow:0 0 0 1px color-mix(in srgb,var(--border) 70%,transparent),0 3px 24px #142b2406;min-height:calc(100dvh - var(--header-height) - var(--footer-height))}
+.reader-app.unified-tools .section-heading{padding-bottom:20px;margin-bottom:26px;align-items:center;border-bottom-color:color-mix(in srgb,var(--border) 80%,transparent)}
+.reader-app.unified-tools .section-heading>p{display:grid;gap:3px;letter-spacing:0;line-height:1.4;color:var(--ink)}
+.reader-app.unified-tools .section-path{font-size:11px;font-weight:500;color:var(--muted-foreground)}
+.reader-app.unified-tools .section-heading>p>strong{font-size:22px;font-weight:650;letter-spacing:-.035em;text-wrap:balance}
+.reader-app.unified-tools .section-heading .icon-button{color:var(--muted-foreground)}
+.reader-app.unified-tools.focus-mode .reading-main{background:var(--paper)}
+.reader-app.unified-tools.focus-mode .reading-page{box-shadow:none}
+@media(max-width:599px){
+ .reader-app.unified-tools .section-heading>p>strong{font-size:20px}
+ .reader-app.unified-tools .section-heading{padding-bottom:16px;margin-bottom:20px}
+}

@@ -101,7 +101,7 @@ test('original strokes survive background recognition, reload, all visibility ch
  release();await expect(page.locator('.annotation-marker')).toHaveAttribute('aria-label',/Suchtext gespeichert/);
  expect(calls).toBe(1);await expect(page.getByText('Natur als Zuflucht – äußere Freiheit.',{exact:true})).toHaveCount(0);
  for(const [label,ink,marks] of [['Nur Markierungen',0,1],['Nur Notizen',1,0],['Alles ausblenden',0,0],['Alles anzeigen',1,1]] as const){
-  await page.getByRole('button',{name:'Markierungen und Notizen anzeigen',exact:true}).click();await page.getByRole('button',{name:label,exact:true}).click();
+  await page.getByRole('button',{name:'Ansicht einstellen',exact:true}).click();await page.getByRole('button',{name:label,exact:true}).click();
   await expect(page.locator('[data-ink-group] path')).toHaveCount(ink);await expect(page.locator('.saved-highlight')).toHaveCount(marks);
  }
  await page.reload();await expect(page.locator('[data-ink-saved=true] path')).toHaveAttribute('d',path!);
