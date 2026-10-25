@@ -23,6 +23,7 @@ import {useSelectionDismiss} from '@/hooks/use-selection-dismiss';
 import {addPassage,toggleSelected} from '@/lib/reader-selection';
 import {selectionHighlights} from '@/lib/selection-highlights';
 import {useNoteDrafts} from '@/hooks/use-note-drafts';
+import {useNotebookSession} from '@/hooks/use-notebook-session';
 import {queueHandwriting,retryHandwriting} from '@/lib/handwriting-client';
 import {noteText} from '@/lib/reader-model';
 import {ReaderText} from './reader-text';
@@ -102,6 +103,7 @@ export function ReaderApp({initialBook,catalog,initialSection,initialView,explic
   const narrowReader=useSyncExternalStore(subscribeInlineTools,inlineToolsSnapshot,serverInlineToolsSnapshot);
   const [detailHost,setDetailHost]=useState<HTMLDivElement|null>(null),[detailsAnchorId,setDetailsAnchorId]=useState('');
   const [tourStep,setTourStep]=useState<number|null>(null),[tourOpen,setTourOpen]=useState(false);
+  useNotebookSession({filters:notebookFilters,selected:notebookSelection,selecting:notebookSelecting,scrollRef:notebookScroll,view,ready:local.ready&&draftsReady,practice:tourOpen,setFilters:setNotebookFilters,setSelected:setNotebookSelection,setSelecting:setNotebookSelecting});
   const [tourColor,setTourColor]=useState<PencilColor>('green'),[tourStamp,setTourStamp]=useState('');
   const [tourDone,setTourDone]=useState<Record<string,boolean>>({}),[tourSelection,setTourSelection]=useState<Anchor|null>(null),[tourBookmark,setTourBookmark]=useState(false),[tourMode,setTourMode]=useState<AnalysisMode>(),[tourNote,setTourNote]=useState(''),[tourCharacters,setTourCharacters]=useState<string[]>([]);
   const tourSnapshot=useRef<{view:View;focus:boolean;panel:string;panelOpen:boolean;panelExpanded:boolean;pencilMode:boolean;scrub:number|null;scrollY:number;position:Position|null;trigger:HTMLElement|null}|null>(null);
