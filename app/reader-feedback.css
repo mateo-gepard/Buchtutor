@@ -1,7 +1,7 @@
 .footer-content-label{display:block;font-size:10px;line-height:1.2;color:var(--muted-foreground)}
 .footer-section>span{display:grid;gap:2px;min-width:0;text-align:left}
 .footer-section>span>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.workspace-note-actions .primary-button:disabled:not(:has(.spin)){opacity:.7}
+.workspace-note-actions .primary-button:disabled:not(:has(.spin)){background:var(--secondary);color:var(--muted-foreground);box-shadow:inset 0 0 0 1px var(--border);opacity:1}
 .note-reference{display:block;color:var(--muted-foreground);font-size:12px;line-height:1.45;margin:0 0 8px}
 
 /* A short saved note uses only its content height beside the passage. */
@@ -11,7 +11,7 @@
 .reader-workspace .selection-mark>i{display:grid;place-items:center;width:24px;height:22px;border-radius:6px;font-style:normal;flex-shrink:0}
 .reader-workspace .selection-mark[data-marked=true]{background:transparent;color:var(--primary)}
 .highlight-colors{padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:8px}
-.highlight-colors>[role=group]{display:flex;justify-content:space-between;gap:0}
+.highlight-colors>[role=group]{display:flex;justify-content:flex-start;flex-wrap:wrap;gap:2px}
 .highlight-colors>[role=group]>button{display:grid;place-items:center;width:44px;min-width:44px;height:44px;border-radius:9px;padding:0;background:transparent}
 .highlight-colors>[role=group]>button>i{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;font-style:normal;border:1px solid #142b2420}
 .highlight-colors>[role=group]>button[aria-pressed=true]>i{outline:2px solid var(--primary);outline-offset:3px}
@@ -40,3 +40,50 @@
 }
 
 .showing-annotations .workspace-note-reference{margin-left:6px}
+
+/* Reader finish: keep the existing packing, but give tools and content a
+   consistent hierarchy in both the rail and the inline inspector. */
+.reader-workspace .workspace-study,
+.reader-workspace .workspace-listen{background:transparent;border-radius:0;box-shadow:-1px 0 0 var(--border)}
+.reader-workspace:is([data-dock=left],[data-dock=right]) :is(.workspace-study,.workspace-listen){box-shadow:0 -1px 0 var(--border)}
+.reader-workspace .workspace-tool{font-weight:500}
+.reader-workspace .workspace-tool[aria-pressed=true]{font-weight:600}
+.reader-workspace .workspace-grip{color:color-mix(in srgb,var(--muted-foreground) 72%,var(--card))}
+
+.workspace-details .assistant-heading{min-height:48px;padding:2px 10px 2px 14px;background:var(--card);gap:8px}
+.workspace-details .assistant-heading h2{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:14px;font-weight:650;line-height:1.3;min-width:0}
+.workspace-details .assistant-heading>div{gap:0;flex-shrink:0}
+.workspace-details .assistant-heading .icon-button,
+.workspace-details .assistant-heading .notebook-reader-link{width:44px;min-width:44px;height:44px;border-radius:9px}
+.workspace-details .assistant-heading .notebook-reader-link{font-size:0;gap:0;padding:0;justify-content:center}
+.workspace-details .workspace-note-reference{display:inline-block;margin-left:0;font-size:11px;font-weight:500;line-height:1.5;white-space:nowrap;padding:2px 6px;border-radius:5px;background:var(--secondary);color:var(--muted-foreground)}
+.workspace-details .companion-tabs{padding:3px 8px 5px;gap:3px;background:var(--card)}
+.workspace-details .companion-tabs button{min-height:44px;border:0;border-radius:8px;font-size:12px}
+.workspace-details .companion-tabs button[aria-pressed=true]{background:var(--secondary);color:var(--primary)}
+.workspace-details .note-editor textarea{border-radius:10px;line-height:1.6;box-shadow:0 1px 2px #142b2404}
+.workspace-details .note-editor textarea::placeholder{color:var(--muted-foreground);opacity:1}
+.workspace-note-actions{background:var(--card);border-top-color:color-mix(in srgb,var(--border) 65%,transparent)}
+.workspace-details .workspace-note-actions .primary-button{gap:6px;border-radius:9px}
+.workspace-details .annotation-body{font-size:15px;line-height:1.65;margin:2px 0 12px}
+.workspace-details .annotation-detail>header{margin-bottom:8px;align-items:flex-start}
+.workspace-details .annotation-detail>header .icon-button{color:var(--muted-foreground)}
+.workspace-details .annotation-color-trigger{font-size:12px;color:var(--ink)}
+.workspace-details .saved-ink>summary{font-size:12px;min-height:44px;align-content:center}
+
+/* Short inline helpers spend their height on actions, not repeated spacing. */
+.workspace-inline-details .help-panel{padding:10px 14px 16px}
+.workspace-inline-details .help-panel>.selection-excerpt{margin-bottom:10px;padding-left:10px;border-left-width:2px}
+.workspace-inline-details .help-panel>.selection-excerpt>span{font-size:11px;margin-bottom:3px}
+.workspace-inline-details .help-panel>.selection-excerpt blockquote{font-size:13px;line-height:1.5;max-height:40px}
+.workspace-inline-details .analysis-actions{margin-bottom:8px;gap:4px}
+.workspace-inline-details .availability-note{margin:8px 0;padding:7px 9px;font-size:11px;line-height:1.45}
+.workspace-inline-details .custom-question{margin-top:10px}
+.workspace-inline-details .custom-question>label{font-size:12px;margin-bottom:4px}
+.workspace-inline-details .help-panel .analysis-result{margin-top:18px;padding-top:16px}
+@media(max-width:599px){
+ .reader-workspace:not([data-dock=left]):not([data-dock=right]) :is(.workspace-study,.workspace-listen){box-shadow:none}
+}
+
+/* Notes have the same focused, content-sized editor on wide and narrow screens. */
+.reader-workspace .assistant-panel[data-panel=notes]:not(.expanded){height:auto;max-height:min(520px,calc(var(--pencil-available-height,75dvh) - 68px))}
+.workspace-details .assistant-panel[data-panel=notes]:not(.expanded) .companion-tabs{display:none}

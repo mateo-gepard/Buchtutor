@@ -16,7 +16,7 @@
 }
 
 @media(max-width:819px){
- .reader-app.unified-tools .reader-workspace .workspace-tool{width:44px;padding:0 2px;font-size:9px;gap:2px}
+ .reader-app.unified-tools .reader-workspace .workspace-tool{width:44px;padding:0 2px;font-size:10px;gap:2px}
  .reader-app.unified-tools .reader-workspace .workspace-tool>span{line-height:1.15}
  .unified-tools:has(.reader-workspace:not([data-dock=left]):not([data-dock=right]) .selection-actions-trigger) .reading-page{padding-top:134px}
 }
@@ -27,7 +27,7 @@
 
 /* Labelled side rails retain a narrow footprint; the existing compact layout
    uses two columns when viewport height cannot fit a single column. */
-.reader-app.unified-tools .reader-workspace:is([data-dock=left],[data-dock=right]) .workspace-tool{width:44px;padding:0 2px;font-size:9px;gap:2px}
+.reader-app.unified-tools .reader-workspace:is([data-dock=left],[data-dock=right]) .workspace-tool{width:44px;padding:0 2px;font-size:10px;gap:2px}
 .reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-main{grid-template-columns:44px 44px;column-gap:2px}
 .reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-grip{grid-column:1;grid-row:1;transform:none}
 .reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .document-zoom-controls{display:block;grid-column:2;grid-row:1;justify-self:center}
@@ -74,5 +74,5 @@
 @media(min-width:760px) and (max-width:999px){
  .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) .workspace-main{gap:1px;padding:4px;flex-wrap:wrap;justify-content:center}
  .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) :is(.workspace-tool-group,.workspace-pencil-slot,.pencil-toolbar,.audio-main){gap:0;padding:0}
- .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) :is(.workspace-tool,.document-zoom-trigger){width:44px;min-width:44px;padding-inline:0;font-size:9px}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) :is(.workspace-tool,.document-zoom-trigger){width:44px;min-width:44px;padding-inline:0;font-size:10px}
 }
