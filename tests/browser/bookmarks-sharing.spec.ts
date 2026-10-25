@@ -137,7 +137,7 @@ test('copy and native sharing pass only the public link and citation',async({pag
   expect(payload.title).toBe('Iphigenie auf Tauris · Buchtutor');
   expect(Object.keys(payload).sort()).toEqual(['text','title','url']);
   await page.getByRole('button',{name:'Link kopieren',exact:true}).click();
-  await expect(page.getByRole('status')).toHaveText('Link kopiert.');
+  await expect(page.getByRole('dialog').getByRole('status')).toHaveText('Link kopiert.');
   expect(await page.evaluate(()=>(window as Window&{copied?:string}).copied)).toBe(url);
 });
 
@@ -146,7 +146,8 @@ test('selection actions use the existing study tools and remain reachable on a 3
   await page.getByRole('button',{name:'Vers 6 auswählen',exact:true}).click();
   const dock=page.getByRole('group',{name:'Notizen und Lesehilfe'});
   await expect(dock).toBeVisible();
-  const bounds=(await dock.boundingBox())!;
+  // Semantic groups share the small-screen grid; their controls must fit the visible toolbar.
+  const bounds=(await page.locator('.reader-workspace').boundingBox())!;
   for(const button of await dock.getByRole('button').all()){
     await button.scrollIntoViewIfNeeded();
     const box=(await button.boundingBox())!;

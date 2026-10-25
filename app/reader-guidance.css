@@ -1,0 +1,70 @@
+/* Core tools keep their names on touch screens and at the sides of the page. */
+.reader-app.unified-tools .reader-workspace .workspace-tool>span{display:block}
+.reader-app.unified-tools .reader-workspace .workspace-tool{min-width:44px}
+.reader-app.unified-tools .reader-workspace :is(.workspace-settings,.workspace-layers,.audio-play,.audio-details-trigger){width:44px;min-width:44px;min-height:44px}
+.reader-app.unified-tools .reader-workspace .workspace-grip{width:44px;min-width:44px;min-height:44px}
+
+.reader-selection-label[data-guiding=true]{font-size:9px;line-height:1.05}
+.reader-selection-label[data-guiding=true]>span,.reader-selection-label[data-guiding=true]>small{display:block;font:inherit}
+.reader-app.unified-tools .reader-workspace .workspace-tool:has(>.reader-selection-label[data-guiding=true]){gap:1px}
+
+/* A touch tap must not leave the next verse looking selected after the
+   in-document instruction disappears and the passage moves beneath it. */
+@media(hover:none){
+ .reader-app.unified-tools .line-select:hover{background:transparent}
+ .reader-app.unified-tools .line-select:hover:not([aria-pressed=true]){color:var(--muted-foreground)}
+}
+
+@media(max-width:819px){
+ .reader-app.unified-tools .reader-workspace .workspace-tool{width:44px;padding:0 2px;font-size:9px;gap:2px}
+ .reader-app.unified-tools .reader-workspace .workspace-tool>span{line-height:1.15}
+ .unified-tools:has(.reader-workspace:not([data-dock=left]):not([data-dock=right]) .selection-actions-trigger) .reading-page{padding-top:134px}
+}
+@media(max-width:599px){
+ .unified-tools:has(.reader-workspace:not([data-dock=left]):not([data-dock=right])) .reading-page{padding-top:134px}
+ .unified-tools:has(.reader-workspace:not([data-dock=left]):not([data-dock=right]) .workspace-pencil-slot:not(:empty)) .reading-page{padding-top:186px}
+}
+
+/* Labelled side rails retain a narrow footprint; the existing compact layout
+   uses two columns when viewport height cannot fit a single column. */
+.reader-app.unified-tools .reader-workspace:is([data-dock=left],[data-dock=right]) .workspace-tool{width:44px;padding:0 2px;font-size:9px;gap:2px}
+.reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-main{grid-template-columns:44px 44px;column-gap:2px}
+.reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-grip{grid-column:1;grid-row:1;transform:none}
+.reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .document-zoom-controls{display:block;grid-column:2;grid-row:1;justify-self:center}
+.reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .document-zoom-trigger{position:static;margin:0}
+.reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-layers{grid-column:1;grid-row:2}
+.reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-settings{grid-column:2;grid-row:2}
+.reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-tool-group{width:94px}
+.reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-modes{flex-wrap:wrap}
+@media(min-width:760px) and (max-height:600px){
+ /* Preserve the existing three-column rail on a short landscape viewport. */
+ .reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-main{grid-template-columns:44px 44px 44px}
+ .reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-tool-group{width:140px}
+ .reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .workspace-modes{flex-wrap:nowrap}
+ .reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .pencil-toolbar{grid-template-columns:44px 44px 44px}
+ .reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .pencil-toolbar>:is(.icon-button,.pencil-done){grid-column:auto;grid-row:auto}
+}
+
+@media(max-width:599px){
+ /* Let the existing controls share two rows instead of giving each nested
+    tool group its own row. Six columns remain available on a 320px phone. */
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]){display:block;width:calc(100vw - 24px)}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) .workspace-main{display:grid;grid-template-columns:repeat(auto-fit,44px);justify-content:center;align-items:center;gap:0;width:100%;padding:4px}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) :is(.workspace-tool-group,.workspace-pencil-slot,.workspace-listen .reader-audio,.workspace-listen .audio-main,.document-zoom-controls){display:contents}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) .workspace-pencil-slot:empty{display:none}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) :is(.workspace-tool,.workspace-grip,.workspace-layers,.workspace-settings,.document-zoom-trigger,.pencil-toolbar>.icon-button,.pencil-done,.audio-play,.audio-details-trigger){position:static;width:44px;min-width:44px;height:44px;min-height:44px;margin:0;grid-column:auto;grid-row:auto;transform:none}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) .pencil-workspace{display:block;grid-column:1/span 5;grid-row:2;width:220px;height:44px}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) .pencil-toolbar{display:flex;width:220px;height:44px;gap:0}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) .pencil-workspace:has(.pencil-redo){grid-column:1/span 6;width:264px}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) .pencil-workspace:has(.pencil-redo) .pencil-toolbar{width:264px}
+ .reader-app.unified-tools .reader-workspace:has(>.multi-selection-workflow):not([data-dock=left]):not([data-dock=right]) .workspace-main{min-height:96px;grid-auto-rows:44px;align-content:start}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) .multi-selection-dock{display:flex;position:absolute;left:auto;top:auto;right:6px;bottom:5px;gap:0;width:176px;height:44px;padding:0;border:0}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) .multi-selection-dock>button{width:44px;min-width:44px;max-width:44px;height:44px;padding:0;justify-content:center;gap:2px}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) :is(.multi-selection-count-label,.multi-selection-trigger small,.multi-selection-mark>span){display:none}
+}
+@media(max-width:385px){
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) .multi-selection-dock{position:static;margin:0 auto 4px}
+}
+@media(min-width:386px) and (max-width:599px){
+ .unified-tools:has(.reader-workspace:not([data-dock=left]):not([data-dock=right]) .workspace-pencil-slot:not(:empty)) .reading-page{padding-top:134px}
+}

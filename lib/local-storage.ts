@@ -128,7 +128,7 @@ async function commitLocal(change:(data:LocalSnapshot)=>LocalSnapshot,explicitIm
   }catch(error){
     try{transaction?.abort();}catch{/* Already completed/aborted. */}
     await transaction?.done.catch(()=>{});
-    const message=error instanceof Error&&error.message===corrupt?'Nicht gespeichert: '+corrupt:'Nicht gespeichert: Der Gerätespeicher ist voll, gesperrt oder die Eingabe ist ungültig. Dein Entwurf bleibt geöffnet.';
+    const message=error instanceof Error&&error.message===corrupt?'Nicht gespeichert: '+corrupt:'Nicht gespeichert: Der Gerätespeicher ist voll, gesperrt oder die Eingabe ist ungültig. Die Änderung wurde nicht übernommen. Bereits gespeicherte Daten bleiben erhalten.';
     current={...current,error:message};emit();throw new Error(message);
   }
 }

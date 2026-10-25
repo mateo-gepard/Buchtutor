@@ -9,11 +9,11 @@ import {ReaderPassageSelection} from './reader-passage-selection';
 type Props={
  passages:Anchor[];active:Anchor;section:Section;adding:boolean;choosing:boolean;
  onActivate:(anchor:Anchor)=>void;onRemove:(anchor:Anchor)=>void;onClear:()=>void;
- onAdd:()=>void;onMark:()=>void;bookmark:ReactNode;
+ onAdd:()=>void;onMark:()=>void;marking?:boolean;bookmark:ReactNode;
 };
 
 /** Keep the collection out of the reading lane until the reader asks to change it. */
-export function ReaderMultiSelection({passages,active,section,adding,choosing,onActivate,onRemove,onClear,onAdd,onMark,bookmark}:Props){
+export function ReaderMultiSelection({passages,active,section,adding,choosing,onActivate,onRemove,onClear,onAdd,onMark,marking=false,bookmark}:Props){
  const [open,setOpen]=useState(false),id=useId(),trigger=useRef<HTMLButtonElement>(null);
  useReaderPopover(open,()=>setOpen(false),'.multi-selection-trigger,.multi-selection-options','.multi-selection-trigger');
  function close(){setOpen(false);trigger.current?.focus({preventScroll:true});}
@@ -28,7 +28,7 @@ export function ReaderMultiSelection({passages,active,section,adding,choosing,on
    <button ref={trigger} className="multi-selection-trigger" aria-expanded={open} aria-controls={open?id:undefined} aria-label={`${passages.length} Stellen ausgewählt – Textstelle wechseln`} onClick={()=>setOpen(!open)} title={`Aktive Stelle: ${reference}`}>
     <span><strong>{passages.length}<span className="multi-selection-count-label"> Stellen</span></strong><small>{adding?'Weitere Stelle wählen':reference}</small></span><ChevronDown size={15}/>
    </button>
-   <button className="multi-selection-mark" aria-label="Ausgewählte Stellen markieren" title="Alle ausgewählten Stellen markieren" onClick={onMark}><Highlighter size={18}/><span>Markieren</span></button>
+   <button className="multi-selection-mark" aria-label="Ausgewählte Stellen markieren" title="Alle ausgewählten Stellen markieren" disabled={marking} onClick={onMark}><Highlighter size={18}/><span>Markieren</span></button>
    <button className="icon-button" aria-label="Weitere Stelle auswählen" title="Weitere Stelle auswählen" onClick={()=>{setOpen(false);onAdd();}}><Plus size={18}/></button>
    <button className="icon-button" aria-label="Auswahl aufheben" title="Auswahl aufheben" onClick={onClear}><X size={18}/></button>
   </div>

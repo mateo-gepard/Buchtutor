@@ -1,0 +1,8 @@
+.footer-content-label{display:block;font-size:10px;line-height:1.2;color:var(--muted-foreground)}
+.footer-section>span{display:grid;gap:2px;min-width:0;text-align:left}
+.footer-section>span>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace-note-actions .primary-button:disabled:not(:has(.spin)){opacity:.7}
+.note-reference{display:block;color:var(--muted-foreground);font-size:12px;line-height:1.45;margin:0 0 8px}
+
+/* A short saved note uses only its content height beside the passage. */
+.reader-workspace .assistant-panel.showing-annotations:not(.expanded){height:auto;max-height:min(520px,calc(var(--pencil-available-height,75dvh) - 68px))}

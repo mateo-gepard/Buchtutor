@@ -52,7 +52,8 @@ test('multi-selection stays inside every iPad dock with audio and after rotation
   await page.setViewportSize(viewport);
   for(const edge of ['Up','Right','Down','Left']){
    await grip.press(`Shift+Arrow${edge}`);await fits(page);
-   if(viewport.width>=820&&(edge==='Up'||edge==='Down'))expect((await page.locator('.reader-workspace').boundingBox())!.height).toBeLessThanOrEqual(60);
+   // A completed docking transform can report 60.000007px for a 60px bar.
+   if(viewport.width>=820&&(edge==='Up'||edge==='Down'))expect((await page.locator('.reader-workspace').boundingBox())!.height).toBeLessThanOrEqual(60.01);
    if(edge==='Left'||edge==='Right')await expect.poll(()=>page.locator('.reader-workspace').evaluate(el=>{
     const bar=el.getBoundingClientRect(),text=document.querySelector('.source-row [data-text]')!.getBoundingClientRect();return el.getAttribute('data-dock')==='left'?text.left>=bar.right:text.right<=bar.left;
    })).toBe(true);

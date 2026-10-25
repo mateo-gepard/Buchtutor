@@ -5,7 +5,7 @@ import {decryptSnapshot,downloadFile,encryptSnapshot} from '@/lib/portable';
 import {importLocal} from '@/lib/local-storage';
 import type {LocalSnapshot} from '@/lib/local-model';
 
-export function ReaderTransfer({data,onDone}:{data:LocalSnapshot;onDone:(message:string)=>void}){
+export function ReaderTransfer({data,onDone,pendingDraftCount=0,onReviewDrafts}:{data:LocalSnapshot;onDone:(message:string)=>void;pendingDraftCount?:number;onReviewDrafts?:()=>void}){
   const [tab,setTab]=useState<'export'|'import'>('export'),[password,setPassword]=useState(''),[repeat,setRepeat]=useState('');
   const [file,setFile]=useState<File|null>(null),[incoming,setIncoming]=useState<LocalSnapshot|null>(null),[preferences,setPreferences]=useState(true);
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[success,setSuccess]=useState('');
@@ -16,7 +16,7 @@ export function ReaderTransfer({data,onDone}:{data:LocalSnapshot;onDone:(message
     try{
       const encrypted=await encryptSnapshot(data,password);
       downloadFile(new Blob([encrypted.slice().buffer as ArrayBuffer],{type:'application/octet-stream'}),'Buchtutor-'+new Date().toISOString().slice(0,10)+'.buchtutor');
-      setSuccess('Sicherung erstellt. Übertrage die Datei auf dein anderes Gerät und öffne dort „Importieren“.');
+      setSuccess(pendingDraftCount?`Sicherung erstellt. ${pendingDraftCount===1?'1 Entwurf ist':`${pendingDraftCount} Entwürfe sind`} nicht enthalten. Schließe die Entwürfe ab und erstelle danach eine neue Sicherung.`:'Sicherung erstellt. Übertrage die Datei auf dein anderes Gerät und öffne dort „Importieren“.');
     }catch(e){setError((e as Error).message);}finally{setBusy(false);}
   }
   async function checkFile(){
@@ -37,6 +37,7 @@ export function ReaderTransfer({data,onDone}:{data:LocalSnapshot;onDone:(message
   }
   return <div className="transfer-panel"><div className="segmented-control" role="group" aria-label="Übertragungsrichtung">{[['export','Exportieren'],['import','Importieren']].map(([value,label])=><button key={value} aria-pressed={tab===value} onClick={()=>{setTab(value as 'export'|'import');setIncoming(null);setError('');setSuccess('');setPassword('');setRepeat('');}}>{label}</button>)}</div>
     <p>Lesezeichen, automatische Lesestände, Einstellungen, Markierungen, Notizen und gespeicherte Analysen werden in einer verschlüsselten Datei übertragen. Die Datei wird hier auf deinem Gerät verarbeitet.</p>
+    {tab==='export'&&pendingDraftCount>0&&<div className="transfer-draft-warning" role="note"><strong>{pendingDraftCount===1?'1 Entwurf ist':`${pendingDraftCount} Entwürfe sind`} nicht in der Sicherung enthalten.</strong><p>Schließe angefangene Notizen und Pencil-Entwürfe zuerst ab. Die Sicherung enthält nur dauerhaft gespeicherte Einträge. Beim Löschen der Browserdaten gehen diese Entwürfe verloren.</p>{onReviewDrafts&&<button type="button" className="secondary-button" disabled={busy} onClick={onReviewDrafts}>Entwürfe abschließen</button>}</div>}
     {tab==='export'?<form onSubmit={e=>{e.preventDefault();void exportData();}}>
       <label className="field-label" htmlFor="export-password">Passwort für die Sicherung</label><input id="export-password" className="text-input" type="password" minLength={12} maxLength={300} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mindestens 12 Zeichen" required/>
       <label className="field-label" htmlFor="export-repeat">Passwort wiederholen</label><input id="export-repeat" className="text-input" type="password" autoComplete="new-password" maxLength={300} value={repeat} onChange={e=>setRepeat(e.target.value)} required/>

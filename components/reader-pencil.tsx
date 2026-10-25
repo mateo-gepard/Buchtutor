@@ -18,20 +18,22 @@ import {recoverCommittedPencilEntry} from '@/lib/pencil-save';
 import {setHandwritingCloud} from '@/lib/handwriting-client';
 import {useReaderPopover} from '@/hooks/use-reader-popover';
 import {sameAnchor} from '@/lib/dom-selection';
-type Props={markRequest?:{id:number;anchors:Anchor[]};contentAnchor?:string;toolbarHost:HTMLElement|null;dismissMenusKey:number;onPopover:()=>void;practice?:boolean;onPractice?:(kind:'mark'|'ink'|'erase',data?:{anchor?:Anchor;color?:PencilColor;body?:string})=>void;book:Book;section:Section;prefs:Prefs;selection:Anchor|null;savedNotes:SavedNote[];enabled:boolean;onToggle:()=>void;onSaved:(message:string)=>void;children:(drafts:SavedNote[],afterBlock:Record<string,ReactNode>)=>ReactNode};
+type Props={onDraftStatus?:(status:{key:string;hasDraft:boolean;marks:{anchor:Anchor;color:PencilColor}[]})=>void;color:PencilColor;onColorChange:(color:PencilColor)=>void;contentAnchor?:string;toolbarHost:HTMLElement|null;dismissMenusKey:number;onPopover:()=>void;practice?:boolean;onPractice?:(kind:'mark'|'ink'|'erase',data?:{anchor?:Anchor;color?:PencilColor;body?:string})=>void;book:Book;section:Section;prefs:Prefs;selection:Anchor|null;savedNotes:SavedNote[];enabled:boolean;onToggle:()=>void;onSaved:(message:string)=>void;children:(drafts:SavedNote[],afterBlock:Record<string,ReactNode>)=>ReactNode};
 type DraftFrame={entries:Entry[];groups:PageInkGroup[]};
-export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenusKey,onPopover,practice=false,onPractice,book,section,prefs,selection,savedNotes,enabled,onToggle,onSaved,children}:Props){
+export function ReaderPencil({onDraftStatus,color,onColorChange:setColor,contentAnchor,toolbarHost,dismissMenusKey,onPopover,practice=false,onPractice,book,section,prefs,selection,savedNotes,enabled,onToggle,onSaved,children}:Props){
  const liveLine=useRef<SVGPathElement>(null),root=useRef<HTMLDivElement>(null);
  const continueWriting=useRef(false);
  const gesture=useRef<{id:number;strokeId:string;order:number;points:InkStroke;boxes:WordBox[];startedOnText:boolean;layout:InkLayout;referenceId:string;writing:boolean;erasing:boolean;eraserMode:Prefs['eraserMode'];radius:number;lastCheckpoint:number}|null>(null);
  const interruptGesture=useRef<()=>void>(()=>{});
- const [color,setColor]=useState<PencilColor>('green'),[settings,setSettings]=useState(false),[palette,setPalette]=useState(false),[writing,setWriting]=useState(false),[erasing,setErasing]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [settings,setSettings]=useState(false),[palette,setPalette]=useState(false),[writing,setWriting]=useState(false),[erasing,setErasing]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [eraserOptions,setEraserOptions]=useState(false),[eraserChoice,setEraserChoice]=useState<Partial<Pick<Prefs,'eraserMode'|'eraserSize'|'scribbleToErase'>>>({});
  const activeEraser={...prefs,...eraserChoice},menuEpoch=useRef(0);
  const previousWriting=useRef(false),eraserPress=useRef<ReturnType<typeof setTimeout>|null>(null),skipEraserClick=useRef(false);
  const key=`buchtutor-pencil-draft:${book.id}:${book.editionId}:${section.id}`;
  const flushActive=useCallback(()=>interruptGesture.current(),[]);
  const {entries,groups,setEntries,setGroups,loaded,storageSafe,persist,snapshot,checkpoint,acknowledge,recoveries,restore}=usePencilDraft(key,practice,setError,flushActive);
+ const reportDraft=useEffectEvent(()=>{if(!practice)onDraftStatus?.({key,hasDraft:entries.length>0||groups.length>0,marks:entries.map(entry=>({anchor:entry.anchor,color:entry.pencil.color}))});});
+ useEffect(()=>{reportDraft();},[entries,groups.length,practice]);
  const [assigning,setAssigning]=useState(false);
  const [composing,setComposing]=useState(false);
  const composition=useRef(false),saving=useRef(false);
@@ -104,9 +106,6 @@ export function ReaderPencil({markRequest,contentAnchor,toolbarHost,dismissMenus
   return()=>{el.removeEventListener('touchstart',stylus);el.removeEventListener('touchmove',stylus);};
  },[enabled]);
  useReaderPopover(enabled&&(eraserOptions||palette||settings||hint||assigning),()=>{setEraserOptions(false);setPalette(false);setSettings(false);setAssigning(false);if(hint)dismissHandwritingInfo();},'.pencil-popover,.pencil-color-menu,.pencil-eraser,.pencil-error',eraserOptions?'.pencil-eraser':'.pencil-color-menu');
- const appliedMark=useRef<number|null>(null);
- const applyMarks=useEffectEvent((anchors:Anchor[])=>{flushActive();for(const anchor of anchors)add(anchor);});
- useEffect(()=>{if(practice||!loaded||!markRequest||appliedMark.current===markRequest.id)return;appliedMark.current=markRequest.id;applyMarks(markRequest.anchors);},[loaded,markRequest,practice]);
  function showHandwritingInfo(){
   if(practice||hintAcknowledged===hintKey)return;try{if(localStorage.getItem(hintKey)==='1')return;}catch{/* The notice remains dismissible without storage. */}setSettings(false);setPalette(false);setHint(true);
  }
