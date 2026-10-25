@@ -68,3 +68,11 @@
 @media(min-width:386px) and (max-width:599px){
  .unified-tools:has(.reader-workspace:not([data-dock=left]):not([data-dock=right]) .workspace-pencil-slot:not(:empty)) .reading-page{padding-top:134px}
 }
+
+/* At iPad portrait widths, Audio return and Pencil redo must fit together.
+   Remove ornamental spacing before adding a row; keep every target 44px. */
+@media(min-width:760px) and (max-width:999px){
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) .workspace-main{gap:1px;padding:4px;flex-wrap:wrap;justify-content:center}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) :is(.workspace-tool-group,.workspace-pencil-slot,.pencil-toolbar,.audio-main){gap:0;padding:0}
+ .reader-app.unified-tools .reader-workspace:not([data-dock=left]):not([data-dock=right]) :is(.workspace-tool,.document-zoom-trigger){width:44px;min-width:44px;padding-inline:0;font-size:9px}
+}

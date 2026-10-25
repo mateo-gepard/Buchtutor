@@ -18,12 +18,13 @@ async function setup(page:Page,broken=false,synthetic=false){
 }
 async function at(page:Page,time:number){await expect.poll(()=>page.locator('audio').evaluate(el=>(el as HTMLAudioElement).readyState)).toBeGreaterThan(0);await page.locator('audio').evaluate((el,time)=>new Promise<void>(resolve=>{const media=el as HTMLAudioElement;const done=()=>{media.dispatchEvent(new Event('timeupdate'));resolve();};if(!media.seeking&&Math.abs(media.currentTime-time)<.01){done();return;}media.addEventListener('seeked',done,{once:true});media.currentTime=time;}),time);}
 async function details(page:Page){await page.getByRole('button',{name:'Hörbuch-Details öffnen',exact:true}).click();}
+async function readingOptions(page:Page){const options=page.locator('.audio-reading-options');if(await options.getAttribute('open')===null)await options.locator('summary').click();}
 async function geometry(page:Page){await expect.poll(()=>page.locator('.reader-audio').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight;})).toBe(true);await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
 
 test('recording loads only on play, follows text, pauses following on interaction, and resumes locally',async({page})=>{
  const requests=await setup(page);await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeEnabled();expect(requests()).toBe(0);await geometry(page);
  await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await at(page,2);await expect(page.locator('.audio-current')).toHaveAttribute('id',lines[0].id);expect(requests()).toBeGreaterThan(0);
- await details(page);await expect(page.getByRole('checkbox',{name:'Text automatisch mitführen'})).toBeChecked();await page.locator('[data-text]').first().dispatchEvent('pointerdown');await details(page);await expect(page.getByRole('checkbox',{name:'Text automatisch mitführen'})).not.toBeChecked();
+ await details(page);await readingOptions(page);await expect(page.getByRole('checkbox',{name:'Text automatisch mitführen'})).toBeChecked();await page.locator('[data-text]').first().dispatchEvent('pointerdown');await details(page);await expect(page.getByRole('checkbox',{name:'Text automatisch mitführen'})).not.toBeChecked();
  await page.getByRole('button',{name:'Zur Hörstelle',exact:true}).click();await expect(page.getByRole('checkbox',{name:'Text automatisch mitführen'})).toBeChecked();await page.getByRole('combobox',{name:'Hörtempo'}).selectOption('1.5');expect(await page.locator('audio').evaluate(el=>(el as HTMLAudioElement).playbackRate)).toBe(1.5);
  await at(page,8);await expect(page.locator('.audio-current')).toHaveAttribute('id',lines[3].id);await page.getByRole('button',{name:'Wiedergabe pausieren',exact:true}).click();await expect.poll(()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)??'null')?.time,audioProgressKey(book.editionId))).toBeGreaterThan(7);
  await page.evaluate(()=>window.scrollTo(0,500));
@@ -40,7 +41,7 @@ test('synthetic manifests are rejected without loading audio or offering a devic
 
 test('chapter navigation preserves pause, carries text across sections, and chapter sleep stops playback',async({page})=>{
  await setup(page);await details(page);await page.getByRole('combobox',{name:'Audiokapitel wählen'}).selectOption('1');await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await at(page,2);await expect(page).toHaveURL(new RegExp('section='+second.id));await expect(page.locator('.audio-current')).toHaveCount(1);
- await page.getByRole('combobox',{name:'Schlaftimer'}).selectOption('chapter');await page.locator('audio').evaluate(el=>el.dispatchEvent(new Event('ended')));await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();await expect(page.getByRole('combobox',{name:'Schlaftimer'})).toHaveValue('off');await geometry(page);
+ await readingOptions(page);await page.getByRole('combobox',{name:'Schlaftimer'}).selectOption('chapter');await page.locator('audio').evaluate(el=>el.dispatchEvent(new Event('ended')));await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeVisible();await expect(page.getByRole('combobox',{name:'Schlaftimer'})).toHaveValue('off');await geometry(page);
 });
 test('leaving the reader removes floating tools, pauses playback and retains the listening position',async({page})=>{
  await setup(page);await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await at(page,8);await expect(page.locator('.audio-current')).toHaveAttribute('id',lines[3].id);
@@ -140,7 +141,7 @@ test('one shared toolbar preserves audio, Pencil drafts and typed notes while sw
 
 test('reading emphasis is configurable, gaps clear the cursor and returning to audio resumes following',async({page})=>{
  await setup(page);await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await at(page,2);await details(page);
- const group=page.getByRole('group',{name:'Hörstelle hervorheben',exact:true});await group.getByRole('button',{name:'Zeile',exact:true}).click();
+ await readingOptions(page);const group=page.getByRole('group',{name:'Hörstelle hervorheben',exact:true});await group.getByRole('button',{name:'Zeile',exact:true}).click();
  await expect(page.locator('.audio-current')).toHaveAttribute('data-audio-emphasis','line');
  await group.getByRole('button',{name:'Aus',exact:true}).click();await expect(page.locator('.audio-current')).toHaveAttribute('data-audio-emphasis','off');
  await page.locator('[data-text]').first().dispatchEvent('pointerdown');await expect(page.getByRole('button',{name:'Beim Hören mitlesen',exact:true})).toBeVisible();
@@ -148,7 +149,7 @@ test('reading emphasis is configurable, gaps clear the cursor and returning to a
  await at(page,6);await expect(page.locator('.audio-current')).toHaveCount(0);await at(page,8);await expect(page.locator('.audio-current')).toHaveAttribute('id',lines[3].id);
  await page.getByRole('button',{name:'Wiedergabe pausieren',exact:true}).click();
  await expect.poll(()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)??'null')?.emphasis,audioProgressKey(book.editionId))).toBe('off');
- await page.reload();await page.getByRole('button',{name:'Hören und mitlesen',exact:true}).click();await details(page);await expect(page.getByRole('group',{name:'Hörstelle hervorheben'}).getByRole('button',{name:'Aus',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.reload();await page.getByRole('button',{name:'Hören und mitlesen',exact:true}).click();await details(page);await readingOptions(page);await expect(page.getByRole('group',{name:'Hörstelle hervorheben'}).getByRole('button',{name:'Aus',exact:true})).toHaveAttribute('aria-pressed','true');
 });
 
 test('a seek made while metadata is delayed wins over the original start position',async({page})=>{
@@ -169,7 +170,7 @@ test('following long prose uses the spoken phrase even with visual emphasis swit
  const offset=Math.floor(block.text.length*.8),recording={...manifest,workId:prose.id,editionId:prose.editionId,revision:prose.revision,tracks:[{...manifest.tracks[0],cues:[{start:1,end:12,sectionId:section.id,blockId:block.id,startOffset:offset,endOffset:offset+30,confidence:1}]}]};
  await page.addInitScript(key=>localStorage.setItem(key,'1'),ONBOARDING_KEY);await page.route('**/audiobooks/verwandlung.json',route=>route.fulfill({json:recording}));await page.route('https://archive.org/download/buchtutor-test/**',route=>route.fulfill({body:wav(),contentType:'audio/wav',headers:{'Accept-Ranges':'bytes','Access-Control-Allow-Origin':'*'}}));
  await page.goto('/?work=verwandlung&section=s001&view=reader');await page.getByRole('button',{name:'Hören und mitlesen',exact:true}).click();await expect(page.getByRole('button',{name:'Hörbuch abspielen',exact:true})).toBeEnabled();await details(page);
- await page.getByRole('group',{name:'Hörstelle hervorheben'}).getByRole('button',{name:'Aus',exact:true}).click();await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await at(page,2);
+ await readingOptions(page);await page.getByRole('group',{name:'Hörstelle hervorheben'}).getByRole('button',{name:'Aus',exact:true}).click();await page.getByRole('button',{name:'Hörbuch abspielen',exact:true}).click();await expect(page.getByRole('button',{name:'Wiedergabe pausieren',exact:true})).toBeVisible();await at(page,2);
  await expect.poll(()=>page.evaluate(({id,offset})=>{const el=document.getElementById(id)!.querySelector('[data-text]')!,walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let node:Node|null,total=0;while((node=walker.nextNode())){const length=node.textContent?.length??0;if(total+length>offset){const range=document.createRange();range.setStart(node,offset-total);range.setEnd(node,Math.min(length,offset-total+5));const rect=range.getBoundingClientRect();return rect.top>=90&&rect.bottom<=innerHeight-80;}total+=length;}return false;},{id:block.id,offset})).toBe(true);
 });
 

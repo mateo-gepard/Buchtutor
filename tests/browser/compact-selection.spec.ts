@@ -7,8 +7,9 @@ async function fits(page:Page){
  await expect.poll(()=>page.locator('.reader-workspace').evaluate(el=>{
   const bar=el.getBoundingClientRect(),header=document.querySelector('.reader-header')!.getBoundingClientRect(),footer=document.querySelector('.reading-footer')!.getBoundingClientRect();
   const actions=[...el.querySelectorAll('.multi-selection-dock button')].map(button=>button.getBoundingClientRect()),all=[...el.querySelectorAll('.workspace-main button,.multi-selection-dock button')].map(button=>button.getBoundingClientRect()).filter(r=>r.width&&r.height);
-  return bar.top>=header.bottom&&bar.bottom<=footer.top+1&&bar.left>=0&&bar.right<=innerWidth+1&&actions.every(r=>r.width>=44&&r.height>=44)&&all.every((r,i)=>r.left>=bar.left&&r.right<=bar.right+1&&r.top>=bar.top&&r.bottom<=bar.bottom+1&&all.slice(i+1).every(s=>Math.min(r.right,s.right)-Math.max(r.left,s.left)<=1||Math.min(r.bottom,s.bottom)-Math.max(r.top,s.top)<=1));
- })).toBe(true);
+  const bad=all.filter((r,i)=>!(r.left>=bar.left&&r.right<=bar.right+1&&r.top>=bar.top&&r.bottom<=bar.bottom+1&&all.slice(i+1).every(s=>Math.min(r.right,s.right)-Math.max(r.left,s.left)<=1||Math.min(r.bottom,s.bottom)-Math.max(r.top,s.top)<=1)));
+  return bar.top>=header.bottom&&bar.bottom<=footer.top+1&&bar.left>=0&&bar.right<=innerWidth+1&&actions.every(r=>r.width>=44&&r.height>=44)&&!bad.length?null:{viewport:[innerWidth,innerHeight],dock:el.getAttribute('data-dock'),bar:bar.toJSON(),actions:actions.map(r=>r.toJSON()),bad:bad.map(r=>r.toJSON())};
+ })).toBeNull();
 }
 test.beforeEach(async({page})=>{
  await page.route('**/api/analysis',route=>route.abort());await page.route('**/api/handwriting',route=>route.abort());

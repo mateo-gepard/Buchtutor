@@ -29,3 +29,49 @@
  .reader-app:has(.assistant-panel.expanded) .reader-audio{visibility:hidden}
 }
 @media(max-width:649px){.reader-app.has-panel{--audio-panel-height:max(290px,58dvh)}}
+
+/* The listening card grows with its content; uncommon options open on request. */
+.reader-app .reader-workspace .audio-details,.reader-app .workspace-inline-details .audio-details{height:auto;max-height:min(520px,calc(var(--pencil-available-height,75dvh) - 68px));padding:10px 12px}
+.reader-app .workspace-inline-details .audio-details{max-height:min(520px,var(--audio-inline-limit,520px),calc(var(--pencil-available-height,75dvh) - 68px))}
+.audio-details .audio-detail-heading{margin-bottom:2px}
+.audio-details .audio-detail-heading>.icon-button{width:44px;min-width:44px;min-height:44px}
+.audio-details .audio-playback-state{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:22px;font-size:11px;line-height:1.5;color:var(--muted-foreground)}
+.audio-playback-state>span[data-playing=true]{color:var(--primary)}
+.audio-playback-state small{font-size:10px;text-align:right}
+.audio-details .audio-seek{margin:3px 0 5px}
+.audio-details .audio-seek input{min-height:44px}
+.reader-app .workspace-details .audio-controls{margin-bottom:8px;gap:5px;flex-wrap:nowrap}
+.reader-app .workspace-details .audio-controls>.icon-button{width:44px;min-width:44px;min-height:44px}
+.reader-app .workspace-details .audio-controls>.secondary-button{min-height:44px;justify-content:center}
+.audio-playback-options{display:grid;grid-template-columns:minmax(0,1fr) 80px;gap:10px}
+.audio-playback-options label,.audio-sleep{display:block;min-width:0;font-size:11px;color:var(--muted-foreground)}
+.audio-playback-options .audio-chapters{margin:0}
+.audio-playback-options select,.audio-sleep select{display:block;width:100%;min-width:0;height:44px;min-height:44px;appearance:none;margin:4px 0 0;padding:7px 26px 7px 9px;border:1px solid var(--border);border-radius:8px;background-color:var(--paper);background-image:linear-gradient(45deg,transparent 50%,var(--muted-foreground) 50%),linear-gradient(135deg,var(--muted-foreground) 50%,transparent 50%);background-position:right 13px center,right 8px center;background-size:5px 5px;background-repeat:no-repeat;color:var(--ink);font-size:12px}
+.audio-reading-options{margin-top:10px;border-top:1px solid var(--border)}
+.audio-reading-options>summary{display:flex;align-items:center;gap:7px;min-height:44px;font-size:12px;color:var(--muted-foreground);cursor:pointer;list-style:none}
+.audio-reading-options>summary::-webkit-details-marker{display:none}
+.audio-reading-options>summary>span{flex:1}
+.audio-reading-options[open]>summary>svg:last-child{transform:rotate(180deg)}
+.audio-reading-options-body{padding:3px 0 2px}
+.audio-reading-options .audio-emphasis{margin-top:12px}
+.audio-reading-options .audio-emphasis button{min-height:44px}
+.audio-reading-options .audio-follow{align-items:center;min-height:44px;margin:10px 0 12px}
+.audio-reading-options .audio-follow input{margin:0}
+.audio-reading-options .audio-source{padding-top:10px;border-top:1px solid var(--border)}
+.audio-reading-options .audio-source p{margin:5px 0;font-size:11px;line-height:1.6}
+.audio-reading-options .audio-source>a:last-child{display:flex;align-items:center;min-height:44px;width:fit-content}
+.audio-details .audio-error{display:grid;gap:3px;padding:9px 11px;border-radius:9px;background:var(--secondary)}
+.audio-error>.text-button{justify-self:start;min-height:44px;padding:0;font-size:12px}
+.audio-resume-warning{margin:9px 0 0;font-size:11px;line-height:1.6;color:var(--muted-foreground)}
+.reader-app .reader-workspace .audio-return{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:44px;min-width:44px;min-height:44px;border-radius:10px}
+.audio-return>span{font-size:9px;line-height:1.15}
+.reader-app .reader-workspace .audio-details-trigger{width:44px;padding-inline:0}
+.reader-app .workspace-listen:has(.audio-return){padding:0}
+.reader-app .reader-workspace:not([data-dock=left]):not([data-dock=right]) .audio-main:has(.audio-return){gap:0}
+.reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .audio-main:has(.audio-return){display:grid;grid-template-columns:44px 44px;gap:2px}
+.reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .audio-main:has(.audio-return)>button{width:44px;min-width:44px;padding-inline:0}
+.reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .audio-return{grid-column:1/-1;justify-self:center}
+@media(min-width:760px) and (max-height:600px){
+ .reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .audio-main:has(.audio-return){grid-template-columns:44px 44px 44px}
+ .reader-app.unified-tools .reader-workspace[data-compact=true]:is([data-dock=left],[data-dock=right]) .audio-return{grid-column:auto}
+}
