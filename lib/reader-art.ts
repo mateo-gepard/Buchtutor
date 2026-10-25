@@ -12,7 +12,9 @@ export const CAST_ART:Record<string,CastArt>={
   maria: {columns:4,rows:2,characters:["maria","elisabeth","kennedy","paulet","mortimer","burleigh","leicester","shrewsbury"]},
   verwandlung: {columns:3,rows:2,characters:["gregor","grete","vater","mutter","prokurist"]},
 };
-const COVER_IDS=new Set([...Object.keys(CAST_ART),'heimsuchung']);
+// Covers and cast portraits are independent assets. A complete book cover
+// must not depend on whether its characters have a portrait sheet.
+const COVER_IDS=new Set(['iphigenie','krug','faust','woyzeck','nathan','emilia','kabale','maria','verwandlung','lenz','sandmann','kleider','heimsuchung']);
 export function coverImage(workId:string){
  return COVER_IDS.has(workId)?`/art/cover-${workId}-v1.webp`:undefined;
 }

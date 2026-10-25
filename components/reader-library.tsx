@@ -10,7 +10,7 @@ export type LibraryFilters={query:string;filter:'all'|'drama'|'prose'};
 
 export function ReaderLibrary({catalog,progress,onOpen,filters,onFiltersChange}:{catalog:WorkMeta[];progress:ReadingProgress[];onOpen:(id:string)=>void;filters:LibraryFilters;onFiltersChange:(next:LibraryFilters)=>void}){
   const {query,filter}=filters,search=query.trim().toLocaleLowerCase('de');
-  const works=catalog.filter(w=>(filter==='all'||filter==='drama'&&!proseGenres.has(w.genre)||filter==='prose'&&proseGenres.has(w.genre))&&`${w.title} ${w.author}`.toLocaleLowerCase('de').includes(search));
+  const works=catalog.filter(w=>(filter==='all'||filter==='drama'&&!proseGenres.has(w.genre)||filter==='prose'&&proseGenres.has(w.genre))&&`${w.title} ${w.author}`.toLocaleLowerCase('de').includes(search)).sort((a,b)=>a.title.localeCompare(b.title,'de'));
   const showUnavailable=(filter==='all'||filter==='prose')&&'heimsuchung jenny erpenbeck'.includes(search);
   const latest=[...progress].sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).map(p=>catalog.find(w=>w.id===p.workId&&w.editionId===p.editionId)).find(Boolean);
   return <main className="library-page" id="main-content">
@@ -19,7 +19,7 @@ export function ReaderLibrary({catalog,progress,onOpen,filters,onFiltersChange}:
     <div className="library-filter" role="group" aria-label="Bibliothek filtern">{([['all','Alle Werke'],['drama','Dramen'],['prose','Prosa']] as const).map(([id,label])=><button key={id} className={filter===id?'selected':''} aria-pressed={filter===id} onClick={()=>onFiltersChange({...filters,filter:id})}>{label}</button>)}</div>
     <div className="book-grid">{works.map((work,i)=>{
       const continuing=progress.some(p=>p.workId===work.id&&p.editionId===work.editionId);
-      return <button className="library-book" key={work.id} onClick={()=>onOpen(work.id)} aria-label={`${work.title} – ${continuing?'weiterlesen':'öffnen'}`}>
+      return <button className="library-book" key={work.id} data-work={work.id} onClick={()=>onOpen(work.id)} aria-label={`${work.title} – ${continuing?'weiterlesen':'öffnen'}`}>
         <BookCover {...work} priority={i<4}/><span className="book-details"><strong>{work.title}</strong><span>{work.author}</span><span className="book-audio-label"><Headphones size={12}/>{hasAudiobook(work.id)?'Hörbuch verfügbar':'Hörbuch nicht verfügbar'}</span><small>{continuing?'Weiterlesen':work.genre}<ArrowRight size={14}/></small></span>
       </button>;
     })}

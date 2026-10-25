@@ -189,3 +189,8 @@ Die Software verwendet Open-Source-Abhängigkeiten unter ihren jeweiligen Lizenz
 Zehn eigenständige Titelillustrationen und neun Porträttafeln wurden mit dem integrierten ImageGen-Werkzeug für Leseraum erzeugt. Es sind eigene visuelle Interpretationen; keine Abbildungen bestehender Verlagscover und keine belegten historischen Porträts. Die Titel werden als zugänglicher HTML-Text über die Illustrationen gesetzt. Figurenverbindungen und Namen stammen weiterhin aus dem Datenmodell, nicht aus dem Bildgenerator.
 
 Die vollständigen verwendeten Prompts, Originalmaße, Dateizuordnungen und SHA-256-Fingerabdrücke stehen in `docs/art-prompts.json`. Die Website nutzt optimierte WebP-Dateien unter `public/art/`; die unveränderten PNG-Originale werden zusätzlich als Bildpaket bereitgestellt. Nebenfiguren ohne eigenes Porträt behalten ein Initialen-Symbol.
+
+
+## Ergänzende Cover vom 25. Oktober 2026
+
+Für *Lenz*, *Der Sandmann* und *Kleider machen Leute* wurden drei neue eigenständige Coverillustrationen mit dem integrierten ImageGen-Werkzeug im Linolschnittstil der vorhandenen Serie erstellt. Sie bilden keine bestehenden Verlagscover nach und enthalten keine eingebrannten Titel oder Autorennamen; die lesbaren Beschriftungen bleiben HTML-Text. Die drei WebP-Dateien unter `public/art/cover-{lenz,sandmann,kleider}-v1.webp` sind jeweils 720 × 1080 Pixel groß. Vollständige Prompts, Maße und Prüfsummen stehen in `docs/art-prompts.json`; die generierten PNG-Originale liegen lokal in `work/library-covers/`.

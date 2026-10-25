@@ -245,5 +245,46 @@
     "sha256": "c512efbddb98b26fce8a088775d020402a3ed6d2489c76b4e09457c686a6eeba",
     "tool": "Built-in ImageGen",
     "prompt": "Use case: illustration-story. Asset: one complete character-portrait atlas for an interactive literary character constellation for Die Verwandlung. This is a SINGLE atlas image, not a finished UI or diagram. Strict evenly spaced grid: 3 equal columns and 2 equal rows, exactly 6 square cells, edge-to-edge, no gutters, no drawn dividing lines. Whole canvas aspect ratio 3:2. Every cell uses the same warm ivory background. Each head-and-shoulders portrait is centered exactly inside its own cell with the face at the cell center; keep entire head and shoulders safely inside the central 75 percent, leaving equal margin on every side for circular cropping. Shared visual style: elegant literary ink engraving with fine carved linocut lines, delicate paper texture, restrained muted slate blue accent washes and dark charcoal. All faces distinct and expressive, attractive editorial illustration rather than cartoons or photo realism. Era: Central European early twentieth-century domestic clothing. Reading order is left-to-right, top row then bottom row, EXACTLY: 1. Gregor: symbolic ambiguous dark insect-like silhouette against an apartment doorway, NO human face and no literal identifiable insect species; 2. Grete: young adult woman with pinned dark hair, plain blouse and a thoughtful worried expression; 3. Herr Samsa: older stocky father with thick moustache and a high-collared dark coat; 4. Frau Samsa: middle-aged mother with pinned hair and a modest high-collared blouse; 5. Prokurist: neat middle-aged businessman with slicked hair, stiff white collar and dark suit; 6. an empty closed wooden apartment door, a simple symbolic filler motif, no person. No names, letters, numbers, text, labels, connecting lines, halos or borders anywhere. The artwork is explicitly a contemporary interpretation for educational reading, not documentary likeness. Do not add extra people or merge cells. All subjects are adults except the explicitly elderly characters."
+  },
+  {
+    "id": "cover-lenz",
+    "file": "public/art/cover-lenz-v1.webp",
+    "original": "cover-lenz-v1.png",
+    "originalWidth": 1024,
+    "originalHeight": 1536,
+    "width": 720,
+    "height": 1080,
+    "bytes": 202158,
+    "sha256": "37a23a08bbd4e5b3a3751d4c77c02e841412e6d52adb7900efff0f3fd47da6f4",
+    "tool": "Built-in ImageGen",
+    "prompt": "Use case: illustration-story. Asset: one finished original portrait book-cover illustration for Georg Büchner's Lenz, for a refined German literature reader. Canvas 1024x1536, portrait aspect ratio 2:3. Art only, absolutely no letters, title, typography, border, logos, publisher marks or mockup. Full-bleed flat artwork, not a photograph of a book. Shared series visual language: restrained contemporary literary linocut, finely carved ink lines, subtle paper grain, strong elegant silhouettes, limited muted palette of subdued slate blue, deep forest ink and warm ivory. Subject: a solitary small wanderer in a plain eighteenth-century coat, seen from behind on a rough snowy mountain path in the Vosges; dark fir trees, grey rocks and winter mist surround the path. Convey quiet vulnerability and the immense hushed landscape through the figure's scale and posture, without caricature or stigma. Composition: keep all important narrative motifs in the lower 60 percent; the upper 40 percent must be calm, nearly uninterrupted dark slate-blue negative space with only subtle paper grain, suitable for HTML title text. Keep the small figure clearly legible at thumbnail size and safely inside the frame. No recognizable existing publisher cover design, no photorealism, no glossy 3D, no sensational imagery, no text or symbols.",
+    "generatedPath": "/Users/mateo/.codex/generated_images/01a1742e-ba8e-7581-ad8b-fae454a9c57a/exec-55bc763f-3670-40a7-9eb4-407073581602.png",
+    "workspaceOriginal": "work/library-covers/cover-lenz-v1.png"
+  },
+  {
+    "id": "cover-sandmann",
+    "file": "public/art/cover-sandmann-v1.webp",
+    "original": "cover-sandmann-v1.png",
+    "originalWidth": 1024,
+    "originalHeight": 1536,
+    "width": 720,
+    "height": 1080,
+    "bytes": 178318,
+    "sha256": "819fceca6ffae8004e7ca6144fb03b1027e6109cd8f4714789e88b365c252d74",
+    "tool": "Built-in ImageGen",
+    "prompt": "Use case: illustration-story. Asset: one finished original portrait book-cover illustration for E. T. A. Hoffmann's Der Sandmann, for a refined German literature reader. Aspect ratio 2:3, preferably 1024 by 1536 pixels. Art only, absolutely no letters, title, typography, border, logos, publisher marks, watermark or mockup. Full-bleed flat artwork. Shared series visual language: restrained contemporary literary linocut, finely carved ink lines, subtle paper grain, strong elegant silhouettes, limited muted palette of midnight blue, deep ink, antique amber and warm ivory. Subject: an antique brass handheld spyglass lying diagonally across a deep wooden windowsill in the foreground. Beyond the window are the steep closely clustered rooftops of a narrow nineteenth-century German university town at dusk; exactly one distant small window glows with warm amber light. Quiet uncanny ambiguity, watchfulness, distance and uncertainty, no overt horror. Place the main motif and all architectural detail in the lower sixty percent of the image. Reserve the upper forty percent as calm dark midnight-blue negative space with very subtle paper grain, suitable for later HTML title text. Keep the spyglass prominent and unmistakable as a small book thumbnail, with important features away from edges. No doll reveal or narrative spoilers, no people, no gore, no literal floating eyeball, no modern buildings, no photorealism, no glossy 3D, no recognizable existing cover design."
+  },
+  {
+    "id": "cover-kleider",
+    "file": "public/art/cover-kleider-v1.webp",
+    "original": "cover-kleider-v1.png",
+    "originalWidth": 1024,
+    "originalHeight": 1536,
+    "width": 720,
+    "height": 1080,
+    "bytes": 198724,
+    "sha256": "2770cd0b6ca4cd6df4fb5190c79a8f9978ea5053aaed4e3ef1cbaceb9de7ee39",
+    "tool": "Built-in ImageGen",
+    "prompt": "Use case: illustration-story. Asset: one finished original portrait book-cover illustration for Gottfried Keller's Kleider machen Leute, for a refined German literature reader. Canvas 1024 by 1536 pixels, portrait aspect ratio 2:3. Art only, absolutely no letters, title, typography, border, logos, publisher marks, watermark or mockup. Full-bleed flat artwork. Shared series visual language: restrained contemporary literary linocut, finely carved ink lines, subtle paper grain, strong elegant silhouettes, limited palette of muted burgundy, dark umber, muted ochre and warm ivory. Subject: an anonymous young nineteenth-century tailor seen from behind, wearing a very fine flowing dark overcoat, walking toward the gate of a Swiss market town; the edge of a carriage wheel at the street edge, warm light in a few town windows. The elegant coat and the modest solitary traveler quietly suggest appearance and social status; no plot revelations. Composition: place the main figure, gate, street and warm windows within the lower 60 percent; the upper 40 percent is calm, dark burgundy-umber negative space, very little detail, for later HTML author and title text. Keep important features safely away from edges; make the coat silhouette immediately legible at small book-thumbnail size. Quiet, thoughtful atmosphere. No recognizable existing cover design, no photorealism, no glossy 3D, no modern clothing, no extra people."
   }
 ]
